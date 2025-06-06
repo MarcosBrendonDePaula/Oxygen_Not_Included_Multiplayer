@@ -1,6 +1,8 @@
 ﻿using System;
 using HarmonyLib;
 using JetBrains.Annotations;
+using ONI_MP.DebugTools;
+using ONI_MP.Menus;
 using UnityEngine;
 
 namespace ONI_MP.Patches.MainMenuScreen
@@ -15,40 +17,18 @@ namespace ONI_MP.Patches.MainMenuScreen
         private static void OnPrefabInit(MainMenu __instance)
         {
             __instance.AddClonedButton(
-                "NEW MULTIPLAYER",
-                "Start a new game with multiplayer!",
+                "MULTIPLAYER",
+                "Play together!",
                 highlight: true,
-                () => NewMultiplayer()
-            );
-
-            __instance.AddClonedButton(
-                "LOAD MULTIPLAYER",
-                "Load a game with multiplayer!",
-                highlight: false,
-                () => LoadMultiplayer()
-            );
-
-            __instance.AddClonedButton(
-                "JOIN MULTIPLAYER",
-                "Join an existing multiplayer game!",
-                highlight: false,
-                () => JoinMultiplayer()
+                () => OnMultiplayerClicked()
             );
         }
 
-        private static void NewMultiplayer()
+        private static void OnMultiplayerClicked()
         {
-            Debug.Log("[ONI_MP] NEW MULTIPLAYER button clicked");
+            MultiplayerMenu.Show();
+            DebugConsole.Log("Multiplayer menu opened");
         }
 
-        private static void LoadMultiplayer()
-        {
-            Debug.Log("[ONI_MP] LOAD MULTIPLAYER button clicked");
-        }
-
-        private static void JoinMultiplayer()
-        {
-            Debug.Log("[ONI_MP] JOIN MULTIPLAYER button clicked");
-        }
     }
 }

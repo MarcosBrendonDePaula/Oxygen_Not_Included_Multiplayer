@@ -9,7 +9,7 @@ namespace ONI_MP
     {
         public static void Postfix()
         {
-            Debug.Log("Hello World. We have the steamworks library");
+            Debug.Log("Loaded Oxygen Not Included Multiplayer Mod. We have the steamworks library");
         }
     }
 }

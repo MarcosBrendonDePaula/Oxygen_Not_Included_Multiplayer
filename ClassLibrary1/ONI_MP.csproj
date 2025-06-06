@@ -8,11 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="Assembly-CSharp" HintPath="$(CorePath)\Assembly-CSharp.dll" Private="false" />
-    <Reference Include="Assembly-CSharp-firstpass" HintPath="$(CorePath)\Assembly-CSharp-firstpass.dll" Private="false" />
-    <Reference Include="UnityEngine.CoreModule" HintPath="$(CorePath)\UnityEngine.CoreModule.dll" Private="false" />
-    <Reference Include="UnityEngine.UI" HintPath="$(CorePath)\UnityEngine.UI.dll" Private="false" />
-    <Reference Include="0Harmony" HintPath="$(CorePath)\0Harmony.dll" Private="false" />
+    <Reference Include="Assembly-CSharp" HintPath="$(ManagedPath)\Assembly-CSharp.dll" Private="false" />
+    <Reference Include="Assembly-CSharp-firstpass" HintPath="$(ManagedPath)\Assembly-CSharp-firstpass.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(ManagedPath)\UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="UnityEngine.UI" HintPath="$(ManagedPath)\UnityEngine.UI.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(ManagedPath)\0Harmony.dll" Private="false" />
     <Reference Include="com.rlabrecque.steamworks.net" HintPath="$(CorePath)\Steamworks.NET.dll" Private="false" />
     <Reference Include="UnityEngine" HintPath="$(ManagedPath)\UnityEngine.dll" Private="false" />
     <Reference Include="Unity.TextMeshPro" HintPath="$(ManagedPath)\Unity.TextMeshPro.dll" Private="false" />
@@ -20,5 +20,9 @@
     <Reference Include="UnityEngine.IMGUIModule" HintPath="$(ManagedPath)\UnityEngine.IMGUIModule.dll" Private="false" />
     <Reference Include="UnityEngine.UIModule" HintPath="$(ManagedPath)\UnityEngine.UIModule.dll" Private="false" />
     <Reference Include="ImGui.NET" HintPath="$(ManagedPath)\ImGui.NET.dll" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Networking\" />
   </ItemGroup>
 </Project>

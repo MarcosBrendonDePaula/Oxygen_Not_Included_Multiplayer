@@ -17,15 +17,15 @@ namespace ONI_MP.Networking.PacketSenders.Chores
 
         private int lastSentCell = -1;
 
-        private ChoreDriver driver;
+        private ChoreDriver choreDriver;
         private void Start()
         {
-            driver = gameObject.GetComponent<ChoreDriver>();
+            choreDriver = gameObject.GetComponent<ChoreDriver>();
         }
 
         private void Update()
         {
-            if (driver == null)
+            if (choreDriver == null)
             {
                 return;
             }
@@ -49,7 +49,6 @@ namespace ONI_MP.Networking.PacketSenders.Chores
         private int GetTargetCell()
         {
             // Get the ChoreDriver on this GameObject
-            var choreDriver = gameObject.GetComponent<ChoreDriver>();
             if (choreDriver == null)
                 return -1;
 

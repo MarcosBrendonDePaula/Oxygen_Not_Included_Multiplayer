@@ -33,7 +33,6 @@ namespace ONI_MP.DebugTools
             if (Input.GetKeyDown(KeyCode.F1))
             {
                 showMenu = !showMenu;
-                DebugConsole.Log($"[ONI_MP] Debug menu toggled: {showMenu}");
             }
         }
 

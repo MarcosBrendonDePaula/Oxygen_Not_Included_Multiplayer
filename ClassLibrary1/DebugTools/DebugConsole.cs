@@ -34,7 +34,6 @@ namespace ONI_MP.DebugTools
         public void Toggle()
         {
             showConsole = !showConsole;
-            Log("[ONI_MP] Debug console toggled: " + showConsole);
         }
 
         private void Awake()

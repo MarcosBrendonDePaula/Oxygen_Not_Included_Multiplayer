@@ -26,13 +26,13 @@ namespace ONI_MP.Menus
             // Create buttons using existing resume button as style
             AddPopupButton(popup.transform, "Host Game", new Vector2(0, 50), () =>
             {
-                Debug.Log("[ONI_MP] Host Game clicked");
+                Debug.Log("Host Game clicked");
                 UnityEngine.Object.Destroy(popup);
             });
 
             AddPopupButton(popup.transform, "Join Game", new Vector2(0, 0), () =>
             {
-                Debug.Log("[ONI_MP] Join Game clicked");
+                Debug.Log("Join Game clicked");
                 UnityEngine.Object.Destroy(popup);
             });
 
@@ -41,7 +41,7 @@ namespace ONI_MP.Menus
                 UnityEngine.Object.Destroy(popup);
             });
 
-            Debug.Log("[ONI_MP] Multiplayer popup opened.");
+            Debug.Log("Multiplayer popup opened.");
         }
 
         private static void AddPopupButton(Transform parent, string text, Vector2 position, System.Action onClick)
@@ -50,7 +50,7 @@ namespace ONI_MP.Menus
             var template = UnityEngine.Object.FindObjectOfType<MainMenu>()?.Button_ResumeGame;
             if (template == null)
             {
-                Debug.LogError("[ONI_MP] Cannot find template button to clone.");
+                Debug.LogError("Cannot find template button to clone.");
                 return;
             }
 

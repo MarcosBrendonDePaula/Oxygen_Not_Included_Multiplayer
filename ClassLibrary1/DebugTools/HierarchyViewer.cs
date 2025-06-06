@@ -11,7 +11,6 @@ namespace ONI_MP.DebugTools
         public void Toggle()
         {
             showWindow = !showWindow;
-            Debug.Log($"[ONI_MP] HierarchyViewer toggled: {showWindow}");
         }
 
         void OnGUI()

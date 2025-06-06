@@ -19,7 +19,7 @@ namespace ONI_MP
             {
                 if (root == null)
                 {
-                    DebugConsole.LogWarning("[ONI_MP] LogHierarchy called with null root.");
+                    DebugConsole.LogWarning("LogHierarchy called with null root.");
                     return;
                 }
 

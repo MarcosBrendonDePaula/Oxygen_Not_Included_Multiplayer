@@ -11,7 +11,7 @@ namespace ONI_MP.Patches.MainMenuScreen
             var sourceButton = menu.Button_ResumeGame;
             if (sourceButton == null)
             {
-                Debug.LogError("[ONI_MP] Button_ResumeGame is null");
+                Debug.LogError("Button_ResumeGame is null");
                 return;
             }
 
@@ -31,7 +31,7 @@ namespace ONI_MP.Patches.MainMenuScreen
 
             newButton.onClick += action;
 
-            Debug.Log($"[ONI_MP] Button '{text}' added to main menu.");
+            Debug.Log($"Button '{text}' added to main menu.");
         }
 
     }

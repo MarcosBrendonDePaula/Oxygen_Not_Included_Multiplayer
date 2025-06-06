@@ -12,6 +12,7 @@ namespace ONI_MP.Networking
         PlayerJoined = 2,
         PlayerLeft = 3,
         ChatMessage = 4,
+        ChoreMove = 5,
         // Add more types here
     }
 }

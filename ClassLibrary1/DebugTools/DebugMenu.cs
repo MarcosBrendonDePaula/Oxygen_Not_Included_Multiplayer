@@ -30,7 +30,7 @@ namespace ONI_MP.DebugTools
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F5))
+            if (Input.GetKeyDown(KeyCode.F1))
             {
                 showMenu = !showMenu;
                 DebugConsole.Log($"[ONI_MP] Debug menu toggled: {showMenu}");

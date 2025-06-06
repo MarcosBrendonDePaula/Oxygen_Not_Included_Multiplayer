@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ONI_MP.DebugTools;
 using UnityEngine;
 
 namespace ONI_MP
@@ -18,11 +19,11 @@ namespace ONI_MP
             {
                 if (root == null)
                 {
-                    Debug.LogWarning("[ONI_MP] LogHierarchy called with null root.");
+                    DebugConsole.LogWarning("[ONI_MP] LogHierarchy called with null root.");
                     return;
                 }
 
-                Debug.Log($"{prefix}{root.name}");
+                DebugConsole.Log($"{prefix}{root.name}");
 
                 foreach (Transform child in root)
                 {

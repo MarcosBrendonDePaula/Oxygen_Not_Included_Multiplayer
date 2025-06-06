@@ -3,7 +3,9 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using ONI_MP.DebugTools;
 using ONI_MP.Menus;
+using ONI_MP.Networking;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace ONI_MP.Patches.MainMenuScreen
 {
@@ -26,8 +28,7 @@ namespace ONI_MP.Patches.MainMenuScreen
 
         private static void OnMultiplayerClicked()
         {
-            MultiplayerMenu.Show();
-            DebugConsole.Log("Multiplayer menu opened");
+            MultiplayerPopup.Show(FrontEndManager.Instance.transform);
         }
 
     }

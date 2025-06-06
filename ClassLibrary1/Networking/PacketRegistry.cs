@@ -1,0 +1,32 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ONI_MP.Networking.Packets;
+
+namespace ONI_MP.Networking
+{
+    public static class PacketRegistry
+    {
+        private static readonly Dictionary<PacketType, Func<IPacket>> _constructors = new Dictionary<PacketType, Func<IPacket>>();
+
+        public static void Register(PacketType type, Func<IPacket> constructor)
+        {
+            _constructors[type] = constructor;
+        }
+
+        public static IPacket Create(PacketType type)
+        {
+            return _constructors.TryGetValue(type, out var ctor)
+                ? ctor()
+                : throw new InvalidOperationException($"No packet registered for type {type}");
+        }
+
+        public static void RegisterDefaults()
+        {
+            Register(PacketType.Hello, () => new HelloPacket());
+            // Add more registrations here
+        }
+    }
+}

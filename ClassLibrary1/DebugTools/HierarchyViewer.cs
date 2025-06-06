@@ -38,9 +38,42 @@ namespace ONI_MP.DebugTools
 
         private void DrawGameObjectRecursive(GameObject obj, int indent)
         {
+            Component[] components = obj.GetComponents<Component>();
+            string typeInfo = "GameObject";
+
+            foreach (Component comp in components)
+            {
+                if (!(comp is Transform))
+                {
+                    typeInfo = comp.GetType().Name;
+                    break;
+                }
+            }
+
             GUILayout.BeginHorizontal();
             GUILayout.Space(indent * 16);
-            GUILayout.Label(obj.name);
+
+            // Create a label style for measuring
+            GUIContent labelContent = new GUIContent(obj.name);
+            GUIStyle labelStyle = GUI.skin.label;
+            Vector2 labelSize = labelStyle.CalcSize(labelContent);
+
+            Rect labelRect = GUILayoutUtility.GetRect(labelContent, labelStyle);
+            GUI.Label(labelRect, labelContent); // Draw the GameObject name
+
+            // Check mouse hover
+            if (labelRect.Contains(Event.current.mousePosition))
+            {
+                GUIStyle typeStyle = new GUIStyle(GUI.skin.label);
+                typeStyle.normal.textColor = Color.cyan;
+
+                GUIContent typeContent = new GUIContent($" [{typeInfo}]");
+                Vector2 typeSize = typeStyle.CalcSize(typeContent);
+
+                Rect typeRect = new Rect(labelRect.xMax, labelRect.y, typeSize.x, typeSize.y);
+                GUI.Label(typeRect, typeContent, typeStyle);
+            }
+
             GUILayout.EndHorizontal();
 
             foreach (Transform child in obj.transform)
@@ -48,5 +81,7 @@ namespace ONI_MP.DebugTools
                 DrawGameObjectRecursive(child.gameObject, indent + 1);
             }
         }
+
+
     }
 }

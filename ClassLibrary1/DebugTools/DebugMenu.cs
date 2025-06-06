@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using ONI_MP.Networking;
+using UnityEngine;
 
 namespace ONI_MP.DebugTools
 {
@@ -51,6 +52,15 @@ namespace ONI_MP.DebugTools
 
             if (GUILayout.Button("Toggle Debug Console"))
                 debugConsole.Toggle();
+
+            if (GUILayout.Button("Test steamworks"))
+                DebugConsole.Log($"Steamworks Initialized: {SteamManager.Initialized}");
+
+            if (GUILayout.Button("Create Lobby"))
+                SteamLobby.CreateLobby();
+
+            if (GUILayout.Button("Leave lobby"))
+                SteamLobby.LeaveLobby();
 
             GUILayout.Space(20);
 

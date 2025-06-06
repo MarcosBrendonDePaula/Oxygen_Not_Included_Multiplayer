@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using ONI_MP.DebugTools;
+using ONI_MP.Networking;
 using UnityEngine;
 
 namespace ONI_MP
@@ -12,7 +13,8 @@ namespace ONI_MP
         public static void Postfix()
         {
             Debug.Log("Loaded Oxygen Not Included Multiplayer Mod. We have the steamworks library");
-            ONI_MP.DebugTools.DebugMenu.Init();
+            DebugMenu.Init();
+            SteamLobby.Initialize();
         }
 
     }

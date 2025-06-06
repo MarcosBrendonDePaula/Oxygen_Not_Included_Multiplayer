@@ -4,8 +4,7 @@
     <ImplicitUsings>false</ImplicitUsings>
 
     <ManagedPath>F:\SteamLibrary\steamapps\common\OxygenNotIncluded\OxygenNotIncluded_Data\Managed</ManagedPath>
-    <CorePath>D:\Github\My_ONI_MP_Mod\Oni_MP\libs</CorePath>
-    <SteamworksPath>D:\Github\My_ONI_MP_Mod\Oni_MP\libs\Steamworks</SteamworksPath>
+    <CorePath>D:\Github\Oxygen_Not_Included_Multiplayer\libs</CorePath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +13,7 @@
     <Reference Include="UnityEngine.CoreModule" HintPath="$(CorePath)\UnityEngine.CoreModule.dll" Private="false" />
     <Reference Include="UnityEngine.UI" HintPath="$(CorePath)\UnityEngine.UI.dll" Private="false" />
     <Reference Include="0Harmony" HintPath="$(CorePath)\0Harmony.dll" Private="false" />
-    <Reference Include="com.rlabrecque.steamworks.net" HintPath="$(SteamworksPath)\Steamworks.NET.dll" Private="false" />
+    <Reference Include="com.rlabrecque.steamworks.net" HintPath="$(CorePath)\Steamworks.NET.dll" Private="false" />
     <Reference Include="UnityEngine" HintPath="$(ManagedPath)\UnityEngine.dll" Private="false" />
     <Reference Include="Unity.TextMeshPro" HintPath="$(ManagedPath)\Unity.TextMeshPro.dll" Private="false" />
     <Reference Include="UnityEngine.ImageConversionModule" HintPath="$(ManagedPath)\UnityEngine.ImageConversionModule.dll" Private="false" />

@@ -10,7 +10,7 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 
 - Network infrastructure for sending and receiving packets  
 - Creating, joining, and leaving lobbies  
-- Host detection  
+- Host, Client and Session detection  
 - Steam overlay support  
   - Ability to join/invite friends
 - Debug Tools

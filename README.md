@@ -5,6 +5,8 @@
 A new mod that introduces multiplayer functionality to *Oxygen Not Included*, featuring a custom networking layer and lobby system.
 > **Note:** This mod is in the very early pre-pre alpha stage
 
+Join the [Discord](https://discord.gg/jpxveK6mmY)
+
 ---
 
 ## Demo
@@ -57,7 +59,7 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 
 I like the old multiplayer mod — I do — and kudos to the guys that made it. But its implementation is very limited without a lot of extra effort, if not a full rewrite.  
 On top of this, it hasn't seen activity in over 6 months.  
-> **NOTE:** as of June 7th 2025, when I started this project.
+> **NOTE:** as of June 6th 2025, when I started this project.
 
 Initially it was just conceptual, but once I got lobbies and packets set up, I knew I was onto something.
 

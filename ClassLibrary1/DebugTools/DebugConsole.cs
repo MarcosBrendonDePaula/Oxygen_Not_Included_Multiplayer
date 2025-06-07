@@ -115,14 +115,14 @@ namespace ONI_MP.DebugTools
         {
             Debug.Log($"[ONI_MP] {message}");
             EnsureInstance();
-            _instance.HandleLog($"[ONI_MP] {message}", "", LogType.Log);
+            _instance.HandleLog($"{message}", "", LogType.Log);
         }
 
         public static void LogWarning(string message)
         {
             Debug.LogWarning($"[ONI_MP] {message}");
             EnsureInstance();
-            _instance.HandleLog($"[ONI_MP] {message}", "", LogType.Warning);
+            _instance.HandleLog($"{message}", "", LogType.Warning);
         }
 
         public static void LogError(string message)
@@ -136,14 +136,14 @@ namespace ONI_MP.DebugTools
         {
             Debug.LogException(ex);
             EnsureInstance();
-            _instance.HandleLog($"[ONI_MP] {ex.Message}", ex.StackTrace, LogType.Exception);
+            _instance.HandleLog($"{ex.Message}", ex.StackTrace, LogType.Exception);
         }
 
         public static void LogAssert(string message)
         {
             Debug.Log($"[ONI_MP/Assert] {message}");
             EnsureInstance();
-            _instance.HandleLog($"[ONI_MP] {message}", "", LogType.Assert);
+            _instance.HandleLog($"{message}", "", LogType.Assert);
         }
 
         private static void EnsureInstance()

@@ -15,8 +15,6 @@ namespace ONI_MP.Patches.LoadingScreen
         [UsedImplicitly]
         public static void Load_Postfix()
         {
-            DebugConsole.LogWarning("Updating loading screen!");
-
             // Find the overlay instance
             var overlay = GameObject.FindObjectOfType<LoadingOverlay>();
             if (overlay == null)
@@ -30,7 +28,6 @@ namespace ONI_MP.Patches.LoadingScreen
             if (locText != null)
             {
                 locText.SetText(SteamLobby.InLobby ? "Connecting to Multiplayer..." : "Loading...");
-                DebugConsole.Log("Loading screen message set.");
             }
             else
             {

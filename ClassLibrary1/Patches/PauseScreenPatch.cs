@@ -16,7 +16,6 @@ namespace ONI_MP.Patches
             if (MultiplayerSession.InSession)
             {
                 SteamLobby.LeaveLobby();
-                DebugConsole.Log("Left Steam lobby before quitting to main menu.");
                 MultiplayerSession.Clear();
             }
 

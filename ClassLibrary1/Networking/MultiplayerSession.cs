@@ -15,6 +15,9 @@ namespace ONI_MP.Networking
 
             public static bool IsHost => HostSteamID == LocalSteamID;
 
+            public static bool IsInSession => SteamLobby.InLobby && HostSteamID.IsValid();
+
+
             public static void AddPeer(CSteamID peer)
             {
                 if (!ConnectedPeers.Contains(peer))

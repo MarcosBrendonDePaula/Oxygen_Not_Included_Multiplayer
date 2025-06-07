@@ -7,7 +7,6 @@ using ONI_MP.DebugTools;
 
 namespace ONI_MP.Networking.PacketSenders.Chores
 {
-    // This component should only be attached if the local player is the host.
     public class ChoreMoveSender : KMonoBehaviour
     {
         private int lastSentCell = -1;
@@ -32,6 +31,12 @@ namespace ONI_MP.Networking.PacketSenders.Chores
         {
             if (choreDriver == null || networkedEntity == null)
                 return;
+
+            // We're in a session but we're not the host
+            if (MultiplayerSession.IsInSession && !MultiplayerSession.IsHost)
+            {
+                return;
+            }
 
             int targetCell = GetTargetCell();
 

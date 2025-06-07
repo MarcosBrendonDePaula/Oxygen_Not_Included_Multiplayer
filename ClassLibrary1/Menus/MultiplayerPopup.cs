@@ -52,8 +52,6 @@ public static class MultiplayerPopup
         {
             Close();
         });
-
-        Debug.Log("Multiplayer popup opened.");
     }
 
     private static void Close()

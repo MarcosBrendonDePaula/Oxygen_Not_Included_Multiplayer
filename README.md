@@ -11,13 +11,26 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 - Network infrastructure for sending and receiving packets  
 - Creating, joining, and leaving lobbies  
 - Host detection  
+- Steam overlay support  
+  - Ability to join/invite friends
+- Debug Tools
+  - Bespoke console
+  - Hierarchy viewer
+  - Debug Menu (Open with F5)
+  Debug Menu
+    - Open other menus
+    - Test steamworks instantiation
+    - Create Lobby
+    - Leave Lobby
 
 ---
 
 ## Work in Progress
 
 - Move chore synchronization (implemented, currently undergoing testing)  
-- Preventing Duplicants, critters, etc. from moving on clients (their positions will be synchronized from the host)  
+- Preventing Duplicants, critters, etc. from moving on clients (their positions will be synchronized from the host)
+- Main menu UI  
+  - Host/Join/Cancel (Hooked up but not plugged in)
 
 ---
 

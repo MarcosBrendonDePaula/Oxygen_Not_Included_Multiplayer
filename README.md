@@ -91,6 +91,6 @@ Please make sure your changes are clear and well-documented where necessary.
 
 ## License
 
-This project is licensed under the [[MIT License](https://github.com/Lyraedan/Oxygen_Not_Included_Multiplayer/tree/main?tab=MIT-1-ov-file)](LICENSE).  
+This project is licensed under the MIT License.  
 Copyright (c) 2023 Zuev Vladimir, Denis Pakhorukov
 

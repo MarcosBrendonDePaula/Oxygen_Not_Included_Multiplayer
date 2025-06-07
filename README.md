@@ -75,3 +75,8 @@ Please make sure your changes are clear and well-documented where necessary.
 
 ---
 
+## License
+
+This project is licensed under the [MIT License](LICENSE).  
+Copyright (c) 2023 Zuev Vladimir, Denis Pakhorukov
+

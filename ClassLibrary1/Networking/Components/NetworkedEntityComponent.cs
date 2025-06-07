@@ -16,7 +16,6 @@ namespace ONI_MP.Networking.Components
 
         protected override void OnCleanUp()
         {
-            var t = nameof(MoveChore);
             NetEntityRegistry.Unregister(NetId);
             DebugConsole.Log($"Cleaned up Network Entity Component to {name} with NetId: {NetId}");
             base.OnCleanUp();

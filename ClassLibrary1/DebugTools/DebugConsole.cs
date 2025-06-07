@@ -99,9 +99,14 @@ namespace ONI_MP.DebugTools
 
         private void HandleLog(string logString, string stackTrace, LogType type)
         {
+            string message = $"[{type}] {logString}";
+            if (type == LogType.Log)
+            {
+                message = $"{logString}";
+            }
             logEntries.Add(new LogEntry
             {
-                message = $"[{type}] {logString}",
+                message = message,
                 stack = stackTrace,
                 type = type,
                 expanded = false

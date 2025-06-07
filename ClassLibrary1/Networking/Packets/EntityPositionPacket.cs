@@ -31,18 +31,21 @@ namespace ONI_MP.Networking.Packets
 
         public void OnDispatched()
         {
-            if (MultiplayerSession.IsClient)
+            if (MultiplayerSession.IsHost)
             {
-                DebugConsole.Log($"[Packets/EntityPosition] Entity {NetId} moved to {Position}");
-                if (NetEntityRegistry.TryGet(NetId, out var entity))
-                {
-                    entity.transform.SetPosition(Position);
-                }
-                else
-                {
-                    DebugConsole.LogWarning($"[Packets] Could not find entity with NetId {NetId}");
-                }
+                return;
             }
+
+            if (NetEntityRegistry.TryGet(NetId, out var entity))
+            {
+                entity.transform.SetPosition(Position);
+                DebugConsole.Log($"[Packets/EntityPosition] Entity {NetId} moved to {Position}");
+            }
+            else
+            {
+                DebugConsole.LogWarning($"[Packets] Could not find entity with NetId {NetId}");
+            }
+            
         }
 
     }

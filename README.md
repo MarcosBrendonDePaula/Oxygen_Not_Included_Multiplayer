@@ -1,20 +1,31 @@
-A new work in progress Oxygen Not Included Multiplayer Mod.
+# Oxygen Not Included – Multiplayer Mod (WIP)
 
-Not to be confused with: https://github.com/onimp/oni_multiplayer
+> **Note:** This is a work-in-progress project. Not to be confused with [onimp/oni_multiplayer](https://github.com/onimp/oni_multiplayer).
 
-Whats done?
+A new mod that introduces multiplayer functionality to *Oxygen Not Included*, featuring a custom networking layer and lobby system.
 
-* Network infrustructure for sending and recieving packets
-* Creating, Joining and leaving lobbies
-* Host detection
+---
 
-Work in progress
-* Move chore synchronization (implemented undergoing testing)
-* Prevent duplicants, critters etc from moving on clients (Becuase their position will be synchronized from the host)
+## What's Done
 
-Whats planned:
-* World synchronization
-* Fluid on the fly hosting where you can just open a multiplayer game mid game
-* Menu synchronizations
+- Network infrastructure for sending and receiving packets  
+- Creating, joining, and leaving lobbies  
+- Host detection  
 
-And more!
+---
+
+## Work in Progress
+
+- Move chore synchronization (implemented, currently undergoing testing)  
+- Preventing Duplicants, critters, etc. from moving on clients (their positions will be synchronized from the host)  
+
+---
+
+## What's Planned
+
+- World state synchronization  
+- Seamless mid-game hosting (start multiplayer at any point during gameplay)  
+- Menu and UI synchronization  
+- Additional features to be announced  
+
+---

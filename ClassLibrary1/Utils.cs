@@ -30,5 +30,19 @@ namespace ONI_MP
                     LogHierarchy(child, prefix + "  ");
                 }
             }
+
+            /// <summary>
+            /// Inject and add a component to the prefab gameobject
+            /// </summary>
+            /// <typeparam name="T">The type of Component you wish to inject</typeparam>
+            /// <param name="prefab">The GameObject the component is to be added too</param>
+            public static void Inject<T>(GameObject prefab) where T : KMonoBehaviour
+            {
+                if (prefab.GetComponent<T>() == null)
+                {
+                    DebugConsole.Log($"[ONI_MP] Added {typeof(T).Name} to {prefab.name}");
+                    prefab.AddOrGet<T>();
+                }
+            }
         }
     }

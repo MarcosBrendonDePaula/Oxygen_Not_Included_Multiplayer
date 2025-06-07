@@ -15,6 +15,8 @@ namespace ONI_MP.Networking
         public static CSteamID CurrentLobby { get; private set; } = CSteamID.Nil;
         public static bool InLobby => CurrentLobby.IsValid();
 
+        public static int MaxLobbySize { get; private set; } = 0;
+
         public static void Initialize()
         {
             if (!SteamManager.Initialized) return;
@@ -40,6 +42,7 @@ namespace ONI_MP.Networking
             }
 
             DebugConsole.Log("[SteamLobby] Creating new lobby...");
+            MaxLobbySize = maxPlayers;
             SteamMatchmaking.CreateLobby(lobbyType, maxPlayers);
         }
 
@@ -51,6 +54,7 @@ namespace ONI_MP.Networking
                 SteamMatchmaking.LeaveLobby(CurrentLobby);
                 MultiplayerSession.Clear();
                 CurrentLobby = CSteamID.Nil;
+                MaxLobbySize = 0;
                 SteamRichPresence.Clear();
             }
         }

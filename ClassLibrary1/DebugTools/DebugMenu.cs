@@ -68,8 +68,14 @@ namespace ONI_MP.DebugTools
                 var local = MultiplayerSession.LocalPlayer;
                 if (local != null)
                 {
-                    string pingDisplay = local.Ping >= 0 ? $"{local.Ping} ms" : "Pending...";
-                    GUILayout.Label($"Ping to Host: {pingDisplay}");
+                    if (!MultiplayerSession.IsHost)
+                    {
+                        string pingDisplay = local.Ping >= 0 ? $"{local.Ping} ms" : "Pending...";
+                        GUILayout.Label($"Ping to Host: {pingDisplay}");
+                    } else
+                    {
+                        GUILayout.Label("Hosting multiplayer session.");
+                    }
                 }
                 else
                 {

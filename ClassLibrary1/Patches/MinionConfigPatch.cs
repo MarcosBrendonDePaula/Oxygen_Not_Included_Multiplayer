@@ -15,11 +15,7 @@ namespace ONI_MP.Patches
     {
         public static void Postfix(GameObject __result)
         {
-            if (__result.GetComponent<NetworkedEntityComponent>() == null)
-            {
-                DebugConsole.Log($"Added networked entity component to {__result.name}");
-                __result.AddOrGet<NetworkedEntityComponent>();
-            }
+            Utils.Inject<NetworkedEntityComponent>(__result);
         }
     }
 

@@ -13,7 +13,7 @@ namespace ONI_MP.Networking
                 return;
             }
 
-            SteamFriends.SetRichPresence("status", status);
+            SteamFriends.SetRichPresence("gamestatus", status);
             DebugConsole.Log($"SteamRichPresence: Status set to \"{status}\"");
         }
 
@@ -29,18 +29,15 @@ namespace ONI_MP.Networking
             DebugConsole.Log("SteamRichPresence: Cleared.");
         }
 
-        public static void SetLobbyInfo(CSteamID lobbyID, string status = "In Lobby")
+        public static void SetLobbyInfo(CSteamID lobby, string status)
         {
-            if (!SteamManager.Initialized)
-            {
-                DebugConsole.LogWarning("SteamRichPresence: Not initialized.");
-                return;
-            }
+            SteamFriends.ClearRichPresence();
 
-            SteamFriends.SetRichPresence("status", status);
-            SteamFriends.SetRichPresence("steam_lobby", lobbyID.ToString());
+            SteamFriends.SetRichPresence("gamestatus", "In Multiplayer Lobby");
+            SteamFriends.SetRichPresence("steam_display", "Lobby");
+            SteamFriends.SetRichPresence("steam_player_group", SteamLobby.CurrentLobby.ToString());
+            SteamFriends.SetRichPresence("steam_player_group_size", MultiplayerSession.ConnectedPlayers.Count.ToString());
 
-            DebugConsole.Log($"SteamRichPresence: Lobby info set. Status: \"{status}\", Lobby ID: {lobbyID}");
         }
     }
 }

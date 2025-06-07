@@ -4,8 +4,6 @@ using Steamworks;
 
 namespace ONI_MP.Networking
 {
-
-
     public static class PacketSender
     {
         public static byte[] SerializePacket(IPacket packet)

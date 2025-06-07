@@ -45,6 +45,7 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
   >(their positions are very crudely be synchronized from the host. Later deadreckoning, prediction, interpolation etc will be used)
 - Main menu UI  
   - Host/Join/Cancel (Hooked up to the menu but not plugged in)
+- Chat box
 - World / Save synchronization
 
 ---

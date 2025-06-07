@@ -32,8 +32,7 @@ namespace ONI_MP.Networking.PacketSenders.Chores
             if (choreDriver == null || networkedEntity == null)
                 return;
 
-            // We're in a session but we're not the host
-            if (MultiplayerSession.IsInSession && !MultiplayerSession.IsHost)
+            if (MultiplayerSession.IsClient)
             {
                 return;
             }

@@ -13,10 +13,11 @@ namespace ONI_MP.Networking
 
             public static CSteamID HostSteamID { get; private set; } = CSteamID.Nil;
 
+            public static bool InSession => SteamLobby.InLobby && HostSteamID.IsValid();
+
             public static bool IsHost => HostSteamID == LocalSteamID;
 
-            public static bool IsInSession => SteamLobby.InLobby && HostSteamID.IsValid();
-
+            public static bool IsClient => InSession && !IsHost;
 
             public static void AddPeer(CSteamID peer)
             {

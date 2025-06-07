@@ -38,7 +38,7 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 ## What's Planned
 
 - World state synchronization  
-- Seamless mid-game hosting (start multiplayer at any point during gameplay)  
+- Seamless mid-game hosting (start and stop multiplayer at any point during gameplay)  
 - Menu and UI synchronization  
 - Additional features to be announced  
 

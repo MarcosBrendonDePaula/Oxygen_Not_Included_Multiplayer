@@ -29,7 +29,8 @@ namespace ONI_MP.Networking.Packets
 
         public void OnDispatched()
         {
-            if (!MultiplayerSession.IsClient)
+            // Host doesn't need to do this
+            if (MultiplayerSession.IsHost)
                 return;
             
             if (!NetEntityRegistry.TryGet(NetId, out var netEntity))

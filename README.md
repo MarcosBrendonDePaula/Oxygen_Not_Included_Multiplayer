@@ -35,7 +35,8 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 
 ## Work in Progress
 
-- Move chore synchronization (implemented, currently undergoing testing)  
+- Move chore synchronization (implemented, currently undergoing testing)
+- Entity Position synchronization (Duplicates, implemented, being sent a roughly updated on clients)
 - Preventing Duplicants, critters, etc. from moving on clients (their positions will be synchronized from the host)
 - Main menu UI  
   - Host/Join/Cancel (Hooked up but not plugged in)

@@ -31,7 +31,7 @@ namespace ONI_MP.Patches.Chores
             };
 
             PacketSender.SendToAll(packet);
-            DebugConsole.Log($"[Chores] Sent ChoreAssignmentPacket: NetId={packet.NetId}, ChoreId={packet.ChoreId}, Type={__instance.GetType().Name}");
+            DebugConsole.Log($"[Chores] Sent ChoreAssignmentPacket: NetId={packet.NetId}, ChoreId={packet.ChoreId}, Type={__instance.choreType.Name}");
         }
     }
 

@@ -7,7 +7,7 @@ using ONI_MP.Networking.Components;
 
 namespace ONI_MP
 {
-    //https://github.com/O-n-y/OxygenNotIncludedModTemplate
+    // Template: https://github.com/O-n-y/OxygenNotIncludedModTemplate
 
     public class MultiplayerMod : UserMod2
     {

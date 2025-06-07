@@ -16,8 +16,9 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 - Debug Tools
   - Bespoke console
   - Hierarchy viewer
-  - Debug Menu (Open with F5)
-  Debug Menu
+  - Debug Menu (Open with F)
+    
+  Debug Menu contains:
     - Open other menus
     - Test steamworks instantiation
     - Create Lobby
@@ -31,13 +32,14 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 - Preventing Duplicants, critters, etc. from moving on clients (their positions will be synchronized from the host)
 - Main menu UI  
   - Host/Join/Cancel (Hooked up but not plugged in)
+- World / Save synchronization
 
 ---
 
 ## What's Planned
 
 - World state synchronization  
-- Seamless mid-game hosting (start multiplayer at any point during gameplay)  
+- Seamless mid-game hosting (start and stop multiplayer at any point during gameplay)  
 - Menu and UI synchronization  
 - Additional features to be announced  
 
@@ -90,6 +92,6 @@ Please make sure your changes are clear and well-documented where necessary.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).  
+This project is licensed under the MIT License.  
 Copyright (c) 2023 Zuev Vladimir, Denis Pakhorukov
 

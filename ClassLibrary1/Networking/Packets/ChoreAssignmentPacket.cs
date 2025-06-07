@@ -11,20 +11,20 @@ namespace ONI_MP.Networking.Packets
     public class ChoreAssignmentPacket : IPacket
     {
         public int NetId;
-        public int ChoreId;
+        public string ChoreId;
 
         public PacketType Type => PacketType.ChoreAssignment;
 
         public void Serialize(BinaryWriter writer)
         {
             writer.Write(NetId);
-            writer.Write(ChoreId);
+            writer.Write(ChoreId ?? string.Empty);
         }
 
         public void Deserialize(BinaryReader reader)
         {
             NetId = reader.ReadInt32();
-            ChoreId = reader.ReadInt32();
+            ChoreId = reader.ReadString(); // 🔧 FIXED: reading string, not int
         }
 
         public void OnDispatched()
@@ -64,15 +64,16 @@ namespace ONI_MP.Networking.Packets
 
                 foreach (var chore in choreList)
                 {
-                    if (chore != null && chore.id == ChoreId)
+                    if (chore != null && chore.choreType.Id == ChoreId)
                     {
                         chore.AssignChoreToDuplicant(dupeGO);
+                        DebugConsole.Log($"[ChoreAssignment] Assigned chore '{ChoreId}' to {dupeGO.name}");
                         return;
                     }
                 }
             }
 
-            DebugConsole.LogWarning($"[ChoreAssignment] Chore with ID {ChoreId} not found for duplicant {dupeGO.name}");
+            DebugConsole.LogWarning($"[ChoreAssignment] Chore with ID '{ChoreId}' not found for duplicant {dupeGO.name}");
         }
     }
 }

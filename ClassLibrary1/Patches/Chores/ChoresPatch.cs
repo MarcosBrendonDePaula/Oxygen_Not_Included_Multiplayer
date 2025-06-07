@@ -27,11 +27,11 @@ namespace ONI_MP.Patches.Chores
             var packet = new ChoreAssignmentPacket
             {
                 NetId = netComponent.NetId,
-                ChoreId = __instance.id
+                ChoreId = __instance.choreType.Id
             };
 
             PacketSender.SendToAll(packet);
-            DebugConsole.Log($"[Chores] Sent ChoreAssignmentPacket: NetId={packet.NetId}, ChoreId={packet.ChoreId}, Type={__instance.choreType.Name}");
+            DebugConsole.Log($"[Chores] Sent ChoreAssignmentPacket: NetId={packet.NetId}, ChoreId={packet.ChoreId}, Type={__instance.choreType.Name}:{__instance.choreType.Id}");
         }
     }
 

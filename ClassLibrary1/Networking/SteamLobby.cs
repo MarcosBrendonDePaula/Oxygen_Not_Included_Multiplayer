@@ -1,4 +1,5 @@
-﻿using ONI_MP.DebugTools;
+﻿using System;
+using ONI_MP.DebugTools;
 using Steamworks;
 
 namespace ONI_MP.Networking
@@ -28,6 +29,7 @@ namespace ONI_MP.Networking
             _p2pSessionRequest = Callback<P2PSessionRequest_t>.Create(OnP2PSessionRequest);
             _p2pConnectFail = Callback<P2PSessionConnectFail_t>.Create(OnP2PConnectFail);
 
+            PacketRegistry.RegisterDefaults();
             DebugConsole.Log("[SteamLobby] Callbacks registered.");
         }
 
@@ -147,5 +149,29 @@ namespace ONI_MP.Networking
         {
             DebugConsole.LogError($"[SteamLobby] P2P connection failed with {fail.m_steamIDRemote}, reason: {fail.m_eP2PSessionError}");
         }
+
+        public static void ProcessIncomingPackets()
+        {
+            while (SteamNetworking.IsP2PPacketAvailable(out uint packetSize))
+            {
+                byte[] buffer = new byte[packetSize];
+
+                if (SteamNetworking.ReadP2PPacket(buffer, packetSize, out uint bytesRead, out CSteamID sender))
+                {
+                    if (bytesRead > 0)
+                    {
+                        try
+                        {
+                            PacketHandler.HandleIncoming(buffer);
+                        }
+                        catch (Exception ex)
+                        {
+                            DebugConsole.LogError($"[SteamLobby] Failed to handle incoming packet from {sender}: {ex}");
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }

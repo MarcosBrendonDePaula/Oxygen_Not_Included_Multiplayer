@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ONI_MP.Networking.Packets;
+using ONI_MP.Networking.Packets.ONI_MP.Networking.Packets;
 
 namespace ONI_MP.Networking
 {
@@ -26,6 +27,10 @@ namespace ONI_MP.Networking
         public static void RegisterDefaults()
         {
             Register(PacketType.Hello, () => new HelloPacket());
+            Register(PacketType.Ping, () => new PingPacket());
+            Register(PacketType.Pong, () => new PongPacket());
+            Register(PacketType.ChoreAssignment, () => new ChoreAssignmentPacket());
+            Register(PacketType.EntityPosition, () => new EntityPositionPacket());
             // Add more registrations here
         }
     }

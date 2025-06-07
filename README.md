@@ -31,6 +31,7 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 - Preventing Duplicants, critters, etc. from moving on clients (their positions will be synchronized from the host)
 - Main menu UI  
   - Host/Join/Cancel (Hooked up but not plugged in)
+- World / Save synchronization
 
 ---
 

@@ -6,6 +6,12 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 
 ---
 
+## Demo
+
+![Multiplayer Demo](https://i.imgur.com/gItvhpa.png)
+
+---
+
 ## What's Done
 
 - Network infrastructure for sending and receiving packets  

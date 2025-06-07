@@ -23,7 +23,7 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 - Debug Tools
   - Bespoke console
   - Hierarchy viewer
-  - Debug Menu (Open with F)
+  - Debug Menu (Open with Shift+F1)
     
   Debug Menu contains:
     - Open other menus

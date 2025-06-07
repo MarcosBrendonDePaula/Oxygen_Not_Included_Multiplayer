@@ -5,7 +5,7 @@
 A new mod that introduces multiplayer functionality to *Oxygen Not Included*, featuring a custom networking layer and lobby system.
 > **Note:** This mod is in the very early pre-pre alpha stage
 
-Join the ![discord](https://discord.gg/jpxveK6mmY)
+Join the [discord](https://discord.gg/jpxveK6mmY)
 
 ---
 

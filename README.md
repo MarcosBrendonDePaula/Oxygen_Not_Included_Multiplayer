@@ -42,7 +42,7 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
 - Chore synchronization
   >(Implemented, Chore packet is being sent to clients when a duplicant starts a new chore on the host, when a client recieves this packet they force begin the chore)
 - Preventing Duplicants, critters, etc. from moving on clients
-  >(their positions will be synchronized from the host)
+  >(their positions are very crudely be synchronized from the host. Later deadreckoning, prediction, interpolation etc will be used)
 - Main menu UI  
   - Host/Join/Cancel (Hooked up but not plugged in)
 - World / Save synchronization

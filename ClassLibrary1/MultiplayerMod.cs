@@ -7,6 +7,8 @@ using ONI_MP.Networking.Components;
 
 namespace ONI_MP
 {
+    //https://github.com/O-n-y/OxygenNotIncludedModTemplate
+
     public class MultiplayerMod : UserMod2
     {
         public override void OnLoad(Harmony harmony)

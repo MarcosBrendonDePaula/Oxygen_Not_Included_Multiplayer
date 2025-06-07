@@ -1,0 +1,78 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using HarmonyLib;
+using ONI_MP.DebugTools;
+using ONI_MP.Patches.Chores;
+using UnityEngine;
+
+namespace ONI_MP.Networking.PacketSenders.Chores
+{
+    public class ChoreAssignmentPacket : IPacket
+    {
+        public int NetId;
+        public int ChoreId;
+
+        public PacketType Type => PacketType.ChoreAssignment;
+
+        public void Serialize(BinaryWriter writer)
+        {
+            writer.Write(NetId);
+            writer.Write(ChoreId);
+        }
+
+        public void Deserialize(BinaryReader reader)
+        {
+            NetId = reader.ReadInt32();
+            ChoreId = reader.ReadInt32();
+        }
+
+        public void OnDispatched()
+        {
+            if (!MultiplayerSession.IsClient)
+                return;
+
+            if (!NetEntityRegistry.TryGet(NetId, out var netEntity))
+            {
+                DebugConsole.LogWarning($"[ChoreAssignment] Could not find entity with NetId {NetId}");
+                return;
+            }
+
+            GameObject dupeGO = netEntity.gameObject;
+            if (dupeGO == null)
+            {
+                DebugConsole.LogWarning($"[ChoreAssignment] GameObject is null for NetId {NetId}");
+                return;
+            }
+
+            ChoreConsumer consumer = dupeGO.GetComponent<ChoreConsumer>();
+            if (consumer == null)
+            {
+                DebugConsole.LogWarning($"[ChoreAssignment] No ChoreConsumer found on {dupeGO.name}");
+                return;
+            }
+
+            int worldId = dupeGO.GetMyParentWorldId();
+            List<ChoreProvider> providers = Traverse.Create(consumer).Field("providers").GetValue<List<ChoreProvider>>();
+
+            foreach (var provider in providers)
+            {
+                if (provider == null) continue;
+
+                if (!provider.choreWorldMap.TryGetValue(worldId, out var choreList))
+                    continue;
+
+                foreach (var chore in choreList)
+                {
+                    if (chore != null && chore.id == ChoreId)
+                    {
+                        chore.AssignChoreToDuplicant(dupeGO);
+                        return;
+                    }
+                }
+            }
+
+            DebugConsole.LogWarning($"[ChoreAssignment] Chore with ID {ChoreId} not found for duplicant {dupeGO.name}");
+        }
+    }
+}

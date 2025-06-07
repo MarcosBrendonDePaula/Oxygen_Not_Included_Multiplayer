@@ -151,10 +151,6 @@ namespace ONI_MP.UI
             var image = panel.GetComponent<Image>();
             image.color = new Color(0f, 0f, 0f, 0.5f); // Darker translucent background
 
-            // Optional: set sprite with rounded corners
-            // image.sprite = YourRoundedSprite;
-            // image.type = Image.Type.Sliced;
-
             return panel;
         }
 

@@ -44,7 +44,7 @@ namespace ONI_MP
         {
             if (prefab.GetComponent<T>() == null)
             {
-                DebugConsole.Log($"[ONI_MP] Added {typeof(T).Name} to {prefab.name}");
+                DebugConsole.Log($"Added {typeof(T).Name} to {prefab.name}");
                 prefab.AddOrGet<T>();
             }
         }

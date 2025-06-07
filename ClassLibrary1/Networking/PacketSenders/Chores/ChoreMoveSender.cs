@@ -25,6 +25,7 @@ namespace ONI_MP.Networking.PacketSenders.Chores
             {
                 DebugConsole.LogWarning("[ChoreMoveSender] Missing NetworkedEntityComponent. This component requires it to function.");
             }
+            DebugConsole.Log("ChoreMoveSender ready!");
         }
 
         private void Update()
@@ -50,6 +51,7 @@ namespace ONI_MP.Networking.PacketSenders.Chores
                 };
 
                 PacketSender.SendToAll(packet);
+                DebugConsole.Log($"Sent chore move packet from {name}");
             }
         }
 

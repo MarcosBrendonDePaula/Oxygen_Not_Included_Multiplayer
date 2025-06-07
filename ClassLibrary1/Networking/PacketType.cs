@@ -15,6 +15,7 @@ namespace ONI_MP.Networking
         ChoreMove = 5,
         Ping = 6,
         Pong = 7,
+        EntityPosition = 8
         // Add more types here
     }
 }

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using HarmonyLib;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking.Components;
+using ONI_MP.Networking.PacketSenders;
+using ONI_MP.Networking.PacketSenders.Chores;
 using UnityEngine;
 
 namespace ONI_MP.Patches
@@ -16,6 +18,7 @@ namespace ONI_MP.Patches
         public static void Postfix(GameObject __result)
         {
             Utils.Inject<NetworkedEntityComponent>(__result);
+            Utils.Inject<EntityPositionSender>(__result);
         }
     }
 

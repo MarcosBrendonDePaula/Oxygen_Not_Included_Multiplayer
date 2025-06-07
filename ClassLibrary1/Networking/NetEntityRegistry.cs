@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ONI_MP.Networking.Components;
 using UnityEngine;
 
 namespace ONI_MP.Networking

@@ -61,9 +61,29 @@ namespace ONI_MP.DebugTools
             if (GUILayout.Button("Leave lobby"))
                 SteamLobby.LeaveLobby();
 
-            GUILayout.Space(20);
+            GUILayout.Space(10);
 
+            if (MultiplayerSession.InSession)
+            {
+                var local = MultiplayerSession.LocalPlayer;
+                if (local != null)
+                {
+                    string pingDisplay = local.Ping >= 0 ? $"{local.Ping} ms" : "Pending...";
+                    GUILayout.Label($"Ping to Host: {pingDisplay}");
+                }
+                else
+                {
+                    GUILayout.Label("Ping to Host: Unknown");
+                }
+            }
+            else
+            {
+                GUILayout.Label("Not in a multiplayer session.");
+            }
+
+            GUILayout.Space(20);
             GUI.DragWindow(); // Makes the window draggable
         }
+
     }
 }

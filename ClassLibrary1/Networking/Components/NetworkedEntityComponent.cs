@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace ONI_MP.Networking
+namespace ONI_MP.Networking.Components
 {
     public class NetworkedEntityComponent : KMonoBehaviour
     {

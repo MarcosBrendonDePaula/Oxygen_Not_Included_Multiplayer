@@ -44,7 +44,7 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
 - Preventing Duplicants, critters, etc. from moving on clients
   >(their positions are very crudely be synchronized from the host. Later deadreckoning, prediction, interpolation etc will be used)
 - Main menu UI  
-  - Host/Join/Cancel (Hooked up but not plugged in)
+  - Host/Join/Cancel (Hooked up to the menu but not plugged in)
 - World / Save synchronization
 
 ---

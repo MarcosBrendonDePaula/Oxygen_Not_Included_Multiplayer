@@ -13,11 +13,18 @@ namespace ONI_MP.Patches.MainMenuScreen
     [HarmonyPatch(typeof(MainMenu))]
     internal static class MainMenuPatch
     {
+        public static MainMenu Instance { get; private set; }
+
         [HarmonyPrefix]
         [HarmonyPatch("OnPrefabInit")]
         [UsedImplicitly]
         private static void OnPrefabInit(MainMenu __instance)
         {
+            if (Instance == null)
+            {
+                Instance = __instance;
+            }
+
             __instance.AddClonedButton(
                 "MULTIPLAYER",
                 "Play together!",

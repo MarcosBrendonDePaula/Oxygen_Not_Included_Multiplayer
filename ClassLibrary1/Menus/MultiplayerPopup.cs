@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ONI_MP.Networking;
+using ONI_MP.Patches.MainMenuScreen;
 using UnityEngine;
 
 namespace ONI_MP.Menus
@@ -27,6 +29,8 @@ namespace ONI_MP.Menus
             AddPopupButton(popup.transform, "Host Game", new Vector2(0, 50), () =>
             {
                 Debug.Log("Host Game clicked");
+                MainMenuPatch.Instance.Button_ResumeGame.SignalClick(KKeyCode.Mouse0);
+                SteamLobby.CreateLobby();
                 UnityEngine.Object.Destroy(popup);
             });
 

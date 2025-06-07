@@ -11,7 +11,7 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
 
 ## Demo
 
-![Multiplayer Demo](https://i.imgur.com/gItvhpa.png)
+![Multiplayer Demo](https://i.imgur.com/a6iEXj6.jpeg)
 
 ---
 
@@ -38,8 +38,12 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
 ## Work in Progress
 
 - Move chore synchronization (implemented, currently undergoing testing)
-- Entity Position synchronization (Duplicates, implemented, being sent a roughly updated on clients)
-- Preventing Duplicants, critters, etc. from moving on clients (their positions will be synchronized from the host)
+- Entity Position synchronization
+  >(Duplicates, implemented, being sent a roughly updated on clients)
+- Chore synchronization
+  >(Implemented, Chore packet is being sent to clients when a duplicant starts a new chore, when a client recieves this packet they force begin the chore)
+- Preventing Duplicants, critters, etc. from moving on clients
+  >(their positions will be synchronized from the host)
 - Main menu UI  
   - Host/Join/Cancel (Hooked up but not plugged in)
 - World / Save synchronization

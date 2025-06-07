@@ -36,19 +36,22 @@ namespace ONI_MP.Networking
         {
             var bytes = SerializePacket(packet);
 
-            foreach (var peer in MultiplayerSession.ConnectedPeers)
+            foreach (var kvp in MultiplayerSession.ConnectedPlayers)
             {
-                if (exclude.HasValue && peer == exclude.Value)
+                CSteamID peerID = kvp.Key;
+
+                if (exclude.HasValue && peerID == exclude.Value)
                     continue;
 
-                bool sent = SteamNetworking.SendP2PPacket(peer, bytes, (uint)bytes.Length, sendType, 0);
+                bool sent = SteamNetworking.SendP2PPacket(peerID, bytes, (uint)bytes.Length, sendType, 0);
 
                 if (!sent)
                 {
-                    DebugConsole.LogError($"[SteamNetworking] Failed to send packet to {peer}");
+                    DebugConsole.LogError($"[SteamNetworking] Failed to send packet to {peerID}");
                 }
             }
         }
+
 
     }
 

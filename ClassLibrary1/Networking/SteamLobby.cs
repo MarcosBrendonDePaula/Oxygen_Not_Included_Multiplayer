@@ -128,8 +128,7 @@ namespace ONI_MP.Networking
 
         private static void OnP2PSessionRequest(P2PSessionRequest_t request)
         {
-            // Automatically accept all P2P session requests from lobby members
-            if (MultiplayerSession.ConnectedPeers.Contains(request.m_steamIDRemote))
+            if (MultiplayerSession.ConnectedPlayers.ContainsKey(request.m_steamIDRemote))
             {
                 SteamNetworking.AcceptP2PSessionWithUser(request.m_steamIDRemote);
                 DebugConsole.Log($"[SteamLobby] Accepted P2P session from {request.m_steamIDRemote}");

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
+using ONI_MP.DebugTools;
 
 namespace ONI_MP.Patches.Chores
 {
@@ -15,14 +16,14 @@ namespace ONI_MP.Patches.Chores
         {
             if (newChore == null || dupeGO == null)
             {
-                Debug.LogWarning("[ChoreAssignment] Invalid chore or duplicant.");
+                DebugConsole.LogWarning("[ChoreAssignment] Invalid chore or duplicant.");
                 return;
             }
 
             var consumer = dupeGO.GetComponent<ChoreConsumer>();
             if (consumer == null || consumer.choreDriver == null)
             {
-                Debug.LogWarning("[ChoreAssignment] Missing ChoreConsumer or ChoreDriver.");
+                DebugConsole.LogWarning("[ChoreAssignment] Missing ChoreConsumer or ChoreDriver.");
                 return;
             }
 
@@ -41,7 +42,7 @@ namespace ONI_MP.Patches.Chores
 
             newChore.Begin(context);
 
-            Debug.Log($"[ChoreAssignment] Assigned chore {newChore.id} to {dupeGO.name}");
+            DebugConsole.Log($"[ChoreAssignment] Assigned chore {newChore.id} to {dupeGO.name}");
         }
     }
 }

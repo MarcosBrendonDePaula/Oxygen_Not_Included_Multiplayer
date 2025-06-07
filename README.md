@@ -16,8 +16,9 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 - Debug Tools
   - Bespoke console
   - Hierarchy viewer
-  - Debug Menu (Open with F5)
-  Debug Menu
+  - Debug Menu (Open with F)
+    
+  Debug Menu contains:
     - Open other menus
     - Test steamworks instantiation
     - Create Lobby

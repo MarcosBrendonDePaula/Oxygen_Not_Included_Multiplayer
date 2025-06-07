@@ -37,7 +37,6 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
 
 ## Work in Progress
 
-- Move chore synchronization (implemented, currently undergoing testing)
 - Entity Position synchronization
   >(Duplicates, implemented, being sent a roughly updated on clients)
 - Chore synchronization

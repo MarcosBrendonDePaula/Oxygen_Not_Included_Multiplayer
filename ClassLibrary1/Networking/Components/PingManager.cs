@@ -29,15 +29,5 @@ namespace ONI_MP.Networking.Components
                 PacketSender.SendToPlayer(MultiplayerSession.HostSteamID, packet);
             }
         }
-
-        public static void Attach()
-        {
-            if (MultiplayerSession.IsClient && FindObjectOfType<PingManager>() == null)
-            {
-                var go = new GameObject("PingManager");
-                DontDestroyOnLoad(go);
-                go.AddComponent<PingManager>();
-            }
-        }
     }
 }

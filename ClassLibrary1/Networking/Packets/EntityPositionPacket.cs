@@ -31,10 +31,9 @@ namespace ONI_MP.Networking.Packets
 
         public void OnDispatched()
         {
-            DebugConsole.Log($"[Packets] Entity {NetId} moved to {Position}");
-
             if (MultiplayerSession.IsClient)
             {
+                DebugConsole.Log($"[Packets/EntityPosition] Entity {NetId} moved to {Position}");
                 if (NetEntityRegistry.TryGet(NetId, out var entity))
                 {
                     entity.transform.SetPosition(Position);

@@ -3,7 +3,7 @@ using HarmonyLib;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
-using ONI_MP.Networking.PacketSenders.Chores;
+using ONI_MP.Networking.Packets;
 using ONI_MP.Patches.Chores;
 using UnityEngine;
 

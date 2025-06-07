@@ -18,7 +18,8 @@ namespace ONI_MP.Networking
 
         public static int MaxLobbySize { get; private set; } = 0;
 
-        private static System.Action _onLobbyCreatedSuccess = null;
+        private static event System.Action _onLobbyCreatedSuccess = null;
+        private static event Action<CSteamID> _onLobbyJoined = null;
 
         public static void Initialize()
         {
@@ -92,7 +93,7 @@ namespace ONI_MP.Networking
         private static void OnLobbyJoinRequested(GameLobbyJoinRequested_t callback)
         {
             DebugConsole.Log($"[SteamLobby] Joining lobby invited by {callback.m_steamIDFriend}");
-            SteamMatchmaking.JoinLobby(callback.m_steamIDLobby);
+            JoinLobby(callback.m_steamIDLobby);
         }
 
         private static void OnLobbyEntered(LobbyEnter_t callback)
@@ -116,7 +117,10 @@ namespace ONI_MP.Networking
             }
 
             SteamRichPresence.SetLobbyInfo(CurrentLobby, "Multiplayer – In Lobby");
+
+            _onLobbyJoined?.Invoke(CurrentLobby);
         }
+
 
         private static void OnLobbyChatUpdate(LobbyChatUpdate_t callback)
         {
@@ -178,6 +182,23 @@ namespace ONI_MP.Networking
                 }
             }
         }
+
+        public static void JoinLobby(CSteamID lobbyId, System.Action<CSteamID> onJoinedLobby = null)
+        {
+            if (!SteamManager.Initialized)
+                return;
+
+            if (InLobby)
+            {
+                DebugConsole.LogWarning("[SteamLobby] Already in a lobby, leaving current one first.");
+                LeaveLobby();
+            }
+
+            _onLobbyJoined = onJoinedLobby;
+            DebugConsole.Log($"[SteamLobby] Attempting to join lobby: {lobbyId}");
+            SteamMatchmaking.JoinLobby(lobbyId);
+        }
+
 
     }
 }

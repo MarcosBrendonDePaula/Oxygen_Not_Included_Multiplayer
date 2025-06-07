@@ -31,7 +31,7 @@ namespace ONI_MP.Networking.Packets
         {
             if (!MultiplayerSession.IsClient)
                 return;
-
+            
             if (!NetEntityRegistry.TryGet(NetId, out var netEntity))
             {
                 DebugConsole.LogWarning($"[ChoreAssignment] Could not find entity with NetId {NetId}");

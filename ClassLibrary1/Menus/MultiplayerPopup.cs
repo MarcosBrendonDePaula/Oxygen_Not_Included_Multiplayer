@@ -1,5 +1,6 @@
 ﻿using ONI_MP.Networking;
 using ONI_MP.Patches.MainMenuScreen;
+using Steamworks;
 using UnityEngine;
 
 public static class MultiplayerPopup
@@ -39,13 +40,11 @@ public static class MultiplayerPopup
             {
                 MainMenuPatch.Instance.Button_ResumeGame.SignalClick(KKeyCode.Mouse0);
             });
-            Close();
         });
 
         AddPopupButton(popup.transform, "Join Game", new Vector2(0, 0), () =>
         {
-            Debug.Log("Join Game clicked");
-            Close();
+            SteamFriends.ActivateGameOverlay("friends");
         });
 
         AddPopupButton(popup.transform, "Cancel", new Vector2(0, -70), () =>

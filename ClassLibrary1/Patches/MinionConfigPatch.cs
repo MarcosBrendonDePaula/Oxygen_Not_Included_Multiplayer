@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using HarmonyLib;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking.Components;
-using ONI_MP.Networking.PacketSenders;
-using ONI_MP.Networking.PacketSenders.Chores;
 using UnityEngine;
 
 namespace ONI_MP.Patches

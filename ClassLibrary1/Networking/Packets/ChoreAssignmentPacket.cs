@@ -6,7 +6,7 @@ using ONI_MP.DebugTools;
 using ONI_MP.Patches.Chores;
 using UnityEngine;
 
-namespace ONI_MP.Networking.PacketSenders.Chores
+namespace ONI_MP.Networking.Packets
 {
     public class ChoreAssignmentPacket : IPacket
     {

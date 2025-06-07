@@ -1,10 +1,9 @@
 ﻿using System;
 using UnityEngine;
 using ONI_MP.Networking.Packets;
-using ONI_MP.Networking.Components;
 using ONI_MP.DebugTools;
 
-namespace ONI_MP.Networking.PacketSenders
+namespace ONI_MP.Networking.Components
 {
     public class EntityPositionSender : KMonoBehaviour
     {

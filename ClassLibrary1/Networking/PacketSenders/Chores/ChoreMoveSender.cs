@@ -1,45 +1,48 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Packets;
 using ONI_MP.Networking.Packets.Chores;
+using ONI_MP.DebugTools;
 
 namespace ONI_MP.Networking.PacketSenders.Chores
 {
-    public class ChoreMoveSender : MonoBehaviour
+    // This component should only be attached if the local player is the host.
+    public class ChoreMoveSender : KMonoBehaviour
     {
-        // Only add this to an entity if we're the host
-        public int netId;
-
         private int lastSentCell = -1;
 
         private ChoreDriver choreDriver;
-        private void Start()
+        private NetworkedEntityComponent networkedEntity;
+
+        protected override void OnSpawn()
         {
-            choreDriver = gameObject.GetComponent<ChoreDriver>();
+            base.OnSpawn();
+
+            choreDriver = GetComponent<ChoreDriver>();
+            networkedEntity = GetComponent<NetworkedEntityComponent>();
+
+            if (networkedEntity == null)
+            {
+                DebugConsole.LogWarning("[ChoreMoveSender] Missing NetworkedEntityComponent. This component requires it to function.");
+            }
         }
 
         private void Update()
         {
-            if (choreDriver == null)
-            {
+            if (choreDriver == null || networkedEntity == null)
                 return;
-            }
 
-            int currentTargetCell = GetTargetCell();
+            int targetCell = GetTargetCell();
 
-            if (currentTargetCell != -1 && currentTargetCell != lastSentCell)
+            if (targetCell != -1 && targetCell != lastSentCell)
             {
-                lastSentCell = currentTargetCell;
+                lastSentCell = targetCell;
 
                 var packet = new ChoreMovePacket
                 {
-                    NetId = netId,
-                    TargetCell = currentTargetCell
+                    NetId = networkedEntity.NetId,
+                    TargetCell = targetCell
                 };
 
                 PacketSender.SendToAll(packet);
@@ -48,24 +51,16 @@ namespace ONI_MP.Networking.PacketSenders.Chores
 
         private int GetTargetCell()
         {
-            // Get the ChoreDriver on this GameObject
-            if (choreDriver == null)
-                return -1;
-
-            // Ensure the current chore is a MoveChore
             if (choreDriver.GetCurrentChore() is MoveChore moveChore)
             {
                 var smi = moveChore.smi;
-                if (smi != null && smi.getCellCallback != null)
+                if (smi?.getCellCallback != null)
                 {
-                    return smi.getCellCallback(smi); // This gives the destination cell
+                    return smi.getCellCallback(smi);
                 }
             }
 
             return -1;
         }
-
-
     }
-
 }

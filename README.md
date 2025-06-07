@@ -11,7 +11,7 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
 
 ## Demo
 
-![Multiplayer Demo](https://i.imgur.com/vN1GHlF.png)
+![Multiplayer Demo](https://i.imgur.com/a6iEXj6.jpeg)
 
 ---
 

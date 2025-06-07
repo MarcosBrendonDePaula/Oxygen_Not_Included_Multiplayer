@@ -18,6 +18,8 @@ namespace ONI_MP.Networking
 
         public static int MaxLobbySize { get; private set; } = 0;
 
+        private static System.Action _onLobbyCreatedSuccess = null;
+
         public static void Initialize()
         {
             if (!SteamManager.Initialized) return;
@@ -33,7 +35,7 @@ namespace ONI_MP.Networking
             DebugConsole.Log("[SteamLobby] Callbacks registered.");
         }
 
-        public static void CreateLobby(int maxPlayers = 4, ELobbyType lobbyType = ELobbyType.k_ELobbyTypePublic)
+        public static void CreateLobby(int maxPlayers = 4, ELobbyType lobbyType = ELobbyType.k_ELobbyTypePublic, System.Action onSuccess = null)
         {
             if (!SteamManager.Initialized) return;
 
@@ -45,6 +47,7 @@ namespace ONI_MP.Networking
 
             DebugConsole.Log("[SteamLobby] Creating new lobby...");
             MaxLobbySize = maxPlayers;
+            _onLobbyCreatedSuccess = onSuccess;
             SteamMatchmaking.CreateLobby(lobbyType, maxPlayers);
         }
 
@@ -76,10 +79,13 @@ namespace ONI_MP.Networking
                 MultiplayerSession.AddPeer(SteamUser.GetSteamID());
 
                 SteamRichPresence.SetLobbyInfo(CurrentLobby, "Multiplayer – Hosting Lobby");
+                _onLobbyCreatedSuccess?.Invoke();
+                _onLobbyCreatedSuccess = null;
             }
             else
             {
                 DebugConsole.LogError($"[SteamLobby] Failed to create lobby: {callback.m_eResult}");
+                _onLobbyCreatedSuccess = null;
             }
         }
 

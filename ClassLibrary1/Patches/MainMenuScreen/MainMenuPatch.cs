@@ -2,7 +2,6 @@
 using HarmonyLib;
 using JetBrains.Annotations;
 using ONI_MP.DebugTools;
-using ONI_MP.Menus;
 using ONI_MP.Networking;
 using UnityEngine;
 using Object = UnityEngine.Object;

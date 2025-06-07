@@ -41,7 +41,7 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
 - Entity Position synchronization
   >(Duplicates, implemented, being sent a roughly updated on clients)
 - Chore synchronization
-  >(Implemented, Chore packet is being sent to clients when a duplicant starts a new chore)
+  >(Implemented, Chore packet is being sent to clients when a duplicant starts a new chore, when a client recieves this packet they force begin the chore)
 - Preventing Duplicants, critters, etc. from moving on clients
   >(their positions will be synchronized from the host)
 - Main menu UI  

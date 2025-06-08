@@ -33,6 +33,13 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
     - Create Lobby
     - Leave Lobby
 
+- Chat box
+  - Fully synchronized
+  - Includes Join / Leave messages of other users
+  - Themed to look like other UI elements (95% finished)
+  - Expandable
+  - Can be dragged and moved around
+
 ---
 
 ## Work in Progress

@@ -10,10 +10,10 @@ namespace ONI_MP.Networking.Components
         {
             if (!SteamManager.Initialized)
                 return;
+            
 
-            if (!MultiplayerSession.InSession) {
-                return;
-            }
+            if (!MultiplayerSession.InSession)
+               return;
 
             SteamLobby.ProcessIncomingPackets();
         }

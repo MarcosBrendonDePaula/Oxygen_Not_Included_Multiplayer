@@ -1,20 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
 namespace ONI_MP.Networking.Packets
 {
     using System;
     using System.IO;
-    using global::ONI_MP.DebugTools;
+    using ONI_MP.DebugTools; // Why do these imports only work here? What
 
-    namespace ONI_MP.Networking.Packets
-    {
-        public class PongPacket : IPacket
+    public class PongPacket : IPacket
         {
-            public long Timestamp; // in ticks (copied from PingPacket)
+            public long Timestamp;
 
             public PacketType Type => PacketType.Pong;
 
@@ -47,5 +41,3 @@ namespace ONI_MP.Networking.Packets
             }
         }
     }
-
-}

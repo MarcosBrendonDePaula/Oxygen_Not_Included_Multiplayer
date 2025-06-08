@@ -1,5 +1,6 @@
 ﻿using System;
 using ONI_MP.DebugTools;
+using ONI_MP.UI;
 using Steamworks;
 
 namespace ONI_MP.Networking
@@ -57,6 +58,8 @@ namespace ONI_MP.Networking
             if (InLobby)
             {
                 DebugConsole.Log("[SteamLobby] Leaving lobby...");
+                //string myName = SteamFriends.GetPersonaName();
+                //ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{myName}</b> left the game.");
                 SteamMatchmaking.LeaveLobby(CurrentLobby);
                 MultiplayerSession.Clear();
                 CurrentLobby = CSteamID.Nil;
@@ -76,8 +79,8 @@ namespace ONI_MP.Networking
                 SteamMatchmaking.SetLobbyData(CurrentLobby, "host", SteamUser.GetSteamID().ToString());
 
                 MultiplayerSession.Clear();
-                MultiplayerSession.SetHost(SteamUser.GetSteamID());
-                MultiplayerSession.AddPeer(SteamUser.GetSteamID());
+                //MultiplayerSession.SetHost(SteamUser.GetSteamID());
+                //MultiplayerSession.AddPeer(SteamUser.GetSteamID());
 
                 SteamRichPresence.SetLobbyInfo(CurrentLobby, "Multiplayer – Hosting Lobby");
                 _onLobbyCreatedSuccess?.Invoke();
@@ -116,21 +119,26 @@ namespace ONI_MP.Networking
                 MultiplayerSession.AddPeer(member);
             }
 
+            // Log to chat that we joined, NOTE Why the hell does this return a null pointer when we leave the initial lobby and remake it?
+            //string myName = SteamFriends.GetPersonaName();
+            //ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{myName}</b> joined the game.");
+
             SteamRichPresence.SetLobbyInfo(CurrentLobby, "Multiplayer – In Lobby");
 
             _onLobbyJoined?.Invoke(CurrentLobby);
         }
 
-
         private static void OnLobbyChatUpdate(LobbyChatUpdate_t callback)
         {
             CSteamID user = new CSteamID(callback.m_ulSteamIDUserChanged);
             EChatMemberStateChange stateChange = (EChatMemberStateChange)callback.m_rgfChatMemberStateChange;
+            string name = SteamFriends.GetFriendPersonaName(user);
 
             if ((stateChange & EChatMemberStateChange.k_EChatMemberStateChangeEntered) != 0)
             {
                 MultiplayerSession.AddPeer(user);
-                DebugConsole.Log($"[SteamLobby] {SteamFriends.GetFriendPersonaName(user)} joined the lobby.");
+                DebugConsole.Log($"[SteamLobby] {name} joined the lobby.");
+                ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{name}</b> joined the game.");
             }
 
             if ((stateChange & EChatMemberStateChange.k_EChatMemberStateChangeLeft) != 0 ||
@@ -138,7 +146,8 @@ namespace ONI_MP.Networking
                 (stateChange & EChatMemberStateChange.k_EChatMemberStateChangeKicked) != 0)
             {
                 MultiplayerSession.RemovePeer(user);
-                DebugConsole.Log($"[SteamLobby] {SteamFriends.GetFriendPersonaName(user)} left the lobby.");
+                DebugConsole.Log($"[SteamLobby] {name} left the lobby.");
+                ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{name}</b> left the game.");
             }
         }
 

@@ -1,4 +1,6 @@
 ﻿using ONI_MP.DebugTools;
+using ONI_MP.Networking.Packets;
+using ONI_MP.UI;
 using Steamworks;
 using System.Collections.Generic;
 
@@ -6,6 +8,8 @@ namespace ONI_MP.Networking
 {
     public static class MultiplayerSession
     {
+        public static bool ShouldHostAfterLoad = false;
+
         public static readonly Dictionary<CSteamID, MultiplayerPlayer> ConnectedPlayers = new Dictionary<CSteamID, MultiplayerPlayer>();
 
         public static CSteamID LocalSteamID => SteamUser.GetSteamID();
@@ -22,17 +26,15 @@ namespace ONI_MP.Networking
         {
             if (!ConnectedPlayers.ContainsKey(peer))
             {
-                var player = new MultiplayerPlayer(peer);
-                ConnectedPlayers.Add(peer, player);
-                DebugConsole.Log($"[MultiplayerSession] Player added: {player}");
+                ConnectedPlayers[peer] = new MultiplayerPlayer(peer);
             }
         }
 
         public static void RemovePeer(CSteamID peer)
         {
-            if (ConnectedPlayers.Remove(peer))
+            if (ConnectedPlayers.ContainsKey(peer))
             {
-                DebugConsole.Log($"[MultiplayerSession] Player removed: {peer}");
+                ConnectedPlayers.Remove(peer);
             }
         }
 

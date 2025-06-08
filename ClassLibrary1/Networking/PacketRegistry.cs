@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ONI_MP.Networking.Packets;
-using ONI_MP.Networking.Packets.ONI_MP.Networking.Packets;
 
 namespace ONI_MP.Networking
 {

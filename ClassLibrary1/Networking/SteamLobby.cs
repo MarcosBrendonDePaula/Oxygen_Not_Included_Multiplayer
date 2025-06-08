@@ -76,8 +76,8 @@ namespace ONI_MP.Networking
                 SteamMatchmaking.SetLobbyData(CurrentLobby, "host", SteamUser.GetSteamID().ToString());
 
                 MultiplayerSession.Clear();
-                MultiplayerSession.SetHost(SteamUser.GetSteamID());
-                MultiplayerSession.AddPeer(SteamUser.GetSteamID());
+                //MultiplayerSession.SetHost(SteamUser.GetSteamID());
+                //MultiplayerSession.AddPeer(SteamUser.GetSteamID());
 
                 SteamRichPresence.SetLobbyInfo(CurrentLobby, "Multiplayer – Hosting Lobby");
                 _onLobbyCreatedSuccess?.Invoke();
@@ -164,10 +164,14 @@ namespace ONI_MP.Networking
         {
             while (SteamNetworking.IsP2PPacketAvailable(out uint packetSize))
             {
+                DebugConsole.Log($"[SteamLobby] Packet available: {packetSize} bytes");
+
                 byte[] buffer = new byte[packetSize];
 
                 if (SteamNetworking.ReadP2PPacket(buffer, packetSize, out uint bytesRead, out CSteamID sender))
                 {
+                    DebugConsole.Log($"[SteamLobby] Read {bytesRead} bytes from {sender}");
+
                     if (bytesRead > 0)
                     {
                         try
@@ -182,6 +186,7 @@ namespace ONI_MP.Networking
                 }
             }
         }
+
 
         public static void JoinLobby(CSteamID lobbyId, System.Action<CSteamID> onJoinedLobby = null)
         {

@@ -35,7 +35,7 @@ namespace ONI_MP.Networking.Packets
             var senderName = sender != null ? sender.SteamName : SenderId.ToString();
 
             // Add message to chat
-            ChatScreen.Instance?.AddMessage($"<color=cyan>{senderName}:</color> {Message}");
+            ChatScreen.Instance?.AddMessage($"<color=#00FFFF>{senderName}:</color> {Message}");
         }
     }
 }

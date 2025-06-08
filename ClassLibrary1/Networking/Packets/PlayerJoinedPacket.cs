@@ -24,10 +24,11 @@ namespace ONI_MP.Networking.Packets
 
         public void OnDispatched()
         {
-            DebugConsole.Log("Processing joined packet");
+            if (MultiplayerSession.IsHost)
+                return;
+
             if (!MultiplayerSession.ConnectedPlayers.TryGetValue(SteamId, out var player))
             {
-                DebugConsole.Log("Player not found");
                 player = new MultiplayerPlayer(SteamId);
                 MultiplayerSession.ConnectedPlayers.Add(SteamId, player);
                 ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{player.SteamName}</b> joined the game.");

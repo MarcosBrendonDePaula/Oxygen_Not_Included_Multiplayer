@@ -72,17 +72,22 @@ namespace ONI_MP.UI
             // Optional: pre-fill debug message
             AddMessage("<color=yellow>System:</color> Chat initialized.");
 
-            foreach (var msg in pendingMessages)
-                AddMessage(msg);
-            pendingMessages.Clear();
+            ProcessMessageQueue();
 
             StartCoroutine(FixInputFieldDisplay()); // This is stupid
 
         }
 
+        public void ProcessMessageQueue()
+        {
+            foreach (var msg in pendingMessages)
+                AddMessage(msg);
+            pendingMessages.Clear();
+        }
+
         public static void QueueMessage(string msg)
         {
-            if (Instance != null)
+            if (Instance != null && MultiplayerSession.InSession)
                 Instance.AddMessage(msg);
             else
                 pendingMessages.Add(msg);
@@ -118,6 +123,7 @@ namespace ONI_MP.UI
             tmp.alignment = TextAlignmentOptions.TopLeft;
             tmp.color = new Color(0.9f, 0.9f, 0.9f, 1f);
             tmp.margin = new Vector4(4, 4, 4, 4);
+            tmp.richText = true;
 
             var fitter = go.AddComponent<ContentSizeFitter>();
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -306,6 +312,7 @@ namespace ONI_MP.UI
                 };
 
                 PacketSender.SendToAll(packet);
+                DebugConsole.Log("Sent ChatMessage packet");
             }
 
             inputField.DeactivateInputField();

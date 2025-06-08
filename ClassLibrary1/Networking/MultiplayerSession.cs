@@ -1,5 +1,6 @@
 ﻿using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets;
+using ONI_MP.UI;
 using Steamworks;
 using System.Collections.Generic;
 
@@ -25,9 +26,18 @@ namespace ONI_MP.Networking
         {
             if (IsHost)
             {
+                if (!ConnectedPlayers.ContainsKey(peer))
+                {
+                    ConnectedPlayers[peer] = new MultiplayerPlayer(peer);
+                    ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{ConnectedPlayers[peer].SteamName}</b> joined the game.");
+                }
+
                 // Send any existing peers to new players
                 foreach (var player in ConnectedPlayers.Values)
                 {
+                    if (player.SteamID == peer)
+                        continue; // Don’t send the new peer to themselves
+
                     var existingPacket = new PlayerJoinedPacket
                     {
                         SteamId = player.SteamID
@@ -43,27 +53,33 @@ namespace ONI_MP.Networking
                 };
 
                 PacketSender.SendToAll(newJoinPacket);
-                DebugConsole.Log($"[MultiplayerSession] Sent PlayerJoinedPacket for {peer} to all clients.");
             }
         }
-
-
 
         public static void RemovePeer(CSteamID peer)
         {
             if (IsHost)
             {
+                // ✅ Remove from internal state before broadcasting
+                if (ConnectedPlayers.ContainsKey(peer))
+                {
+                    ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{ConnectedPlayers[peer].SteamName}</b> left the game.");
+                    ConnectedPlayers.Remove(peer);
+                }
+                else
+                {
+                    DebugConsole.LogWarning($"[MultiplayerSession] Tried to remove unknown player {peer}.");
+                }
+
+                // Broadcast to all remaining peers
                 var packet = new PlayerLeftPacket
                 {
                     SteamId = peer
                 };
 
                 PacketSender.SendToAll(packet);
-                DebugConsole.Log($"[MultiplayerSession] Sent PlayerLeftPacket for {peer} to all clients.");
             }
         }
-
-
 
         public static void Clear()
         {

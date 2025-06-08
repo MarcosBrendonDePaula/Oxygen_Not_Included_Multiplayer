@@ -23,6 +23,9 @@ namespace ONI_MP.Networking.Packets
 
         public void OnDispatched()
         {
+            if (MultiplayerSession.IsHost)
+                return;
+
             if (MultiplayerSession.ConnectedPlayers.TryGetValue(SteamId, out var player))
             {
                 MultiplayerSession.ConnectedPlayers.Remove(SteamId);

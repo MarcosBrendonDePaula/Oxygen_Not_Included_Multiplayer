@@ -30,6 +30,9 @@ namespace ONI_MP.Networking.Packets
 
             public void OnDispatched()
             {
+                if (MultiplayerSession.IsHost)
+                    return;
+
                 // Client receives this and calculates ping:
                 long now = DateTime.UtcNow.Ticks;
                 long elapsedTicks = now - Timestamp;

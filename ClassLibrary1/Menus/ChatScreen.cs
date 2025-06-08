@@ -18,7 +18,7 @@ namespace ONI_MP.UI
 
         public static ChatScreen Instance => instance;
 
-        private GameObject panel, scroll, input;
+        private GameObject chatbox;
 
         public static void Show()
         {
@@ -35,14 +35,19 @@ namespace ONI_MP.UI
 
         private void SetupUI()
         {
+            // Root container for all chat elements
+            var chatboxContents = new GameObject("Chatbox_Contents");
+            chatboxContents.transform.SetParent(transform, false);
+            chatbox = chatboxContents;
+
             // Panel container
-            panel = CreatePanel("ChatPanel", transform, new Vector2(400, 200), new Vector2(20, 20));
+            var panel = CreatePanel("ChatPanel", chatboxContents.transform, new Vector2(400, 200));
             panel.GetComponent<Image>().color = new Color(0, 0, 0, 0.7f);
             var panelRT = panel.GetComponent<RectTransform>();
             panelRectTransform = panelRT;
 
             // Scrollable message area
-            scroll = CreateScrollArea("Scroll", panel.transform, out messageContainer);
+            var scroll = CreateScrollArea("Scroll", panel.transform, out messageContainer);
             var scrollRT = scroll.GetComponent<RectTransform>();
             scrollRT.anchorMin = new Vector2(0, 0);
             scrollRT.anchorMax = new Vector2(1, 1);
@@ -59,14 +64,25 @@ namespace ONI_MP.UI
 
             // Input field pinned to bottom
             inputField = CreateInputField("ChatInput", panel.transform, new Vector2(10, 15), new Vector2(380, 30));
-            input = inputField.gameObject;
+            inputField.onEndEdit.AddListener(OnInputSubmitted);
 
             // Optional: pre-fill debug message
             AddMessage("<color=yellow>Debug:</color> Chat initialized.");
-            for(int i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++)
             {
                 AddMessage($"<color=blue>Test:</color> Test message {i}");
             }
+
+            StartCoroutine(FixInputFieldDisplay()); // This is stupid
+        }
+
+        private System.Collections.IEnumerator FixInputFieldDisplay()
+        {
+            // Fixes the Caret and the text highlighting because without this they don't show
+            yield return new WaitForEndOfFrame();
+            inputField.gameObject.SetActive(false);
+            yield return new WaitForEndOfFrame();
+            inputField.gameObject.SetActive(true);
         }
 
         public void AddMessage(string text)
@@ -110,26 +126,10 @@ namespace ONI_MP.UI
 
         private void Update()
         {
-            panel.SetActive(MultiplayerSession.InSession);
-            scroll.SetActive(MultiplayerSession.InSession);
-            input.SetActive(MultiplayerSession.InSession);
+            chatbox.SetActive(MultiplayerSession.InSession);
             if (!MultiplayerSession.InSession)
             {
                 return;
-            }
-
-            // ENTER while focused: submit and unfocus
-            if (inputField.isFocused && Input.GetKeyDown(KeyCode.Return))
-            {
-                string message = inputField.text;
-                DebugConsole.Log($"Send message: {message}");
-                if (!string.IsNullOrWhiteSpace(message))
-                {
-                    AddMessage($"<color=green>You:</color> {message}");
-                    inputField.text = "";
-                }
-
-                inputField.DeactivateInputField();
             }
 
             // ENTER while NOT focused: activate input
@@ -145,20 +145,17 @@ namespace ONI_MP.UI
             }
         }
 
-        public GameObject CreatePanel(string name, Transform parent, Vector2 size, Vector2 position)
+        public GameObject CreatePanel(string name, Transform parent, Vector2 size)
         {
             var panel = new GameObject(name, typeof(Image));
             panel.transform.SetParent(parent, false);
 
             var rt = panel.GetComponent<RectTransform>();
             rt.sizeDelta = size;
-            rt.anchorMin = new Vector2(0.5f, 0); // Bottom center
+            rt.anchorMin = new Vector2(0.5f, 0); // Bottom center of screen
             rt.anchorMax = new Vector2(0.5f, 0);
             rt.pivot = new Vector2(0.5f, 0);
-            rt.anchoredPosition = position; // e.g., new Vector2(0, 20)
-
-            var image = panel.GetComponent<Image>();
-            image.color = new Color(0f, 0f, 0f, 0.5f); // translucent
+            rt.anchoredPosition = new Vector2(0, 20); // 20 pixels above bottom edge
 
             return panel;
         }
@@ -278,6 +275,21 @@ namespace ONI_MP.UI
             Vector2 mousePos = Input.mousePosition;
             return RectTransformUtility.RectangleContainsScreenPoint(Instance.panelRectTransform, mousePos, Camera.main);
         }
+
+        private void OnInputSubmitted(string text)
+        {
+            if (!Input.GetKeyDown(KeyCode.Return)) return;
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                AddMessage($"<color=green>You:</color> {text}");
+                DebugConsole.Log($"Send message: {text}");
+                inputField.text = "";
+            }
+
+            inputField.DeactivateInputField();
+        }
+
 
     }
 }

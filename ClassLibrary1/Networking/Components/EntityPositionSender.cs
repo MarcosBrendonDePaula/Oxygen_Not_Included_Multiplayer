@@ -55,7 +55,7 @@ namespace ONI_MP.Networking.Components
                     Position = currentPosition
                 };
 
-                PacketSender.SendToAll(packet);
+                PacketSender.SendToAll(packet, sendType: Steamworks.EP2PSend.k_EP2PSendUnreliable);
                 DebugConsole.Log($"[EntityPositionSender] Sent position packet for entity {networkedEntity.NetId}");
             }
         }

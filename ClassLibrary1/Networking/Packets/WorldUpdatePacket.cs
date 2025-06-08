@@ -36,7 +36,6 @@ namespace ONI_MP.Networking.Packets
                     w.Write(u.DiseaseCount);
                 }
             }
-
             public void Deserialize(BinaryReader r)
             {
                 int count = r.ReadInt32();
@@ -58,6 +57,7 @@ namespace ONI_MP.Networking.Packets
             public void OnDispatched()
             {
                 if (MultiplayerSession.IsHost) return;
+
                 foreach (var u in Updates)
                 {
                     SimMessages.ModifyCell(

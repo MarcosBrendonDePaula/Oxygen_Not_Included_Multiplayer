@@ -75,7 +75,7 @@ namespace ONI_MP.Networking.Packets
 
             DebugConsole.Log($"[WorldDataPacket] Applied {Chunks.Count} chunks.");
 
-            LoadingOverlay.Clear();       // Remove loading UI
+            LoadingOverlay.Clear();
         }
 
     }

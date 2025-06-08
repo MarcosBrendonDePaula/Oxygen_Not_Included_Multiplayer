@@ -4,7 +4,7 @@ namespace ONI_MP.Networking.Packets
 {
     using System;
     using System.IO;
-    using ONI_MP.DebugTools; // Why do these imports only work here? What
+    using global::ONI_MP.DebugTools;
 
     public class PongPacket : IPacket
         {

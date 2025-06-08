@@ -15,6 +15,7 @@ namespace ONI_MP.Networking
         EntityPosition = 5,
         ChoreAssignment = 6,
         WorldData = 7,
-        WorldDataRequest = 8
+        WorldDataRequest = 8,
+        WorldUpdate = 9
     }
 }

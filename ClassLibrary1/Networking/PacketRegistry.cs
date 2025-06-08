@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ONI_MP.Networking.Packets;
+using ONI_MP.Networking.Packets.ONI_MP.Networking.Packets;
 
 namespace ONI_MP.Networking
 {
@@ -32,6 +33,8 @@ namespace ONI_MP.Networking
             Register(PacketType.EntityPosition, () => new EntityPositionPacket());
             Register(PacketType.ChatMessage, () => new ChatMessagePacket());
             Register(PacketType.WorldData, () => new WorldDataPacket());
+            Register(PacketType.WorldDataRequest, () => new WorldDataRequestPacket());
+            Register(PacketType.WorldUpdate, () => new WorldUpdatePacket());
             // Add more registrations here
         }
     }

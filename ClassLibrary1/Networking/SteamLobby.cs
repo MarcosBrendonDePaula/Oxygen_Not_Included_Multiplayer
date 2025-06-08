@@ -1,5 +1,6 @@
 ﻿using System;
 using ONI_MP.DebugTools;
+using ONI_MP.Networking.Packets;
 using ONI_MP.UI;
 using Steamworks;
 
@@ -126,6 +127,19 @@ namespace ONI_MP.Networking
             SteamRichPresence.SetLobbyInfo(CurrentLobby, "Multiplayer – In Lobby");
 
             _onLobbyJoined?.Invoke(CurrentLobby);
+
+            if (!MultiplayerSession.IsHost && MultiplayerSession.HostSteamID.IsValid())
+            {
+                DebugConsole.Log("[SteamLobby] Requesting world data from host...");
+
+                LoadingOverlay.Load(() =>
+                {
+                    // Slide in the multiplayer-tailored loading message (patched earlier)
+                    var req = new WorldDataRequestPacket { SenderId = SteamUser.GetSteamID() };
+                    PacketSender.SendToPlayer(MultiplayerSession.HostSteamID, req);
+                });
+            }
+
         }
 
         private static void OnLobbyChatUpdate(LobbyChatUpdate_t callback)

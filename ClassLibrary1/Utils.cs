@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using HarmonyLib;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
+using ONI_MP.Networking.Packets;
+using ONI_MP.World;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -88,7 +90,52 @@ namespace ONI_MP
             return font;
         }
 
+        public static List<ChunkData> CollectChunks(int startX, int startY, int chunkSize, int numChunksX, int numChunksY)
+        {
+            var chunks = new List<ChunkData>();
+            for (int cx = 0; cx < numChunksX; cx++)
+                for (int cy = 0; cy < numChunksY; cy++)
+                {
+                    int x0 = startX + cx * chunkSize;
+                    int y0 = startY + cy * chunkSize;
+                    chunks.Add(CreateChunk(x0, y0, chunkSize, chunkSize));
+                }
+            return chunks;
+        }
 
+        private static ChunkData CreateChunk(int x0, int y0, int width, int height)
+        {
+            var chunk = new ChunkData
+            {
+                TileX = x0,
+                TileY = y0,
+                Width = width,
+                Height = height,
+                Tiles = new ushort[width * height],
+                Temperatures = new float[width * height],
+                Masses = new float[width * height],
+                DiseaseIdx = new byte[width * height],
+                DiseaseCount = new int[width * height],
+            };
+
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < height; j++)
+                {
+                    int x = x0 + i, y = y0 + j;
+                    int idx = i + j * width;
+                    int cell = Grid.XYToCell(x, y);
+
+                    if (!Grid.IsValidCell(cell)) continue;
+
+                    chunk.Tiles[idx] = Grid.ElementIdx[cell];
+                    chunk.Temperatures[idx] = Grid.Temperature[cell];
+                    chunk.Masses[idx] = Grid.Mass[cell];
+                    chunk.DiseaseIdx[idx] = Grid.DiseaseIdx[cell];
+                    chunk.DiseaseCount[idx] = Grid.DiseaseCount[cell];
+                }
+
+            return chunk;
+        }
 
     }
 }

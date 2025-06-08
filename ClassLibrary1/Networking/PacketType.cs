@@ -13,6 +13,8 @@ namespace ONI_MP.Networking
         Ping = 3,
         Pong = 4,
         EntityPosition = 5,
-        ChoreAssignment = 6
+        ChoreAssignment = 6,
+        WorldData = 7,
+        WorldDataRequest = 8
     }
 }

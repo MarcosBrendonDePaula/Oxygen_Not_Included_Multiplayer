@@ -1,38 +1,23 @@
 ﻿using HarmonyLib;
-using TMPro;
-using UnityEngine;
-using System.Reflection;
-using JetBrains.Annotations;
-using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 
-namespace ONI_MP.Patches
+[HarmonyPatch(typeof(LoadingOverlay), nameof(LoadingOverlay.Load))]
+public static class LoadingScreenPatch
 {
-    [HarmonyPatch(typeof(LoadingOverlay), "Load")]
-    public static class LoadingScreenPatch
+    [HarmonyPostfix]
+    public static void Load_Postfix()
     {
-        [HarmonyPostfix]
-        [UsedImplicitly]
-        public static void Load_Postfix()
-        {
-            // Find the overlay instance
-            var overlay = Object.FindObjectOfType<LoadingOverlay>();
-            if (overlay == null)
-            {
-                DebugConsole.LogWarning("Could not find LoadingOverlay instance.");
-                return;
-            }
+        var overlay = UnityEngine.Object.FindObjectOfType<LoadingOverlay>();
+        if (overlay == null) return;
 
-            // Find the text component (TMP or LocText)
-            var locText = overlay.GetComponentInChildren<LocText>();
-            if (locText != null)
-            {
-                locText.SetText((MultiplayerSession.ShouldHostAfterLoad || SteamLobby.InLobby) ? "Connecting to Multiplayer..." : "Loading...");
-            }
-            else
-            {
-                DebugConsole.LogWarning("Could not find LocText in loading overlay.");
-            }
-        }
+        var locText = overlay.GetComponentInChildren<LocText>();
+        if (locText == null) return;
+
+        bool isMultiplayer = MultiplayerSession.ShouldHostAfterLoad /* host after load? */
+                              || SteamLobby.InLobby         /* you're in a lobby */;
+
+        locText.SetText(isMultiplayer
+            ? "Connecting to Multiplayer..."
+            : "Loading...");
     }
 }

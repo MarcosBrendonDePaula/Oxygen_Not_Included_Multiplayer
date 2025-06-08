@@ -1,17 +1,32 @@
 ﻿using HarmonyLib;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
-using ONI_MP.UI;
+using System.Reflection;
 using UnityEngine;
 
 namespace ONI_MP.Patches
 {
-    [HarmonyPatch(typeof(SaveLoader))]
-    [HarmonyPatch("OnSpawn")]
-    [HarmonyPatch(MethodType.Normal)]
+    [HarmonyPatch]
     public static class SaveLoaderPatch
     {
-        public static void Postfix()
+        // Patch private method: SaveLoader.OnSpawn
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SaveLoader), "OnSpawn")]
+        public static void Postfix_OnSpawn()
+        {
+            TryCreateLobbyAfterLoad("[Multiplayer] Lobby created after world load.");
+        }
+
+        // Patch public method: SaveLoader.LoadFromWorldGen
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SaveLoader), nameof(SaveLoader.LoadFromWorldGen))]
+        public static void Postfix_LoadFromWorldGen(bool __result)
+        {
+            if (__result)
+                TryCreateLobbyAfterLoad("[Multiplayer] Lobby created after new world gen.");
+        }
+
+        private static void TryCreateLobbyAfterLoad(string logMessage)
         {
             if (MultiplayerSession.ShouldHostAfterLoad)
             {
@@ -19,7 +34,7 @@ namespace ONI_MP.Patches
 
                 SteamLobby.CreateLobby(onSuccess: () =>
                 {
-                    DebugConsole.Log("[Multiplayer] Lobby created after world load.");
+                    DebugConsole.Log(logMessage);
                 });
             }
         }

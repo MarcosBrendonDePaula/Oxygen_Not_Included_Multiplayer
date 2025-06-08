@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine.Diagnostics;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
+using ONI_MP.Networking.Packets;
 
 namespace ONI_MP.UI
 {
@@ -67,11 +68,7 @@ namespace ONI_MP.UI
             inputField.onEndEdit.AddListener(OnInputSubmitted);
 
             // Optional: pre-fill debug message
-            AddMessage("<color=yellow>Debug:</color> Chat initialized.");
-            for (int i = 0; i < 10; i++)
-            {
-                AddMessage($"<color=blue>Test:</color> Test message {i}");
-            }
+            AddMessage("<color=yellow>System:</color> Chat initialized.");
 
             StartCoroutine(FixInputFieldDisplay()); // This is stupid
         }
@@ -282,14 +279,22 @@ namespace ONI_MP.UI
 
             if (!string.IsNullOrWhiteSpace(text))
             {
-                AddMessage($"<color=green>You:</color> {text}");
-                DebugConsole.Log($"Send message: {text}");
+                string senderName = MultiplayerSession.LocalPlayer?.SteamName ?? "You";
+
+                AddMessage($"<color=green>{senderName}:</color> {text}");
                 inputField.text = "";
+
+                var packet = new ChatMessagePacket
+                {
+                    SenderId = MultiplayerSession.LocalSteamID,
+                    Message = text
+                };
+
+                PacketSender.SendToAll(packet);
             }
 
             inputField.DeactivateInputField();
         }
-
 
     }
 }

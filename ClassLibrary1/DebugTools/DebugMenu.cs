@@ -52,6 +52,9 @@ namespace ONI_MP.DebugTools
             if (GUILayout.Button("Toggle Debug Console"))
                 debugConsole.Toggle();
 
+            if (GUILayout.Button("Print all fonts"))
+                Utils.ListAllTMPFonts();
+
             if (GUILayout.Button("Test steamworks"))
                 DebugConsole.Log($"Steamworks Initialized: {SteamManager.Initialized}");
 

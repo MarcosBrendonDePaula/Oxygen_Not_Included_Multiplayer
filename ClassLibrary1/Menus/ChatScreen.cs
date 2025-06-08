@@ -6,6 +6,7 @@ using UnityEngine.Diagnostics;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Packets;
+using ONI_MP.Networking.Components;
 
 namespace ONI_MP.UI
 {
@@ -18,7 +19,9 @@ namespace ONI_MP.UI
 
         public static ChatScreen Instance;
 
+        private GameObject header;
         private GameObject chatbox;
+        private bool expanded = false;
 
         private static List<string> pendingMessages = new List<string>();
 
@@ -31,50 +34,101 @@ namespace ONI_MP.UI
             Instance = go.AddComponent<ChatScreen>();
             var parent = GameScreenManager.Instance.ssOverlayCanvas.transform;
             go.transform.SetParent(parent, false);
+
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = new Vector2(0, 0);
+
             Instance.SetupUI();
         }
-
-
         private void SetupUI()
         {
-            // Root container for all chat elements
+            var chatWindowRoot = new GameObject("ChatWindowRoot", typeof(RectTransform));
+            chatWindowRoot.transform.SetParent(transform, false);
+            var rootRT = chatWindowRoot.GetComponent<RectTransform>();
+            rootRT.anchorMin = new Vector2(0.5f, 0);
+            rootRT.anchorMax = new Vector2(0.5f, 0);
+            rootRT.pivot = new Vector2(0.5f, 0);
+            rootRT.anchoredPosition = new Vector2(0, 250);
+            rootRT.sizeDelta = new Vector2(400, 230);
+
+            chatWindowRoot.AddComponent<UIDragHandler>();
+
             var chatboxContents = new GameObject("Chatbox_Contents");
-            chatboxContents.transform.SetParent(transform, false);
+            chatboxContents.transform.SetParent(chatWindowRoot.transform, false);
             chatbox = chatboxContents;
 
-            // Panel container
+            var contentsRT = chatboxContents.AddComponent<RectTransform>();
+            contentsRT.anchorMin = new Vector2(0, 0);
+            contentsRT.anchorMax = new Vector2(1, 1);
+            contentsRT.pivot = new Vector2(0.5f, 0);
+            contentsRT.offsetMin = new Vector2(0, 0);
+            contentsRT.offsetMax = new Vector2(0, -30);
+
             var panel = CreatePanel("ChatPanel", chatboxContents.transform, new Vector2(400, 200));
             panel.GetComponent<Image>().color = new Color(0, 0, 0, 0.7f);
             var panelRT = panel.GetComponent<RectTransform>();
             panelRectTransform = panelRT;
 
-            // Scrollable message area
             var scroll = CreateScrollArea("Scroll", panel.transform, out messageContainer);
             var scrollRT = scroll.GetComponent<RectTransform>();
             scrollRT.anchorMin = new Vector2(0, 0);
             scrollRT.anchorMax = new Vector2(1, 1);
             scrollRT.pivot = new Vector2(0.5f, 1f);
-            scrollRT.offsetMin = new Vector2(10, 50);   // Space for input field at bottom
-            scrollRT.offsetMax = new Vector2(-10, -10); // Optional top padding
+            scrollRT.offsetMin = new Vector2(10, 50);
+            scrollRT.offsetMax = new Vector2(-10, -10);
 
-            // Manually size the message container to match panel
             messageContainer.anchorMin = new Vector2(0, 0);
             messageContainer.anchorMax = new Vector2(1, 1);
             messageContainer.offsetMin = Vector2.zero;
             messageContainer.offsetMax = Vector2.zero;
-            messageContainer.pivot = new Vector2(0.5f, 1f); // Top-left alignment
+            messageContainer.pivot = new Vector2(0.5f, 1f);
 
-            // Input field pinned to bottom
             inputField = CreateInputField("ChatInput", panel.transform, new Vector2(10, 15), new Vector2(380, 30));
             inputField.onEndEdit.AddListener(OnInputSubmitted);
 
-            // Optional: pre-fill debug message
-            QueueMessage("<color=yellow>System:</color> Chat initialized.");
+            header = new GameObject("ChatHeader", typeof(RectTransform), typeof(Image), typeof(Button));
+            header.transform.SetParent(chatWindowRoot.transform, false);
+            var headerRT = header.GetComponent<RectTransform>();
+            headerRT.anchorMin = new Vector2(0, 1);
+            headerRT.anchorMax = new Vector2(1, 1);
+            headerRT.pivot = new Vector2(0.5f, 1);
+            headerRT.anchoredPosition = new Vector2(0, 20);
+            headerRT.sizeDelta = new Vector2(0, 30);
+            header.GetComponent<Image>().color = new Color(0.4f, 0.2f, 0.3f, 0.9f);
 
+            var headerTextGO = new GameObject("HeaderText", typeof(TextMeshProUGUI));
+            headerTextGO.transform.SetParent(header.transform, false);
+            var headerText = headerTextGO.GetComponent<TextMeshProUGUI>();
+            headerText.text = "Chat -";
+            headerText.alignment = TextAlignmentOptions.MidlineLeft;
+            headerText.fontSize = 20;
+            headerText.color = Color.white;
+            headerText.margin = new Vector4(10, 0, 0, 0);
+
+            var headerTextRT = headerText.GetComponent<RectTransform>();
+            headerTextRT.anchorMin = new Vector2(0, 0);
+            headerTextRT.anchorMax = new Vector2(1, 1);
+            headerTextRT.offsetMin = new Vector2(5, 0);
+            headerTextRT.offsetMax = new Vector2(-5, 0);
+
+
+            expanded = true;
+            header.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                expanded = !expanded;
+                chatbox.SetActive(expanded);
+                headerText.text = expanded ? "Chat -" : "Chat +";
+            });
+
+            header.transform.SetAsLastSibling();
+
+            QueueMessage("<color=yellow>System:</color> Chat initialized.");
             ProcessMessageQueue();
 
-            StartCoroutine(FixInputFieldDisplay()); // This is stupid
-
+            StartCoroutine(FixInputFieldDisplay());
         }
 
         public void ProcessMessageQueue()
@@ -108,45 +162,46 @@ namespace ONI_MP.UI
 
         public void AddMessage(string text)
         {
-            if(messageContainer == null)
+            if (messageContainer == null)
             {
                 Debug.LogWarning("[Chatbox] Tried to add a message but messageContainer was null!");
                 return;
             }
 
+            // Create a new message object
             var go = new GameObject("Message", typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(messageContainer, false);
 
-            // Stretch horizontally and auto-fit height
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0, 1);
             rt.anchorMax = new Vector2(1, 1);
             rt.pivot = new Vector2(0, 1);
-            rt.offsetMin = new Vector2(10, 0);
-            rt.offsetMax = new Vector2(-10, 0);
+            rt.offsetMin = new Vector2(0, 0);
+            rt.offsetMax = new Vector2(0, 0);
 
             var tmp = go.GetComponent<TextMeshProUGUI>();
             tmp.text = text;
             tmp.font = Utils.GetDefaultTMPFont();
             tmp.fontSize = 18;
             tmp.enableWordWrapping = true;
+            tmp.richText = true;
             tmp.alignment = TextAlignmentOptions.TopLeft;
             tmp.color = new Color(0.9f, 0.9f, 0.9f, 1f);
-            tmp.margin = new Vector4(4, 4, 4, 4);
-            tmp.richText = true;
+            tmp.margin = new Vector4(6, 2, 6, 2);
 
+            // Fit content height
             var fitter = go.AddComponent<ContentSizeFitter>();
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
             messages.Add(tmp);
 
-            // Force scroll to bottom
+            // Manually rebuild layout and force scroll to bottom
             LayoutRebuilder.ForceRebuildLayoutImmediate(messageContainer);
             var scrollRect = messageContainer.GetComponentInParent<ScrollRect>();
-            scrollRect.verticalNormalizedPosition = 0f;
+            if (scrollRect != null)
+                scrollRect.verticalNormalizedPosition = 0f;
         }
-
         public static bool IsFocused()
         {
             return Instance != null && Instance.inputField != null && Instance.inputField.isFocused;
@@ -154,7 +209,8 @@ namespace ONI_MP.UI
 
         private void Update()
         {
-            chatbox.SetActive(MultiplayerSession.InSession);
+            header.SetActive(MultiplayerSession.InSession);
+            chatbox.SetActive(MultiplayerSession.InSession && expanded);
             if (!MultiplayerSession.InSession)
             {
                 return;
@@ -253,9 +309,9 @@ namespace ONI_MP.UI
 
             scrollRT.anchorMin = new Vector2(0, 0);
             scrollRT.anchorMax = new Vector2(1, 1);
-            scrollRT.pivot = new Vector2(0.5f, 0);
-            scrollRT.offsetMin = new Vector2(10, 50);    // Bottom padding for input field
-            scrollRT.offsetMax = new Vector2(-10, -10);  // Top padding of 10px
+            scrollRT.pivot = new Vector2(0.5f, 1);
+            scrollRT.offsetMin = new Vector2(10, 50);
+            scrollRT.offsetMax = new Vector2(-10, -10);
 
             // Viewport
             var viewport = new GameObject("Viewport", typeof(RectMask2D), typeof(Image));
@@ -265,7 +321,7 @@ namespace ONI_MP.UI
             viewportRT.anchorMax = Vector2.one;
             viewportRT.offsetMin = Vector2.zero;
             viewportRT.offsetMax = Vector2.zero;
-            viewport.GetComponent<Image>().color = new Color(0, 0, 0, 0); // Transparent
+            viewport.GetComponent<Image>().color = Color.clear;
 
             // Content container
             var contentGO = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
@@ -291,6 +347,9 @@ namespace ONI_MP.UI
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 50f;
+
+            // Add layout group and fitter to viewport (optional but can help)
+            viewport.AddComponent<CanvasRenderer>();
 
             return scrollGO;
         }

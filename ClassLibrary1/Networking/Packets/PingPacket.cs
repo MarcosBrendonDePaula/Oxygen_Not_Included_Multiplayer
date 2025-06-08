@@ -2,7 +2,6 @@
 using System.IO;
 using Steamworks;
 using ONI_MP.Networking.Packets;
-using ONI_MP.Networking.Packets.ONI_MP.Networking.Packets;
 
 namespace ONI_MP.Networking.Packets
 {

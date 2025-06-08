@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 
-namespace ONI_MP.Patches.LoadingScreen
+namespace ONI_MP.Patches
 {
     [HarmonyPatch(typeof(LoadingOverlay), "Load")]
     public static class LoadingScreenPatch
@@ -16,7 +16,7 @@ namespace ONI_MP.Patches.LoadingScreen
         public static void Load_Postfix()
         {
             // Find the overlay instance
-            var overlay = GameObject.FindObjectOfType<LoadingOverlay>();
+            var overlay = Object.FindObjectOfType<LoadingOverlay>();
             if (overlay == null)
             {
                 DebugConsole.LogWarning("Could not find LoadingOverlay instance.");
@@ -27,7 +27,7 @@ namespace ONI_MP.Patches.LoadingScreen
             var locText = overlay.GetComponentInChildren<LocText>();
             if (locText != null)
             {
-                locText.SetText(SteamLobby.InLobby ? "Connecting to Multiplayer..." : "Loading...");
+                locText.SetText((MultiplayerSession.ShouldHostAfterLoad || SteamLobby.InLobby) ? "Connecting to Multiplayer..." : "Loading...");
             }
             else
             {

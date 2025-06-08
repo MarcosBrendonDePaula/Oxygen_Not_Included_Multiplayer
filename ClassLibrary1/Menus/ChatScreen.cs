@@ -21,6 +21,8 @@ namespace ONI_MP.UI
 
         private GameObject chatbox;
 
+        private static List<string> pendingMessages = new List<string>();
+
         public static void Show()
         {
             if (instance != null)
@@ -70,7 +72,20 @@ namespace ONI_MP.UI
             // Optional: pre-fill debug message
             AddMessage("<color=yellow>System:</color> Chat initialized.");
 
+            foreach (var msg in pendingMessages)
+                AddMessage(msg);
+            pendingMessages.Clear();
+
             StartCoroutine(FixInputFieldDisplay()); // This is stupid
+
+        }
+
+        public static void QueueMessage(string msg)
+        {
+            if (Instance != null)
+                Instance.AddMessage(msg);
+            else
+                pendingMessages.Add(msg);
         }
 
         private System.Collections.IEnumerator FixInputFieldDisplay()

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ONI_MP.Networking.Packets;
-using ONI_MP.Networking.Packets.ONI_MP.Networking.Packets;
 
 namespace ONI_MP.Networking
 {
@@ -32,6 +31,8 @@ namespace ONI_MP.Networking
             Register(PacketType.ChoreAssignment, () => new ChoreAssignmentPacket());
             Register(PacketType.EntityPosition, () => new EntityPositionPacket());
             Register(PacketType.ChatMessage, () => new ChatMessagePacket());
+            Register(PacketType.PlayerJoined, () => new PlayerJoinedPacket());
+            Register(PacketType.PlayerLeft, () => new PlayerLeftPacket());
             // Add more registrations here
         }
     }

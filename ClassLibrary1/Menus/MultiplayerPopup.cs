@@ -36,10 +36,14 @@ public static class MultiplayerPopup
         // Create buttons
         AddPopupButton(popup.transform, "Host Game", new Vector2(0, 70), () =>
         {
+            MultiplayerSession.ShouldHostAfterLoad = true;
+            MainMenuPatch.Instance.Button_ResumeGame.SignalClick(KKeyCode.Mouse0);
+            /*
             SteamLobby.CreateLobby(onSuccess: () =>
             {
-                MainMenuPatch.Instance.Button_ResumeGame.SignalClick(KKeyCode.Mouse0);
+                
             });
+            */
         });
 
         AddPopupButton(popup.transform, "Join Game", new Vector2(0, 0), () =>

@@ -28,6 +28,10 @@ namespace ONI_MP.Networking
             {
                 DebugConsole.LogError($"[SteamNetworking] Failed to send packet to {target}");
             }
+            else
+            {
+                SteamLobby.IncrementSentPackets();
+            }
         }
 
         public static void SendToAll(IPacket packet, EP2PSend sendType = EP2PSend.k_EP2PSendReliable, CSteamID? exclude = null)
@@ -52,6 +56,10 @@ namespace ONI_MP.Networking
                 if (!sent)
                 {
                     DebugConsole.LogError($"[SteamNetworking] Failed to send packet to {peerID}");
+                } 
+                else
+                {
+                    SteamLobby.IncrementSentPackets();
                 }
             }
         }

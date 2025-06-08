@@ -23,6 +23,15 @@ namespace ONI_MP.Networking
         private static event System.Action _onLobbyCreatedSuccess = null;
         private static event Action<CSteamID> _onLobbyJoined = null;
 
+        public static int PacketsSent { get; private set; } = 0;
+        public static int PacketsReceived { get; private set; } = 0;
+        private static int _sentThisSecond = 0;
+        private static int _receivedThisSecond = 0;
+        public static int SentPerSecond { get; private set; } = 0;
+        public static int ReceivedPerSecond { get; private set; } = 0;
+
+        private static float _timeAccumulator = 0f;
+
         public static void Initialize()
         {
             if (!SteamManager.Initialized) return;
@@ -193,6 +202,8 @@ namespace ONI_MP.Networking
                 {
                     if (bytesRead > 0)
                     {
+                        IncrementReceivedPackets();
+
                         try
                         {
                             PacketHandler.HandleIncoming(buffer);
@@ -222,6 +233,37 @@ namespace ONI_MP.Networking
             SteamMatchmaking.JoinLobby(lobbyId);
         }
 
+        public static void IncrementSentPackets()
+        {
+            PacketsSent++;
+            _sentThisSecond++;
+        }
+
+        public static void IncrementReceivedPackets()
+        {
+            PacketsReceived++;
+            _receivedThisSecond++;
+        }
+
+        public static void ResetPacketCounters()
+        {
+            PacketsSent = 0;
+            PacketsReceived = 0;
+        }
+
+        public static void UpdatePacketRates(float deltaTime)
+        {
+            _timeAccumulator += deltaTime;
+
+            if (_timeAccumulator >= 1f)
+            {
+                SentPerSecond = _sentThisSecond;
+                ReceivedPerSecond = _receivedThisSecond;
+                _sentThisSecond = 0;
+                _receivedThisSecond = 0;
+                _timeAccumulator = 0f;
+            }
+        }
 
     }
 }

@@ -84,6 +84,14 @@ namespace ONI_MP.DebugTools
                 {
                     GUILayout.Label("Ping to Host: Unknown");
                 }
+                GUILayout.Label($"Packets Sent: {SteamLobby.PacketsSent} ({SteamLobby.SentPerSecond}/sec)");
+                GUILayout.Label($"Packets Received: {SteamLobby.PacketsReceived} ({SteamLobby.ReceivedPerSecond}/sec)");
+                if (GUILayout.Button("Reset Packet Counters"))
+                {
+                    SteamLobby.ResetPacketCounters();
+                }
+
+
             }
             else
             {

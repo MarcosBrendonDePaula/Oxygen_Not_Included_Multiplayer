@@ -24,60 +24,17 @@ namespace ONI_MP.Networking
 
         public static void AddPeer(CSteamID peer)
         {
-            if (IsHost)
+            if (!ConnectedPlayers.ContainsKey(peer))
             {
-                if (!ConnectedPlayers.ContainsKey(peer))
-                {
-                    ConnectedPlayers[peer] = new MultiplayerPlayer(peer);
-                    ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{ConnectedPlayers[peer].SteamName}</b> joined the game.");
-                }
-
-                // Send any existing peers to new players
-                foreach (var player in ConnectedPlayers.Values)
-                {
-                    if (player.SteamID == peer)
-                        continue; // Don’t send the new peer to themselves
-
-                    var existingPacket = new PlayerJoinedPacket
-                    {
-                        SteamId = player.SteamID
-                    };
-
-                    PacketSender.SendToPlayer(peer, existingPacket);
-                }
-                
-                // Tell everyone else about the new player
-                var newJoinPacket = new PlayerJoinedPacket
-                {
-                    SteamId = peer
-                };
-
-                PacketSender.SendToAll(newJoinPacket);
+                ConnectedPlayers[peer] = new MultiplayerPlayer(peer);
             }
         }
 
         public static void RemovePeer(CSteamID peer)
         {
-            if (IsHost)
+            if (ConnectedPlayers.ContainsKey(peer))
             {
-                // ✅ Remove from internal state before broadcasting
-                if (ConnectedPlayers.ContainsKey(peer))
-                {
-                    ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{ConnectedPlayers[peer].SteamName}</b> left the game.");
-                    ConnectedPlayers.Remove(peer);
-                }
-                else
-                {
-                    DebugConsole.LogWarning($"[MultiplayerSession] Tried to remove unknown player {peer}.");
-                }
-
-                // Broadcast to all remaining peers
-                var packet = new PlayerLeftPacket
-                {
-                    SteamId = peer
-                };
-
-                PacketSender.SendToAll(packet);
+                ConnectedPlayers.Remove(peer);
             }
         }
 

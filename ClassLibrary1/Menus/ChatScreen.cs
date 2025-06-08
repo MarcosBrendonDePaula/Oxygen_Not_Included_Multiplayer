@@ -11,13 +11,12 @@ namespace ONI_MP.UI
 {
     public class ChatScreen : KScreen
     {
-        public static ChatScreen instance;
         public TMP_InputField inputField;
         private RectTransform messageContainer;
         private List<TextMeshProUGUI> messages = new List<TextMeshProUGUI>();
         private RectTransform panelRectTransform;
 
-        public static ChatScreen Instance => instance;
+        public static ChatScreen Instance;
 
         private GameObject chatbox;
 
@@ -25,14 +24,14 @@ namespace ONI_MP.UI
 
         public static void Show()
         {
-            if (instance != null)
+            if (Instance != null)
                 return;
 
             var go = new GameObject("ChatScreen", typeof(RectTransform));
-            instance = go.AddComponent<ChatScreen>();
+            Instance = go.AddComponent<ChatScreen>();
             var parent = GameScreenManager.Instance.ssOverlayCanvas.transform;
             go.transform.SetParent(parent, false);
-            instance.SetupUI();
+            Instance.SetupUI();
         }
 
 
@@ -70,7 +69,7 @@ namespace ONI_MP.UI
             inputField.onEndEdit.AddListener(OnInputSubmitted);
 
             // Optional: pre-fill debug message
-            AddMessage("<color=yellow>System:</color> Chat initialized.");
+            QueueMessage("<color=yellow>System:</color> Chat initialized.");
 
             ProcessMessageQueue();
 
@@ -81,13 +80,18 @@ namespace ONI_MP.UI
         public void ProcessMessageQueue()
         {
             foreach (var msg in pendingMessages)
-                AddMessage(msg);
+                QueueMessage(msg);
             pendingMessages.Clear();
         }
 
         public static void QueueMessage(string msg)
         {
-            if (Instance != null && MultiplayerSession.InSession)
+            if(string.IsNullOrEmpty(msg))
+            {
+                return;
+            }
+
+            if (Instance != null)
                 Instance.AddMessage(msg);
             else
                 pendingMessages.Add(msg);
@@ -104,6 +108,12 @@ namespace ONI_MP.UI
 
         public void AddMessage(string text)
         {
+            if(messageContainer == null)
+            {
+                Debug.LogWarning("[Chatbox] Tried to add a message but messageContainer was null!");
+                return;
+            }
+
             var go = new GameObject("Message", typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(messageContainer, false);
 
@@ -139,7 +149,7 @@ namespace ONI_MP.UI
 
         public static bool IsFocused()
         {
-            return instance != null && instance.inputField != null && instance.inputField.isFocused;
+            return Instance != null && Instance.inputField != null && Instance.inputField.isFocused;
         }
 
         private void Update()
@@ -302,7 +312,7 @@ namespace ONI_MP.UI
             {
                 string senderName = MultiplayerSession.LocalPlayer?.SteamName ?? "You";
 
-                AddMessage($"<color=green>{senderName}:</color> {text}");
+                QueueMessage($"<color=green>{senderName}:</color> {text}");
                 inputField.text = "";
 
                 var packet = new ChatMessagePacket
@@ -312,7 +322,6 @@ namespace ONI_MP.UI
                 };
 
                 PacketSender.SendToAll(packet);
-                DebugConsole.Log("Sent ChatMessage packet");
             }
 
             inputField.DeactivateInputField();

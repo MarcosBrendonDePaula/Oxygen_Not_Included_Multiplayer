@@ -9,12 +9,10 @@ namespace ONI_MP.Networking
     public enum PacketType : byte
     {
         Hello = 1,
-        PlayerJoined = 2,
-        PlayerLeft = 3,
-        ChatMessage = 4,
-        Ping = 5,
-        Pong = 6,
-        EntityPosition = 7,
-        ChoreAssignment = 8
+        ChatMessage = 2,
+        Ping = 3,
+        Pong = 4,
+        EntityPosition = 5,
+        ChoreAssignment = 6
     }
 }

@@ -28,14 +28,14 @@ namespace ONI_MP.Networking.Packets
         public void OnDispatched()
         {
             // Ignore if this packet came from the local player
-            //if (SenderId == MultiplayerSession.LocalSteamID)
-             //   return;
+            if (SenderId == MultiplayerSession.LocalSteamID)
+                return;
 
             var sender = MultiplayerSession.GetPlayer(SenderId);
             var senderName = sender != null ? sender.SteamName : SenderId.ToString();
 
             // Add message to chat
-            ChatScreen.Instance?.AddMessage($"<color=#00FFFF>{senderName}:</color> {Message}");
+            ChatScreen.QueueMessage($"<color=#00FFFF>{senderName}:</color> {Message}");
         }
     }
 }

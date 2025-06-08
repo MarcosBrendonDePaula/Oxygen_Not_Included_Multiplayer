@@ -31,8 +31,6 @@ namespace ONI_MP.Networking
             Register(PacketType.ChoreAssignment, () => new ChoreAssignmentPacket());
             Register(PacketType.EntityPosition, () => new EntityPositionPacket());
             Register(PacketType.ChatMessage, () => new ChatMessagePacket());
-            Register(PacketType.PlayerJoined, () => new PlayerJoinedPacket());
-            Register(PacketType.PlayerLeft, () => new PlayerLeftPacket());
             // Add more registrations here
         }
     }

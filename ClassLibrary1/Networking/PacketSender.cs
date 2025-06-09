@@ -26,10 +26,11 @@ namespace ONI_MP.Networking
 
             if (!sent)
             {
-                DebugConsole.LogError($"[SteamNetworking] Failed to send packet to {target}");
+                DebugConsole.LogError($"[SteamNetworking] Failed to send {packet.Type} to {target} ({bytes.Length} bytes)", false);
             }
             else
             {
+                DebugConsole.Log($"[SteamNetworking] Sent {packet.Type} to {target} ({bytes.Length} bytes)");
                 SteamLobby.IncrementSentPackets();
             }
         }
@@ -55,18 +56,14 @@ namespace ONI_MP.Networking
 
                 if (!sent)
                 {
-                    DebugConsole.LogError($"[SteamNetworking] Failed to send packet to {peerID}");
-                } 
+                    DebugConsole.LogError($"[SteamNetworking] Failed to send {packet.Type} to {peerID} ({bytes.Length} bytes)", false);
+                }
                 else
                 {
+                    DebugConsole.Log($"[SteamNetworking] Sent {packet.Type} to {peerID} ({bytes.Length} bytes)");
                     SteamLobby.IncrementSentPackets();
                 }
             }
         }
-
-
     }
-
-
-
 }

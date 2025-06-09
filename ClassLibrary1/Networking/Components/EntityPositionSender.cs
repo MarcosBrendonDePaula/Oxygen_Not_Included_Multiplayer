@@ -56,7 +56,7 @@ namespace ONI_MP.Networking.Components
                 };
 
                 PacketSender.SendToAll(packet, sendType: Steamworks.EP2PSend.k_EP2PSendUnreliable);
-                DebugConsole.Log($"[EntityPositionSender] Sent position packet for entity {networkedEntity.NetId}");
+                //DebugConsole.Log($"[EntityPositionSender] Sent position packet for entity {networkedEntity.NetId}");
             }
         }
     }

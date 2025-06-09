@@ -130,9 +130,12 @@ namespace ONI_MP.DebugTools
             _instance.HandleLog($"{message}", "", LogType.Warning);
         }
 
-        public static void LogError(string message)
+        public static void LogError(string message, bool trigger_error_screen = true)
         {
-            Debug.LogError($"[ONI_MP] {message}");
+            if (trigger_error_screen)
+            {
+                Debug.LogError($"[ONI_MP] {message}");
+            }
             EnsureInstance();
             _instance.HandleLog($"[ONI_MP] {message}", "", LogType.Error);
         }

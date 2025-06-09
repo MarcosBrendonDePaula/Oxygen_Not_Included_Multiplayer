@@ -12,22 +12,18 @@ namespace ONI_MP.Patches.Navigation
     {
         static void Prefix(Navigator __instance)
         {
-            // Path is a struct — check if valid and has content
             if (!__instance.path.IsValid() || __instance.path.nodes == null || __instance.path.nodes.Count == 0)
                 return;
 
-            // Only the host should send path updates
             if (MultiplayerSession.IsClient)
                 return;
 
             if (!MultiplayerSession.InSession)
                 return;
 
-            // Check if this entity is networked
             if (!__instance.TryGetComponent<NetworkIdentity>(out var identity))
                 return;
 
-            // Build the packet
             var packet = new NavigatorPathPacket
             {
                 NetId = identity.NetId
@@ -43,10 +39,8 @@ namespace ONI_MP.Patches.Navigation
                 });
             }
 
-            // Send it
             PacketSender.SendToAll(packet);
 
-            // Optional: local debug log
             string log = $"[Navigator AdvancePath] Sent path for {__instance.name} with {__instance.path.nodes.Count} steps.";
             for (int i = 0; i < __instance.path.nodes.Count; i++)
             {

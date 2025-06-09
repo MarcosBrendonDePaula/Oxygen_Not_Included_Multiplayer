@@ -6,10 +6,10 @@ namespace ONI_MP.Networking
 {
     public static class NetEntityRegistry
     {
-        private static readonly Dictionary<int, NetworkedEntityComponent> entities = new Dictionary<int, NetworkedEntityComponent>();
+        private static readonly Dictionary<int, NetworkIdentity> entities = new Dictionary<int, NetworkIdentity>();
         private static readonly System.Random rng = new System.Random();
 
-        public static int Register(NetworkedEntityComponent entity)
+        public static int Register(NetworkIdentity entity)
         {
             int id;
             do
@@ -26,7 +26,7 @@ namespace ONI_MP.Networking
             entities.Remove(netId);
         }
 
-        public static bool TryGet(int netId, out NetworkedEntityComponent entity)
+        public static bool TryGet(int netId, out NetworkIdentity entity)
         {
             return entities.TryGetValue(netId, out entity);
         }

@@ -4,6 +4,7 @@ using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Packets;
 using Steamworks;
+using UnityEngine;
 
 namespace ONI_MP.World
 {
@@ -21,9 +22,9 @@ namespace ONI_MP.World
             }
         }
 
-        public static void Update(float dt)
+        public static void Update()
         {
-            flushTimer += dt;
+            flushTimer += Time.unscaledDeltaTime;
             if (flushTimer >= FlushInterval)
             {
                 Flush();

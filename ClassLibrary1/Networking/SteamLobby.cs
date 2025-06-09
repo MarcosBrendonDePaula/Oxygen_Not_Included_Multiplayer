@@ -29,6 +29,8 @@ namespace ONI_MP.Networking
         private static int _receivedThisSecond = 0;
         public static int SentPerSecond { get; private set; } = 0;
         public static int ReceivedPerSecond { get; private set; } = 0;
+        public static long BytesSent { get; private set; } = 0;
+        public static long BytesReceived { get; private set; } = 0;
 
         private static float _timeAccumulator = 0f;
 
@@ -202,6 +204,7 @@ namespace ONI_MP.Networking
                 {
                     if (bytesRead > 0)
                     {
+                        AddBytesReceived((int)bytesRead);
                         IncrementReceivedPackets();
 
                         try
@@ -232,6 +235,8 @@ namespace ONI_MP.Networking
             DebugConsole.Log($"[SteamLobby] Attempting to join lobby: {lobbyId}");
             SteamMatchmaking.JoinLobby(lobbyId);
         }
+
+        #region Network tracking
 
         public static void IncrementSentPackets()
         {
@@ -265,5 +270,15 @@ namespace ONI_MP.Networking
             }
         }
 
+        public static void AddBytesSent(int byteCount)
+        {
+            BytesSent += byteCount;
+        }
+
+        public static void AddBytesReceived(int byteCount)
+        {
+            BytesReceived += byteCount;
+        }
+        #endregion
     }
 }

@@ -2,6 +2,7 @@
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Packets;
+using ONI_MP.Sync;
 using UnityEngine;
 
 [HarmonyPatch(typeof(Util), nameof(Util.KInstantiate),
@@ -14,33 +15,28 @@ using UnityEngine;
         typeof(bool),
         typeof(int)
     })]
-public static class KInstantiate_FullParams_Patch
+public static class KInstantiatePatch
 {
-    // Prefix: runs before the original method
     public static bool Prefix(GameObject original, Vector3 position, Quaternion rotation, GameObject parent, string name, bool initialize_id, int gameLayer)
     {
-        // Block instantiation if we're a client
         if (MultiplayerSession.IsClient)
         {
             //DebugConsole.Log($"[MP] Blocked KInstantiate on client for prefab '{original?.name}'");
-            return false; // Skip original method
+            return false; // Prevent instantiation
         }
 
-        return true; // Allow original method to run
+        return true; // Allow host to instantiate
     }
 
-    // Postfix: runs after the original method
+    // Queue instantiation into batcher on host
     public static void Postfix(GameObject __result, GameObject original, Vector3 position, Quaternion rotation, GameObject parent, string name, bool initialize_id, int gameLayer)
     {
         if (__result == null || original == null)
             return;
 
-        //DebugConsole.Log($"[MP] KInstantiate Postfix - Created '{__result.name}' from '{original.name}'");
-
-        // Only the host should broadcast instantiations
         if (MultiplayerSession.IsHost)
         {
-            var packet = new InstantiatePacket
+            var entry = new InstantiationsPacket.InstantiationEntry
             {
                 PrefabName = original.name,
                 Position = position,
@@ -50,8 +46,7 @@ public static class KInstantiate_FullParams_Patch
                 GameLayer = gameLayer
             };
 
-            PacketSender.SendToAll(packet);
-           // DebugConsole.Log($"Sent Instantiation packet for object: {original.name}");
+            InstantiationBatcher.Queue(entry);
         }
     }
 }

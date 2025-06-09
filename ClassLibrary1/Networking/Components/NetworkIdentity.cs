@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace ONI_MP.Networking.Components
 {
-    public class NetworkedEntityComponent : KMonoBehaviour
+    public class NetworkIdentity : KMonoBehaviour
     {
         public int NetId { get; private set; }
 

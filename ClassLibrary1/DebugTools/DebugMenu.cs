@@ -86,6 +86,8 @@ namespace ONI_MP.DebugTools
                 }
                 GUILayout.Label($"Packets Sent: {SteamLobby.PacketsSent} ({SteamLobby.SentPerSecond}/sec)");
                 GUILayout.Label($"Packets Received: {SteamLobby.PacketsReceived} ({SteamLobby.ReceivedPerSecond}/sec)");
+                GUILayout.Label($"Sent: {FormatBytes(SteamLobby.BytesSent)}");
+                GUILayout.Label($"Received: {FormatBytes(SteamLobby.BytesReceived)}");
                 if (GUILayout.Button("Reset Packet Counters"))
                 {
                     SteamLobby.ResetPacketCounters();
@@ -101,6 +103,14 @@ namespace ONI_MP.DebugTools
             GUILayout.Space(20);
             GUI.DragWindow(); // Makes the window draggable
         }
+
+        private static string FormatBytes(long bytes)
+        {
+            if (bytes < 1024) return $"{bytes} B";
+            if (bytes < 1024 * 1024) return $"{(bytes / 1024f):F1} KB";
+            return $"{(bytes / 1024f / 1024f):F2} MB";
+        }
+
 
     }
 }

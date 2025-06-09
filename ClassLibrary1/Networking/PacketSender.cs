@@ -31,6 +31,7 @@ namespace ONI_MP.Networking
             else
             {
                 DebugConsole.Log($"[SteamNetworking] Sent {packet.Type} to {target} ({bytes.Length} bytes)");
+                SteamLobby.AddBytesSent(bytes.Length);
                 SteamLobby.IncrementSentPackets();
             }
         }
@@ -61,6 +62,7 @@ namespace ONI_MP.Networking
                 else
                 {
                     DebugConsole.Log($"[SteamNetworking] Sent {packet.Type} to {peerID} ({bytes.Length} bytes)");
+                    SteamLobby.AddBytesSent(bytes.Length);
                     SteamLobby.IncrementSentPackets();
                 }
             }

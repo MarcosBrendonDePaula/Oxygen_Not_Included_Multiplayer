@@ -20,7 +20,7 @@ namespace ONI_MP.Patches.Chores
             if (dupeGO == null)
                 return;
 
-            var netComponent = dupeGO.GetComponent<NetworkedEntityComponent>();
+            var netComponent = dupeGO.GetComponent<NetworkIdentity>();
             if (netComponent == null)
                 return;
 

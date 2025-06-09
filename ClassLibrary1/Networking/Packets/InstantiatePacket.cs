@@ -36,16 +36,18 @@ namespace ONI_MP.Networking.Packets
         {
             PrefabName = reader.ReadString();
 
-            float x = reader.ReadSingle();
-            float y = reader.ReadSingle();
-            float z = reader.ReadSingle();
-            Position = new Vector3(x, y, z);
+            Position = new Vector3(
+                reader.ReadSingle(),
+                reader.ReadSingle(),
+                reader.ReadSingle()
+            );
 
-            float rx = reader.ReadSingle();
-            float ry = reader.ReadSingle();
-            float rz = reader.ReadSingle();
-            float rw = reader.ReadSingle();
-            Rotation = new Quaternion(rx, ry, rz, rw);
+            Rotation = new Quaternion(
+                reader.ReadSingle(),
+                reader.ReadSingle(),
+                reader.ReadSingle(),
+                reader.ReadSingle()
+            );
 
             ObjectName = reader.ReadString();
             InitializeId = reader.ReadBoolean();
@@ -65,7 +67,6 @@ namespace ONI_MP.Networking.Packets
             }
 
             GameObject obj = Instantiate(prefab, Position, Rotation, ObjectName, InitializeId, GameLayer);
-
             if (obj != null)
                 obj.SetActive(true);
         }
@@ -74,31 +75,17 @@ namespace ONI_MP.Networking.Packets
         {
             if (original == null)
             {
-                DebugUtil.LogWarningArgs("Missing prefab");
+                DebugUtil.LogWarningArgs("[InstantiatePacket] Missing original prefab.");
                 return null;
             }
 
-            GameObject gameObject;
-
-            if (original.GetComponent<RectTransform>() != null)
-            {
-                gameObject = Object.Instantiate(original, position, rotation);
-                // No parenting in this version, since clients can't trust object hierarchy (yet)
-                // TODO pass in the parent? NEEDS TESTING
-                // SetParent could be added here later if needed
-            }
-            else
-            {
-                gameObject = Object.Instantiate(original, position, rotation);
-            }
+            GameObject gameObject = Object.Instantiate(original, position, rotation);
 
             if (gameObject == null)
                 return null;
 
             if (gameLayer != 0)
-            {
                 gameObject.SetLayerRecursively(gameLayer);
-            }
 
             gameObject.name = name ?? original.name;
 
@@ -125,6 +112,5 @@ namespace ONI_MP.Networking.Packets
 
             return gameObject;
         }
-
     }
 }

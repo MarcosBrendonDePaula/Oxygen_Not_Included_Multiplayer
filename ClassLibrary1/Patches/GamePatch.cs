@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using ONI_MP.Networking;
+using ONI_MP.Sync;
 using ONI_MP.World;
 using UnityEngine;
 
@@ -13,7 +14,8 @@ namespace ONI_MP.Patches
         {
             if (MultiplayerSession.IsHost)
             {
-                WorldUpdateBatcher.Update(Time.deltaTime);
+                InstantiationBatcher.Update();
+                WorldUpdateBatcher.Update();
             }
         }
     }

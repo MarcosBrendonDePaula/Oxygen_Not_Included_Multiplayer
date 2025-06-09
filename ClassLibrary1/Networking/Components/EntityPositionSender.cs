@@ -11,13 +11,13 @@ namespace ONI_MP.Networking.Components
         private float timer;
         private const float SendInterval = 0.1f; // 100ms
 
-        private NetworkedEntityComponent networkedEntity;
+        private NetworkIdentity networkedEntity;
 
         protected override void OnSpawn()
         {
             base.OnSpawn();
 
-            networkedEntity = GetComponent<NetworkedEntityComponent>();
+            networkedEntity = GetComponent<NetworkIdentity>();
             if (networkedEntity == null)
             {
                 DebugConsole.LogWarning("[EntityPositionSender] Missing NetworkedEntityComponent. This component requires it to function.");

@@ -17,6 +17,7 @@ namespace ONI_MP.Networking
         WorldData = 7,
         WorldDataRequest = 8,
         WorldUpdate = 9,
-        Instantiate = 10
+        Instantiate = 10,
+        Instantiations = 11
     }
 }

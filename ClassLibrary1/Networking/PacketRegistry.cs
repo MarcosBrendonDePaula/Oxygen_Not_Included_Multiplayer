@@ -36,6 +36,7 @@ namespace ONI_MP.Networking
             Register(PacketType.WorldUpdate, () => new WorldUpdatePacket());
             Register(PacketType.Instantiate, () => new InstantiatePacket());
             Register(PacketType.Instantiations, () => new InstantiationsPacket());
+            Register(PacketType.NavigatorPath, () => new NavigatorPathPacket());
             // Add more registrations here
         }
     }

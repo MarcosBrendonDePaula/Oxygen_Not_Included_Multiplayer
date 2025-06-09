@@ -16,7 +16,7 @@ namespace ONI_MP.Patches
         public static void Postfix(GameObject __result)
         {
             Utils.Inject<NetworkIdentity>(__result);
-            Utils.Inject<EntityPositionSender>(__result);
+            //Utils.Inject<EntityPositionSender>(__result);
         }
     }
 

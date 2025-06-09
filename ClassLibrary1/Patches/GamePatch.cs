@@ -12,6 +12,7 @@ namespace ONI_MP.Patches
         [HarmonyPostfix]
         public static void Postfix()
         {
+            var t = nameof(PathFinder);
             if (MultiplayerSession.IsHost)
             {
                 InstantiationBatcher.Update();

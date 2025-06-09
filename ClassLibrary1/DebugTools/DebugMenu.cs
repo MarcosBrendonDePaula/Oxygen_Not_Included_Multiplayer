@@ -80,10 +80,10 @@ namespace ONI_MP.DebugTools
                 }
                 GUILayout.Label($"Packets Sent: {SteamLobby.PacketsSent} ({SteamLobby.SentPerSecond}/sec)");
                 GUILayout.Label($"Packets Received: {SteamLobby.PacketsReceived} ({SteamLobby.ReceivedPerSecond}/sec)");
-                GUILayout.Label($"Sent: {FormatBytes(SteamLobby.BytesSent)}");
-                GUILayout.Label($"Received: {FormatBytes(SteamLobby.BytesReceived)}");
-                GUILayout.Label($"Sent /sec: {FormatBytes(SteamLobby.BytesSentSec)}");
-                GUILayout.Label($"Received /sec: {FormatBytes(SteamLobby.BytesReceivedSec)}");
+                GUILayout.Label($"Total Bandwidth Sent: {FormatBytes(SteamLobby.BytesSent)}");
+                GUILayout.Label($"Total Bandwidth Received: {FormatBytes(SteamLobby.BytesReceived)}");
+                GUILayout.Label($"Bandwidth Sent/sec: {FormatBytes(SteamLobby.BytesSentSec)}");
+                GUILayout.Label($"Bandwidth Received/sec: {FormatBytes(SteamLobby.BytesReceivedSec)}");
                 if (GUILayout.Button("Reset Packet Counters"))
                 {
                     SteamLobby.ResetPacketCounters();

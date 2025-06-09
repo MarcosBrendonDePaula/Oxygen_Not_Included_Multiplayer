@@ -16,6 +16,7 @@ namespace ONI_MP.Networking
         ChoreAssignment = 6,
         WorldData = 7,
         WorldDataRequest = 8,
-        WorldUpdate = 9
+        WorldUpdate = 9,
+        Instantiate = 10
     }
 }

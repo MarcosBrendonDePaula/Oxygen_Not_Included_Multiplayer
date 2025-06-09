@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO.Compression;
+using ONI_MP.Networking;
 
 namespace ONI_MP.Networking.Packets
 {
@@ -23,32 +22,52 @@ namespace ONI_MP.Networking.Packets
 
         public void Serialize(BinaryWriter w)
         {
-            w.Write(Updates.Count);
-            foreach (var u in Updates)
+            using (var ms = new MemoryStream())
             {
-                w.Write(u.Cell);
-                w.Write(u.ElementIdx);
-                w.Write(u.Temperature);
-                w.Write(u.Mass);
-                w.Write(u.DiseaseIdx);
-                w.Write(u.DiseaseCount);
+                using (var deflate = new DeflateStream(ms, CompressionLevel.Fastest, true))
+                using (var compressedWriter = new BinaryWriter(deflate))
+                {
+                    compressedWriter.Write(Updates.Count);
+                    foreach (var u in Updates)
+                    {
+                        compressedWriter.Write(u.Cell);
+                        compressedWriter.Write(u.ElementIdx);
+                        compressedWriter.Write(u.Temperature);
+                        compressedWriter.Write(u.Mass);
+                        compressedWriter.Write(u.DiseaseIdx);
+                        compressedWriter.Write(u.DiseaseCount);
+                    }
+                }
+
+                byte[] compressedData = ms.ToArray();
+                w.Write(compressedData.Length); // Write compressed length
+                w.Write(compressedData);        // Write compressed payload
             }
         }
+
         public void Deserialize(BinaryReader r)
         {
-            int count = r.ReadInt32();
-            Updates = new List<CellUpdate>(count);
-            for (int i = 0; i < count; i++)
+            int compressedLength = r.ReadInt32();
+            byte[] compressedData = r.ReadBytes(compressedLength);
+
+            using (var ms = new MemoryStream(compressedData))
+            using (var deflate = new DeflateStream(ms, CompressionMode.Decompress))
+            using (var reader = new BinaryReader(deflate))
             {
-                Updates.Add(new CellUpdate
+                int count = reader.ReadInt32();
+                Updates = new List<CellUpdate>(count);
+                for (int i = 0; i < count; i++)
                 {
-                    Cell = r.ReadInt32(),
-                    ElementIdx = r.ReadUInt16(),
-                    Temperature = r.ReadSingle(),
-                    Mass = r.ReadSingle(),
-                    DiseaseIdx = r.ReadByte(),
-                    DiseaseCount = r.ReadInt32()
-                });
+                    Updates.Add(new CellUpdate
+                    {
+                        Cell = reader.ReadInt32(),
+                        ElementIdx = reader.ReadUInt16(),
+                        Temperature = reader.ReadSingle(),
+                        Mass = reader.ReadSingle(),
+                        DiseaseIdx = reader.ReadByte(),
+                        DiseaseCount = reader.ReadInt32()
+                    });
+                }
             }
         }
 

@@ -38,7 +38,8 @@ namespace ONI_MP.World
                 if (pendingUpdates.Count == 0)
                     return;
 
-                const int MaxUpdatesPerPacket = 50; // Keep packet size under ~1KB
+                // Each cell update is roughly 5.38 bytes after compression (1KB / 5.38 = 188)
+                const int MaxUpdatesPerPacket = 180; // Keep packet size under ~1KB
 
                 for (int i = 0; i < pendingUpdates.Count; i += MaxUpdatesPerPacket)
                 {

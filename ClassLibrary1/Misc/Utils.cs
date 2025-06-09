@@ -12,7 +12,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ONI_MP
+namespace ONI_MP.Misc
 {
     public static class Utils
     {
@@ -125,6 +125,13 @@ namespace ONI_MP
                 }
 
             return chunk;
+        }
+
+        public static string FormatBytes(long bytes)
+        {
+            if (bytes < 1024) return $"{bytes} B";
+            if (bytes < 1024 * 1024) return $"{bytes / 1024f:F1} KB";
+            return $"{bytes / 1024f / 1024f:F2} MB";
         }
 
     }

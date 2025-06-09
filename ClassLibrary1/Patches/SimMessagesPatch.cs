@@ -23,6 +23,7 @@ namespace ONI_MP.Patches
         {
             if (!MultiplayerSession.IsHost || !Grid.IsValidCell(gameCell)) return;
 
+            /* Disable for now whilst I focus on getting saves syncing
             WorldUpdateBatcher.Queue(new WorldUpdatePacket.CellUpdate
             {
                 Cell = gameCell,
@@ -31,7 +32,7 @@ namespace ONI_MP.Patches
                 Mass = mass,
                 DiseaseIdx = disease_idx,
                 DiseaseCount = disease_count
-            });
+            });*/
         }
     }
 }

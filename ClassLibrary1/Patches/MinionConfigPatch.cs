@@ -7,6 +7,7 @@ using HarmonyLib;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking.Components;
 using UnityEngine;
+using Utils = ONI_MP.Misc.Utils;
 
 namespace ONI_MP.Patches
 {

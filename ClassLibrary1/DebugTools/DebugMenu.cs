@@ -1,4 +1,6 @@
 ﻿using ONI_MP.Networking;
+using ONI_MP.Networking.Packets;
+using Utils = ONI_MP.Misc.Utils;
 using UnityEngine;
 
 namespace ONI_MP.DebugTools
@@ -11,6 +13,9 @@ namespace ONI_MP.DebugTools
         private Rect windowRect = new Rect(10, 10, 250, 300); // Position and size
         private HierarchyViewer hierarchyViewer;
         private DebugConsole debugConsole;
+
+        private Vector2 scrollPosition = Vector2.zero;
+
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         public static void Init()
@@ -40,12 +45,14 @@ namespace ONI_MP.DebugTools
         {
             if (!showMenu) return;
 
-            GUIStyle windowStyle = new GUIStyle(GUI.skin.window) { padding = new RectOffset(10, 10, 20, 10) };
+            GUIStyle windowStyle = new GUIStyle(GUI.skin.window) { padding = new RectOffset(10, 10, 20, 20) };
             windowRect = GUI.ModalWindow(888, windowRect, DrawMenuContents, "DEBUG MENU", windowStyle);
         }
 
         private void DrawMenuContents(int windowID)
         {
+            scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, true, GUILayout.Width(windowRect.width - 20), GUILayout.Height(windowRect.height - 40));
+
             if (GUILayout.Button("Toggle Hierarchy Viewer"))
                 hierarchyViewer.Toggle();
 
@@ -71,7 +78,8 @@ namespace ONI_MP.DebugTools
                     {
                         string pingDisplay = local.Ping >= 0 ? $"{local.Ping} ms" : "Pending...";
                         GUILayout.Label($"Ping to Host: {pingDisplay}");
-                    } else
+                    }
+                    else
                     {
                         GUILayout.Label("Hosting multiplayer session.");
                     }
@@ -80,18 +88,19 @@ namespace ONI_MP.DebugTools
                 {
                     GUILayout.Label("Ping to Host: Unknown");
                 }
+
                 GUILayout.Label($"Packets Sent: {SteamLobby.PacketsSent} ({SteamLobby.SentPerSecond}/sec)");
                 GUILayout.Label($"Packets Received: {SteamLobby.PacketsReceived} ({SteamLobby.ReceivedPerSecond}/sec)");
-                GUILayout.Label($"Total Bandwidth Sent: {FormatBytes(SteamLobby.BytesSent)}");
-                GUILayout.Label($"Total Bandwidth Received: {FormatBytes(SteamLobby.BytesReceived)}");
-                GUILayout.Label($"Bandwidth Sent/sec: {FormatBytes(SteamLobby.BytesSentSec)}");
-                GUILayout.Label($"Bandwidth Received/sec: {FormatBytes(SteamLobby.BytesReceivedSec)}");
+                GUILayout.Label($"Total Bandwidth Sent: {Utils.FormatBytes(SteamLobby.BytesSent)}");
+                GUILayout.Label($"Total Bandwidth Received: {Utils.FormatBytes(SteamLobby.BytesReceived)}");
+                GUILayout.Label($"Bandwidth Sent/sec: {Utils.FormatBytes(SteamLobby.BytesSentSec)}");
+                GUILayout.Label($"Bandwidth Received/sec: {Utils.FormatBytes(SteamLobby.BytesReceivedSec)}");
+
                 if (GUILayout.Button("Reset Packet Counters"))
-                {
                     SteamLobby.ResetPacketCounters();
-                }
 
-
+                if (GUILayout.Button("Test Save packet"))
+                    SaveFileRequestPacket.SendSaveFile(MultiplayerSession.HostSteamID);
             }
             else
             {
@@ -99,16 +108,9 @@ namespace ONI_MP.DebugTools
             }
 
             GUILayout.Space(20);
-            GUI.DragWindow(); // Makes the window draggable
+            GUILayout.EndScrollView();
+
+            GUI.DragWindow();
         }
-
-        private static string FormatBytes(long bytes)
-        {
-            if (bytes < 1024) return $"{bytes} B";
-            if (bytes < 1024 * 1024) return $"{(bytes / 1024f):F1} KB";
-            return $"{(bytes / 1024f / 1024f):F2} MB";
-        }
-
-
     }
 }

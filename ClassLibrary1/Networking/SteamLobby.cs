@@ -144,14 +144,13 @@ namespace ONI_MP.Networking
 
             if (!MultiplayerSession.IsHost && MultiplayerSession.HostSteamID.IsValid())
             {
-                DebugConsole.Log("[SteamLobby] Requesting world data from host...");
-
-                LoadingOverlay.Load(() =>
+                // Request the save file from the host
+                DebugConsole.Log("[SteamLobby] Requesting save file from host...");
+                var req = new SaveFileRequestPacket
                 {
-                    // Slide in the multiplayer-tailored loading message (patched earlier)
-                    var req = new WorldDataRequestPacket { SenderId = SteamUser.GetSteamID() };
-                    PacketSender.SendToPlayer(MultiplayerSession.HostSteamID, req);
-                });
+                    Requester = SteamUser.GetSteamID()
+                };
+                PacketSender.SendToPlayer(MultiplayerSession.HostSteamID, req);
             }
 
         }

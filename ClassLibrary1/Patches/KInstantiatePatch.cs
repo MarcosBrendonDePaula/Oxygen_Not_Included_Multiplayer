@@ -36,6 +36,7 @@ public static class KInstantiatePatch
 
         if (MultiplayerSession.IsHost)
         {
+            /*
             var entry = new InstantiationsPacket.InstantiationEntry
             {
                 PrefabName = original.name,
@@ -47,6 +48,7 @@ public static class KInstantiatePatch
             };
 
             InstantiationBatcher.Queue(entry);
+            */
         }
     }
 }

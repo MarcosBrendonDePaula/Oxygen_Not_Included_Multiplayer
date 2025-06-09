@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using ONI_MP.DebugTools;
 using Steamworks;
+using Utils = ONI_MP.Misc.Utils;
 
 namespace ONI_MP.Networking
 {
@@ -26,11 +27,11 @@ namespace ONI_MP.Networking
 
             if (!sent)
             {
-                DebugConsole.LogError($"[SteamNetworking] Failed to send {packet.Type} to {target} ({bytes.Length} bytes)", false);
+                DebugConsole.LogError($"[SteamNetworking] Failed to send {packet.Type} to {target} ({Utils.FormatBytes(bytes.Length)})", false);
             }
             else
             {
-                DebugConsole.Log($"[SteamNetworking] Sent {packet.Type} to {target} ({bytes.Length} bytes)");
+                DebugConsole.Log($"[SteamNetworking] Sent {packet.Type} to {target} ({Utils.FormatBytes(bytes.Length)})");
                 SteamLobby.AddBytesSent(bytes.Length);
                 SteamLobby.IncrementSentPackets();
             }
@@ -57,11 +58,11 @@ namespace ONI_MP.Networking
 
                 if (!sent)
                 {
-                    DebugConsole.LogError($"[SteamNetworking] Failed to send {packet.Type} to {peerID} ({bytes.Length} bytes)", false);
+                    DebugConsole.LogError($"[SteamNetworking] Failed to send {packet.Type} to {peerID} ({Utils.FormatBytes(bytes.Length)})", false);
                 }
                 else
                 {
-                    DebugConsole.Log($"[SteamNetworking] Sent {packet.Type} to {peerID} ({bytes.Length} bytes)");
+                    DebugConsole.Log($"[SteamNetworking] Sent {packet.Type} to {peerID} ({Utils.FormatBytes(bytes.Length)})");
                     SteamLobby.AddBytesSent(bytes.Length);
                     SteamLobby.IncrementSentPackets();
                 }

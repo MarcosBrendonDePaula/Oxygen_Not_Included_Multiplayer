@@ -19,6 +19,8 @@ namespace ONI_MP.Networking
         WorldUpdate = 9,
         Instantiate = 10,
         Instantiations = 11,
-        NavigatorPath
+        NavigatorPath = 12,
+        SaveFile = 13,
+        SaveFileRequest = 14
     }
 }

@@ -8,7 +8,7 @@ namespace ONI_MP.Patches
 {
     [HarmonyPatch(typeof(Game), "Update")]
     public static class GamePatch
-    {
+    { 
         [HarmonyPostfix]
         public static void Postfix()
         {

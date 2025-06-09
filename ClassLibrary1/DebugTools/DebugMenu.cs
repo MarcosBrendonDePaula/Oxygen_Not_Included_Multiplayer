@@ -53,7 +53,9 @@ namespace ONI_MP.DebugTools
                 debugConsole.Toggle();
 
             if (GUILayout.Button("Create Lobby"))
-                SteamLobby.CreateLobby();
+                SteamLobby.CreateLobby(onSuccess: () => {
+                    SpeedControlScreen.Instance?.Unpause(false);
+                });
 
             if (GUILayout.Button("Leave lobby"))
                 SteamLobby.LeaveLobby();

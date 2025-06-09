@@ -34,6 +34,7 @@ namespace ONI_MP.Patches
 
                 SteamLobby.CreateLobby(onSuccess: () =>
                 {
+                    SpeedControlScreen.Instance?.Unpause(false);
                     DebugConsole.Log(logMessage);
                 });
             }

@@ -4,6 +4,7 @@ using HarmonyLib;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
+using ONI_MP.Components;
 
 namespace ONI_MP
 {
@@ -23,6 +24,7 @@ namespace ONI_MP
             Object.DontDestroyOnLoad(go);
             go.AddComponent<SteamNetworkingComponent>();
             go.AddComponent<PingManager>();
+            go.AddComponent<UIVisibilityController>();
             Debug.Log("[ONI_MP] Loaded Oxygen Not Included Multiplayer Mod.");
         }
     }

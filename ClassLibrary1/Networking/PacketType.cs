@@ -21,6 +21,7 @@ namespace ONI_MP.Networking
         Instantiations = 11,
         NavigatorPath = 12,
         SaveFile = 13,
-        SaveFileRequest = 14
+        SaveFileRequest = 14,
+        SaveFileChunk = 15
     }
 }

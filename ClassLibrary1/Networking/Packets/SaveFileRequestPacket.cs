@@ -41,15 +41,27 @@ namespace ONI_MP.Networking.Packets
                 SaveLoader.Instance.InitialSave(); // Trigger autosave
                 string name = SaveHelper.WorldName;
                 byte[] data = SaveHelper.GetWorldSave();
+                string fileName = name + ".sav";
 
-                var packet = new SaveFilePacket
+                const int ChunkSize = 512 * 1024; // Split into 256kb chunks
+                for (int offset = 0; offset < data.Length; offset += ChunkSize)
                 {
-                    FileName = name + ".sav",
-                    Data = data
-                };
+                    int size = Math.Min(ChunkSize, data.Length - offset);
+                    byte[] chunk = new byte[size];
+                    Buffer.BlockCopy(data, offset, chunk, 0, size);
 
-                PacketSender.SendToPlayer(requester, packet);
-                DebugConsole.Log($"[Packets/SaveFileRequest] Sent save file '{packet.FileName}' to {requester}");
+                    var chunkPacket = new SaveFileChunkPacket
+                    {
+                        FileName = fileName,
+                        Offset = offset,
+                        TotalSize = data.Length,
+                        Chunk = chunk
+                    };
+
+                    PacketSender.SendToPlayer(requester, chunkPacket);
+                }
+                DebugConsole.Log($"[SaveFileRequest] Sent '{fileName}' in {Math.Ceiling(data.Length / (float)ChunkSize)} chunks to {requester}");
+
             }
             catch (Exception ex)
             {

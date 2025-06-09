@@ -52,12 +52,6 @@ namespace ONI_MP.DebugTools
             if (GUILayout.Button("Toggle Debug Console"))
                 debugConsole.Toggle();
 
-            if (GUILayout.Button("Print all fonts"))
-                Utils.ListAllTMPFonts();
-
-            if (GUILayout.Button("Test steamworks"))
-                DebugConsole.Log($"Steamworks Initialized: {SteamManager.Initialized}");
-
             if (GUILayout.Button("Create Lobby"))
                 SteamLobby.CreateLobby();
 
@@ -88,6 +82,8 @@ namespace ONI_MP.DebugTools
                 GUILayout.Label($"Packets Received: {SteamLobby.PacketsReceived} ({SteamLobby.ReceivedPerSecond}/sec)");
                 GUILayout.Label($"Sent: {FormatBytes(SteamLobby.BytesSent)}");
                 GUILayout.Label($"Received: {FormatBytes(SteamLobby.BytesReceived)}");
+                GUILayout.Label($"Sent /sec: {FormatBytes(SteamLobby.BytesSentSec)}");
+                GUILayout.Label($"Received /sec: {FormatBytes(SteamLobby.BytesReceivedSec)}");
                 if (GUILayout.Button("Reset Packet Counters"))
                 {
                     SteamLobby.ResetPacketCounters();

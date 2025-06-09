@@ -31,6 +31,8 @@ namespace ONI_MP.Networking
         public static int ReceivedPerSecond { get; private set; } = 0;
         public static long BytesSent { get; private set; } = 0;
         public static long BytesReceived { get; private set; } = 0;
+        public static long BytesSentSec { get; private set; } = 0;
+        public static long BytesReceivedSec { get; private set; } = 0;
 
         private static float _timeAccumulator = 0f;
 
@@ -267,17 +269,21 @@ namespace ONI_MP.Networking
                 _sentThisSecond = 0;
                 _receivedThisSecond = 0;
                 _timeAccumulator = 0f;
+                BytesSentSec = 0;
+                BytesReceivedSec = 0;
             }
         }
 
         public static void AddBytesSent(int byteCount)
         {
             BytesSent += byteCount;
+            BytesSentSec += byteCount;
         }
 
         public static void AddBytesReceived(int byteCount)
         {
             BytesReceived += byteCount;
+            BytesReceivedSec += byteCount;
         }
         #endregion
     }

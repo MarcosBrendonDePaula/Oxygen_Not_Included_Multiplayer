@@ -33,20 +33,26 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
     - Create Lobby
     - Leave Lobby
 
+- Chat box
+    - Fully synchronized
+    - Includes Join / Leave messages of other users
+    - Themed to look like other UI elements (95% finished)
+    - Expandable
+    - Can be dragged and moved around
+
 ---
 
 ## Work in Progress
 
-- Entity Position synchronization
-  >(Duplicants, implemented, being sent a roughly updated on clients)
+- Navigator synchronization
+  >Implemented, Undergoing testing, Clients can no longer trigger GoTo calls on the navigator thus preventing them from moving locally and their path is set by the server
 - Chore synchronization
-  >(Implemented, Chore packet is being sent to clients when a duplicant starts a new chore on the host, when a client recieves this packet they force begin the chore)
-- Preventing Duplicants, critters, etc. from moving on clients
-  >(their positions are very crudely be synchronized from the host. Later deadreckoning, prediction, interpolation etc will be used)
+  >Implemented, Chore packet is being sent to clients when a duplicant starts a new chore on the host, when a client recieves this packet they force begin the chore
 - Main menu UI  
-  - Host/Join/Cancel (Hooked up to the menu but not plugged in)
-- Chat box
-- World / Save synchronization
+  - Host/Join/Cancel
+    > Host game resumes your last save and starts a lobby, Join opens your steam friends list and Close just closes the menu
+- World synchronization
+  >Implemented, undergoing testing. Users should be able to request the world data and join at any point. Hosts are also able to stop and start a server at any time.
 
 ---
 

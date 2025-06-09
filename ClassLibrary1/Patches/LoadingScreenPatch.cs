@@ -16,8 +16,10 @@ public static class LoadingScreenPatch
         bool isMultiplayer = MultiplayerSession.ShouldHostAfterLoad /* host after load? */
                               || SteamLobby.InLobby         /* you're in a lobby */;
 
+        string multiplayer_message = MultiplayerSession.IsHost ? "Hosting game..." : "Joining game...";
+
         locText.SetText(isMultiplayer
-            ? "Connecting to Multiplayer..."
+            ? multiplayer_message
             : "Loading...");
     }
 }

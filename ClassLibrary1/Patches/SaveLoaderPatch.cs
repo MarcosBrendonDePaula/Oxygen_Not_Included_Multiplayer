@@ -36,6 +36,7 @@ namespace ONI_MP.Patches
                 {
                     SpeedControlScreen.Instance?.Unpause(false);
                     DebugConsole.Log(logMessage);
+                    DebugConsole.Log("Most recent save file: " + KCrashReporter.MOST_RECENT_SAVEFILE);
                 });
             }
         }

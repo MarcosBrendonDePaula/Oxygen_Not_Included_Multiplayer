@@ -5,6 +5,9 @@ using UnityEngine;
 using ONI_MP.World;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets;
+using ONI_MP.Misc;
+using Steamworks;
+using ONI_MP.Networking;
 
 namespace ONI_MP.World
 {
@@ -37,7 +40,7 @@ namespace ONI_MP.World
 
             if (save.ReceivedBytes >= chunk.TotalSize)
             {
-                DebugConsole.Log($"[ChunkReceiver] Completed receive of '{chunk.FileName}' ({save.ReceivedBytes} bytes)");
+                DebugConsole.Log($"[ChunkReceiver] Completed receive of '{chunk.FileName}' ({Utils.FormatBytes(save.ReceivedBytes)})");
                 InProgress.Remove(chunk.FileName);
 
                 var fullSave = new WorldSave(chunk.FileName, save.Data);
@@ -47,7 +50,7 @@ namespace ONI_MP.World
 
         private static System.Collections.IEnumerator DelayedLoad(WorldSave save)
         {
-            yield return new WaitForSecondsRealtime(0.25f);   
+            yield return new WaitForSecondsRealtime(1f);   
             SaveHelper.RequestWorldLoad(save);
         }
     }

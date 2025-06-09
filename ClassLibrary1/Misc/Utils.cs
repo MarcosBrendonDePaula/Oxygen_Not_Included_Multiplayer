@@ -134,5 +134,15 @@ namespace ONI_MP.Misc
             return $"{bytes / 1024f / 1024f:F2} MB";
         }
 
+        public static bool IsInMenu()
+        {
+            return App.GetCurrentSceneName() == "frontend";
+        }
+
+        public static bool IsInGame()
+        {
+            return App.GetCurrentSceneName() == "backend";
+        }
+
     }
 }

@@ -37,7 +37,6 @@ namespace ONI_MP.Networking
             Register(PacketType.Instantiate, () => new InstantiatePacket());
             Register(PacketType.Instantiations, () => new InstantiationsPacket());
             Register(PacketType.NavigatorPath, () => new NavigatorPathPacket());
-            Register(PacketType.SaveFile, () => new SaveFilePacket());
             Register(PacketType.SaveFileRequest, () => new SaveFileRequestPacket());
             Register(PacketType.SaveFileChunk, () => new SaveFileChunkPacket());
             // Add more registrations here

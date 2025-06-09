@@ -1,5 +1,6 @@
 ﻿using System;
 using ONI_MP.DebugTools;
+using ONI_MP.Misc;
 using ONI_MP.Networking.Packets;
 using ONI_MP.UI;
 using Steamworks;
@@ -142,17 +143,19 @@ namespace ONI_MP.Networking
 
             _onLobbyJoined?.Invoke(CurrentLobby);
 
-            if (!MultiplayerSession.IsHost && MultiplayerSession.HostSteamID.IsValid())
+            if (Utils.IsInMenu())
             {
-                // Request the save file from the host
-                DebugConsole.Log("[SteamLobby] Requesting save file from host...");
-                var req = new SaveFileRequestPacket
+                if (!MultiplayerSession.IsHost && MultiplayerSession.HostSteamID.IsValid())
                 {
-                    Requester = SteamUser.GetSteamID()
-                };
-                PacketSender.SendToPlayer(MultiplayerSession.HostSteamID, req);
+                    // Request the save file from the host
+                    DebugConsole.Log("[SteamLobby] Requesting save file from host...");
+                    var req = new SaveFileRequestPacket
+                    {
+                        Requester = SteamUser.GetSteamID()
+                    };
+                    PacketSender.SendToPlayer(MultiplayerSession.HostSteamID, req);
+                }
             }
-
         }
 
         private static void OnLobbyChatUpdate(LobbyChatUpdate_t callback)

@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
+using static KButtonMenu;
 
 namespace ONI_MP.Patches.MainMenuScreen
 {

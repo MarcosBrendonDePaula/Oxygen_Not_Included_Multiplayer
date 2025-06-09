@@ -2,7 +2,7 @@
 using ONI_MP.Networking;
 
 [HarmonyPatch(typeof(LoadingOverlay), nameof(LoadingOverlay.Load))]
-public static class LoadingScreenPatch
+public static class LoadingOverlayPatch
 {
     [HarmonyPostfix]
     public static void Load_Postfix()

@@ -36,13 +36,13 @@ public static class SaveHelper
         }
 
         //CSteamID host = MultiplayerSession.HostSteamID;
-        //SteamLobby.LeaveLobby(); // Having to do this to just open a level is utterly stupid
-        MultiplayerSession.BlockPacketProcessing = true;
+        //SteamLobby.LeaveLobby();
         LoadingOverlay.Load(() =>
         {
-            LoadScreen.DoLoad(path); // Why do you only work when not in a lobby?!
-            //SteamLobby.JoinLobby(host); // I hate this, I hate this, I hate this
-        });
+            LoadScreen.DoLoad(path);
+            //SteamLobby.JoinLobby(host);
+        });            
+        //LoadScreen.DoLoad(path); // Why do you only work when not in a lobby?!
     }
 
     public static string WorldName

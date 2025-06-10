@@ -26,14 +26,12 @@ namespace ONI_MP.Patches
         public static void Prefix_DoLoad(string filename)
         {
             DebugConsole.Log($"Loading {filename}");
-            MultiplayerSession.BlockPacketProcessing = true;
         }
 
         [HarmonyPostfix]
         public static void Postfix_DoLoad(string filename)
         {
             DebugConsole.Log($"Loaded {filename}");
-            MultiplayerSession.BlockPacketProcessing = false;
         }
     }
 }

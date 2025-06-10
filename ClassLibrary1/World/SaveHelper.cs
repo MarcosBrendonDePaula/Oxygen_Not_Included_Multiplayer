@@ -37,6 +37,7 @@ public static class SaveHelper
 
         //CSteamID host = MultiplayerSession.HostSteamID;
         //SteamLobby.LeaveLobby(); // Having to do this to just open a level is utterly stupid
+        MultiplayerSession.BlockPacketProcessing = true;
         LoadingOverlay.Load(() =>
         {
             LoadScreen.DoLoad(path); // Why do you only work when not in a lobby?!

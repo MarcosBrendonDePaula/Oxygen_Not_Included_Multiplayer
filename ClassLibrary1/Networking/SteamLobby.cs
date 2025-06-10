@@ -196,7 +196,7 @@ namespace ONI_MP.Networking
 
         private static void OnP2PConnectFail(P2PSessionConnectFail_t fail)
         {
-            DebugConsole.LogError($"[SteamLobby] P2P connection failed with {fail.m_steamIDRemote}, reason: {fail.m_eP2PSessionError}");
+            DebugConsole.LogError($"[SteamLobby] P2P connection failed with {fail.m_steamIDRemote}, reason: {fail.m_eP2PSessionError}", false);
         }
 
         public static void ProcessIncomingPackets()

@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using ONI_MP.DebugTools;
 using ONI_MP.World;
 using Steamworks;
+using UnityEngine;
 
 namespace ONI_MP.Networking.Packets
 {
@@ -43,7 +46,9 @@ namespace ONI_MP.Networking.Packets
                 byte[] data = SaveHelper.GetWorldSave();
                 string fileName = name + ".sav";
 
-                const int ChunkSize = 512 * 1024; // Split into 256kb chunks
+                const int ChunkSize = 256 * 1024; // Split into 256kb chunks
+                var chunkPackets = new List<SaveFileChunkPacket>();
+
                 for (int offset = 0; offset < data.Length; offset += ChunkSize)
                 {
                     int size = Math.Min(ChunkSize, data.Length - offset);
@@ -58,15 +63,28 @@ namespace ONI_MP.Networking.Packets
                         Chunk = chunk
                     };
 
-                    PacketSender.SendToPlayer(requester, chunkPacket);
+                    chunkPackets.Add(chunkPacket);
                 }
+
+                CoroutineRunner.RunOne(SendChunksThrottled(chunkPackets, requester));
                 DebugConsole.Log($"[SaveFileRequest] Sent '{fileName}' in {Math.Ceiling(data.Length / (float)ChunkSize)} chunks to {requester}");
 
             }
             catch (Exception ex)
             {
-                DebugConsole.LogError($"[Packets/SaveFileRequest] Failed to send save file: {ex}");
+                DebugConsole.LogError($"[SaveFileRequest] Failed to send save file: {ex}");
             }
         }
+
+        private static IEnumerator SendChunksThrottled(List<SaveFileChunkPacket> chunkPackets, CSteamID steamID)
+        {
+            foreach (var chunkPacket in chunkPackets)
+            {
+                PacketSender.SendToPlayer(steamID, chunkPacket);
+                yield return new WaitForSeconds(1f); // Wait one frame
+            }
+            DebugConsole.Log($"[SaveFileRequest] All chunks sent to {steamID}.");
+        }
+
     }
 }

@@ -82,12 +82,14 @@ namespace ONI_MP.Networking
             {
                 Connected = true;
                 DebugConsole.Log("[GameClient] Connection to host established!");
+                MultiplayerSession.InSession = true;
                 //RequestHostWorldFile(); // Have host just send it on connect
             }
             else if (state == ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ClosedByPeer ||
                      state == ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ProblemDetectedLocally)
             {
                 DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}");
+                MultiplayerSession.InSession = false;
                 Connected = false;
                 Connection = null;
             }

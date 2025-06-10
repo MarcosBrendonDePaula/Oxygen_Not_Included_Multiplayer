@@ -53,7 +53,7 @@ namespace ONI_MP.Networking
 
                 if (!sent)
                 {
-                    DebugConsole.LogError($"[Sockets] Failed to send {packet.Type} to conn {conn} ({Utils.FormatBytes(bytes.Length)})", false);
+                    DebugConsole.LogError($"[Sockets] Failed to send {packet.Type} to conn {conn} ({Utils.FormatBytes(bytes.Length)} | result: {result})", false);
                 }
                 else
                 {

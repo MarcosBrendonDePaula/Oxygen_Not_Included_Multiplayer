@@ -16,7 +16,7 @@ namespace ONI_MP.Networking
 
         public static CSteamID HostSteamID { get; private set; } = CSteamID.Nil;
 
-        public static bool InSession => SteamLobby.InLobby && HostSteamID.IsValid();
+        public static bool InSession = false;
 
         public static bool IsHost => HostSteamID == LocalSteamID;
 

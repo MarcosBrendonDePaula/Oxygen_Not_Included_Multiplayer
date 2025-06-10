@@ -50,6 +50,7 @@ namespace ONI_MP.Networking
 
             DebugConsole.Log("[GameServer] Listen socket and poll group created (CLIENT API).");
             Started = true;
+            MultiplayerSession.InSession = true;
         }
 
         public static void Shutdown()
@@ -71,6 +72,7 @@ namespace ONI_MP.Networking
                 SteamNetworkingSockets.CloseListenSocket(ListenSocket);
 
             Started = false;
+            MultiplayerSession.InSession = false;
             DebugConsole.Log("[GameServer] Shutdown complete.");
         }
 
@@ -99,18 +101,7 @@ namespace ONI_MP.Networking
                     if (result == EResult.k_EResultOK)
                     {
                         SteamNetworkingSockets.SetConnectionPollGroup(conn, PollGroup);
-
-                        MultiplayerPlayer player;
-                        if (!MultiplayerSession.ConnectedPlayers.TryGetValue(clientId, out player))
-                        {
-                            player = new MultiplayerPlayer(clientId);
-                            MultiplayerSession.ConnectedPlayers[clientId] = player;
-                        }
-                        player.Connection = conn;
-
                         DebugConsole.Log($"[GameServer] Connection accepted from {clientId}");
-                        DebugConsole.Log($"[GameServer] Sending new client the world data!");
-                        SaveFileRequestPacket.SendSaveFile(clientId);
                     }
                     else
                     {
@@ -120,7 +111,16 @@ namespace ONI_MP.Networking
                     break;
 
                 case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_Connected:
+                    MultiplayerPlayer player;
+                    if (!MultiplayerSession.ConnectedPlayers.TryGetValue(clientId, out player))
+                    {
+                        player = new MultiplayerPlayer(clientId);
+                        MultiplayerSession.ConnectedPlayers[clientId] = player;
+                    }
+                    player.Connection = conn;
                     DebugConsole.Log($"[GameServer] Connection to {clientId} fully established!");
+                    DebugConsole.Log($"[GameServer] Sending new client the world data!");
+                    SaveFileRequestPacket.SendSaveFile(clientId);
                     break;
 
                 case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ClosedByPeer:

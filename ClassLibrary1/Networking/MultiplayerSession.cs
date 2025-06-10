@@ -24,22 +24,6 @@ namespace ONI_MP.Networking
 
         public static bool BlockPacketProcessing = false;
 
-        public static void AddPeer(CSteamID peer)
-        {
-            if (!ConnectedPlayers.ContainsKey(peer))
-            {
-                ConnectedPlayers[peer] = new MultiplayerPlayer(peer);
-            }
-        }
-
-        public static void RemovePeer(CSteamID peer)
-        {
-            if (ConnectedPlayers.ContainsKey(peer))
-            {
-                ConnectedPlayers.Remove(peer);
-            }
-        }
-
         public static void Clear()
         {
             ConnectedPlayers.Clear();

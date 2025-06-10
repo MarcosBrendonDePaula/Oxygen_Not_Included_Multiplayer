@@ -38,7 +38,7 @@ namespace ONI_MP.Sync
                 Entries = new List<InstantiationsPacket.InstantiationEntry>(queue)
             };
 
-            PacketSender.SendToAll(packet, EP2PSend.k_EP2PSendUnreliable);
+            PacketSender.SendToAll(packet, sendType: SteamNetworkingSend.Unreliable);
             queue.Clear();
         }
     }

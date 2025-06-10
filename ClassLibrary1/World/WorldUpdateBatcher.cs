@@ -51,7 +51,7 @@ namespace ONI_MP.World
                     var chunk = pendingUpdates.GetRange(i, Math.Min(MaxUpdatesPerPacket, pendingUpdates.Count - i));
                     var packet = new WorldUpdatePacket();
                     packet.Updates.AddRange(chunk);
-                    PacketSender.SendToAll(packet, EP2PSend.k_EP2PSendUnreliable); // max packet size 1200 bytes (typically 1170–1200 bytes)
+                    PacketSender.SendToAll(packet, sendType: SteamNetworkingSend.Unreliable); // max packet size 1200 bytes (typically 1170–1200 bytes)
 
                     DebugConsole.Log($"[World] Sent chunked WorldUpdate ({chunk.Count} cells)");
                 }

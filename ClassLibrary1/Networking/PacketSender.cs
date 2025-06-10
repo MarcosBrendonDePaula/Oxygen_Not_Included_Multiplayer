@@ -1,78 +1,107 @@
-﻿using System.IO;
-using ONI_MP.DebugTools;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Steamworks;
-using Utils = ONI_MP.Misc.Utils;
+using ONI_MP.DebugTools;
+using ONI_MP.Misc;
 
 namespace ONI_MP.Networking
 {
+
+    public enum SteamNetworkingSend
+    {
+        Unreliable = 0,
+        NoNagle = 2,
+        UnreliableNoNagle = Unreliable | NoNagle, // 2
+        Reliable = 1,
+        ReliableNoNagle = Reliable | NoNagle      // 3
+    }
+
     public static class PacketSender
     {
+        public static int MAX_PACKET_SIZE_RELIABLE = 512;
+        public static int MAX_PACKET_SIZE_UNRELIABLE = 1024;
+
         public static byte[] SerializePacket(IPacket packet)
         {
-            using (var ms = new MemoryStream())
+            using (var ms = new System.IO.MemoryStream())
+            using (var writer = new System.IO.BinaryWriter(ms))
             {
-                using (var writer = new BinaryWriter(ms))
-                {
-                    writer.Write((byte)packet.Type);
-                    packet.Serialize(writer);
-                }
+                writer.Write((byte)packet.Type);
+                packet.Serialize(writer);
                 return ms.ToArray();
             }
         }
 
-        public static void SendToPlayer(CSteamID target, IPacket packet, EP2PSend sendType = EP2PSend.k_EP2PSendReliable)
+        /// <summary>
+        /// Send to one connection by HSteamNetConnection handle.
+        /// </summary>
+        public static void SendToConnection(HSteamNetConnection conn, IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
         {
-            if (MultiplayerSession.BlockPacketProcessing)
-                return;
-
             var bytes = SerializePacket(packet);
-            bool sent = SteamNetworking.SendP2PPacket(target, bytes, (uint)bytes.Length, sendType, 0);
+            var _sendType = (int)sendType;
 
-            if (!sent)
+            IntPtr unmanagedPointer = Marshal.AllocHGlobal(bytes.Length);
+            try
             {
-                DebugConsole.LogError($"[SteamNetworking] Failed to send {packet.Type} to {target} ({Utils.FormatBytes(bytes.Length)})", false);
-            }
-            else
-            {
-                DebugConsole.Log($"[SteamNetworking] Sent {packet.Type} to {target} ({Utils.FormatBytes(bytes.Length)})");
-                SteamLobby.AddBytesSent(bytes.Length);
-                SteamLobby.IncrementSentPackets();
-            }
-        }
+                Marshal.Copy(bytes, 0, unmanagedPointer, bytes.Length);
 
-        public static void SendToAll(IPacket packet, EP2PSend sendType = EP2PSend.k_EP2PSendReliable, CSteamID? exclude = null)
-        {
-            if (MultiplayerSession.BlockPacketProcessing)
-                return;
+                var result = SteamNetworkingSockets.SendMessageToConnection(
+                    conn, unmanagedPointer, (uint)bytes.Length, _sendType, out long msgNum);
 
-            if (MultiplayerSession.ConnectedPlayers.Count == 0)
-            {
-                DebugConsole.LogWarning("[PacketSender] SendToAll called but no peers in ConnectedPlayers.");
-                return;
-            }
-
-            var bytes = SerializePacket(packet);
-
-            foreach (var kvp in MultiplayerSession.ConnectedPlayers)
-            {
-                CSteamID peerID = kvp.Key;
-
-                if (exclude.HasValue && peerID == exclude.Value)
-                    continue;
-
-                bool sent = SteamNetworking.SendP2PPacket(peerID, bytes, (uint)bytes.Length, sendType, 0);
+                bool sent = (result == EResult.k_EResultOK);
 
                 if (!sent)
                 {
-                    DebugConsole.LogError($"[SteamNetworking] Failed to send {packet.Type} to {peerID} ({Utils.FormatBytes(bytes.Length)})", false);
+                    DebugConsole.LogError($"[Sockets] Failed to send {packet.Type} to conn {conn} ({Utils.FormatBytes(bytes.Length)})", false);
                 }
                 else
                 {
-                    DebugConsole.Log($"[SteamNetworking] Sent {packet.Type} to {peerID} ({Utils.FormatBytes(bytes.Length)})");
-                    SteamLobby.AddBytesSent(bytes.Length);
-                    SteamLobby.IncrementSentPackets();
+                    DebugConsole.Log($"[Sockets] Sent {packet.Type} to conn {conn} ({Utils.FormatBytes(bytes.Length)})");
+                    SteamLobby.Stats.AddBytesSent(bytes.Length);
+                    SteamLobby.Stats.IncrementSentPackets();
                 }
             }
+            finally
+            {
+                Marshal.FreeHGlobal(unmanagedPointer);
+            }
         }
+
+        /// <summary>
+        /// Send a packet to a player by their SteamID.
+        /// </summary>
+        public static void SendToPlayer(CSteamID steamID, IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
+        {
+            if (MultiplayerSession.BlockPacketProcessing)
+                return;
+
+            if (!MultiplayerSession.ConnectedPlayers.TryGetValue(steamID, out var player) || player.Connection == null)
+            {
+                DebugConsole.LogWarning($"[PacketSender] No connection found for SteamID {steamID}");
+                return;
+            }
+
+            SendToConnection(player.Connection.Value, packet, sendType);
+        }
+
+        /// <summary>
+        /// Send to all players, optionally excluding one SteamID.
+        /// </summary>
+        public static void SendToAll(IPacket packet, CSteamID? exclude = null, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
+        {
+            if (MultiplayerSession.BlockPacketProcessing)
+                return;
+
+            foreach (var player in MultiplayerSession.ConnectedPlayers.Values)
+            {
+                if (exclude.HasValue && player.SteamID == exclude.Value)
+                    continue;
+
+                if (player.Connection != null)
+                    SendToConnection(player.Connection.Value, packet, sendType);
+            }
+        }
+
     }
 }

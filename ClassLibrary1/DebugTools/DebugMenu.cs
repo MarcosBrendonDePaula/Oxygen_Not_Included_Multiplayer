@@ -75,6 +75,9 @@ namespace ONI_MP.DebugTools
             if (GUILayout.Button("Leave lobby"))
                 SteamLobby.LeaveLobby();
 
+            if (GUILayout.Button("Player list"))
+                DrawPlayerList();
+
             GUILayout.Space(10);
 
             if (MultiplayerSession.InSession)
@@ -97,15 +100,15 @@ namespace ONI_MP.DebugTools
                     GUILayout.Label("Ping to Host: Unknown");
                 }
 
-                GUILayout.Label($"Packets Sent: {SteamLobby.PacketsSent} ({SteamLobby.SentPerSecond}/sec)");
-                GUILayout.Label($"Packets Received: {SteamLobby.PacketsReceived} ({SteamLobby.ReceivedPerSecond}/sec)");
-                GUILayout.Label($"Total Bandwidth Sent: {Utils.FormatBytes(SteamLobby.BytesSent)}");
-                GUILayout.Label($"Total Bandwidth Received: {Utils.FormatBytes(SteamLobby.BytesReceived)}");
-                GUILayout.Label($"Bandwidth Sent/sec: {Utils.FormatBytes(SteamLobby.BytesSentSec)}");
-                GUILayout.Label($"Bandwidth Received/sec: {Utils.FormatBytes(SteamLobby.BytesReceivedSec)}");
+                GUILayout.Label($"Packets Sent: {SteamLobby.Stats.PacketsSent} ({SteamLobby.Stats.SentPerSecond}/sec)");
+                GUILayout.Label($"Packets Received: {SteamLobby.Stats.PacketsReceived} ({SteamLobby.Stats.ReceivedPerSecond}/sec)");
+                GUILayout.Label($"Total Bandwidth Sent: {Utils.FormatBytes(SteamLobby.Stats.BytesSent)}");
+                GUILayout.Label($"Total Bandwidth Received: {Utils.FormatBytes(SteamLobby.Stats.BytesReceived)}");
+                GUILayout.Label($"Bandwidth Sent/sec: {Utils.FormatBytes(SteamLobby.Stats.BytesSentSec)}");
+                GUILayout.Label($"Bandwidth Received/sec: {Utils.FormatBytes(SteamLobby.Stats.BytesReceivedSec)}");
 
                 if (GUILayout.Button("Reset Packet Counters"))
-                    SteamLobby.ResetPacketCounters();
+                    SteamLobby.Stats.ResetPacketCounters();
 
                 if (GUILayout.Button("Test Save packet"))
                     SaveFileRequestPacket.SendSaveFile(MultiplayerSession.HostSteamID);
@@ -120,5 +123,24 @@ namespace ONI_MP.DebugTools
 
             GUI.DragWindow();
         }
+
+        private void DrawPlayerList()
+        {
+            GUILayout.Label("Players in Lobby:", UnityEngine.GUI.skin.label);
+
+            if (MultiplayerSession.ConnectedPlayers.Count == 0)
+            {
+                GUILayout.Label("<none>", UnityEngine.GUI.skin.label);
+                return;
+            }
+
+            foreach (var kvp in MultiplayerSession.ConnectedPlayers)
+            {
+                var player = kvp.Value;
+                string prefix = (MultiplayerSession.HostSteamID == player.SteamID) ? "[HOST] " : "";
+                GUILayout.Label($"{prefix}{player.SteamName} ({player.SteamID})", UnityEngine.GUI.skin.label);
+            }
+        }
+
     }
 }

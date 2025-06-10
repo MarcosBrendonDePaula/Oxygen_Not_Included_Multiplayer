@@ -40,7 +40,7 @@ public static class SaveHelper
         LoadingOverlay.Load(() =>
         {
             LoadScreen.DoLoad(path);
-            SteamLobby.JoinLobby(host);
+            SteamLobby.JoinLobby(host); // I hate this, I hate this, I hate this
         });
     }
 

@@ -2,6 +2,7 @@
 using ONI_MP.Networking.Packets;
 using Utils = ONI_MP.Misc.Utils;
 using UnityEngine;
+using ONI_MP.Networking.Components;
 
 namespace ONI_MP.DebugTools
 {
@@ -61,10 +62,14 @@ namespace ONI_MP.DebugTools
 
             if (GUILayout.Button("Test DoLoad"))
             {
-                LoadingOverlay.Load(() =>
-                {
-                    LoadScreen.DoLoad("C:\\Users\\luke\\Documents\\Klei\\OxygenNotIncluded\\cloud_save_files\\76561198021490625\\Dump\\Dump.sav");
+                
+                SteamNetworkingComponent.scheduler.Run(() => {
+                    LoadingOverlay.Load(() =>
+                    {
+                        LoadScreen.DoLoad("C:\\Users\\luke\\Documents\\Klei\\OxygenNotIncluded\\cloud_save_files\\76561198021490625\\Dump\\Dump.sav");
+                    });
                 });
+
             }
 
             if (GUILayout.Button("Create Lobby"))

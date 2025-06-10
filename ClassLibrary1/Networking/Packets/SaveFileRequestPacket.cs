@@ -13,6 +13,8 @@ namespace ONI_MP.Networking.Packets
     {
         public CSteamID Requester;
 
+        public const float SAVE_DATA_SEND_DELAY = 1f;
+
         public PacketType Type => PacketType.SaveFileRequest;
 
         public void Serialize(BinaryWriter writer)
@@ -81,7 +83,7 @@ namespace ONI_MP.Networking.Packets
             foreach (var chunkPacket in chunkPackets)
             {
                 PacketSender.SendToPlayer(steamID, chunkPacket);
-                yield return new WaitForSeconds(1f); // Wait one frame
+                yield return new WaitForSeconds(SAVE_DATA_SEND_DELAY);
             }
             DebugConsole.Log($"[SaveFileRequest] All chunks sent to {steamID}.");
         }

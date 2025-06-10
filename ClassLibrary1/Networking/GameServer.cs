@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using ONI_MP.DebugTools;
+using ONI_MP.Menus;
 using ONI_MP.Networking.Packets;
 using Steamworks;
 using UnityEngine;
@@ -51,6 +52,7 @@ namespace ONI_MP.Networking
             DebugConsole.Log("[GameServer] Listen socket and poll group created (CLIENT API).");
             Started = true;
             MultiplayerSession.InSession = true;
+            MultiplayerOverlay.Close();
         }
 
         public static void Shutdown()

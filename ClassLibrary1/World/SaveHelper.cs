@@ -13,7 +13,7 @@ public static class SaveHelper
 {
     public static void RequestWorldLoad(WorldSave world)
     {
-        LoadWorldSave(Path.GetFileNameWithoutExtension(world.Name), world.Data);
+        SteamNetworkingComponent.scheduler.Run(() => LoadWorldSave(Path.GetFileNameWithoutExtension(world.Name), world.Data));
     }
 
     private static void LoadWorldSave(string name, byte[] data)
@@ -35,14 +35,7 @@ public static class SaveHelper
             }
         }
 
-        //CSteamID host = MultiplayerSession.HostSteamID;
-        //SteamLobby.LeaveLobby();
-        LoadingOverlay.Load(() =>
-        {
-            LoadScreen.DoLoad(path);
-            //SteamLobby.JoinLobby(host);
-        });            
-        //LoadScreen.DoLoad(path); // Why do you only work when not in a lobby?!
+        LoadScreen.DoLoad(path);
     }
 
     public static string WorldName

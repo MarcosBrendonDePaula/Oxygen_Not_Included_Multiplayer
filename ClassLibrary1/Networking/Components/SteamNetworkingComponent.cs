@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
 using ONI_MP.DebugTools;
 using Steamworks;
+using ONI_MP.Misc;
 
 namespace ONI_MP.Networking.Components
 {
     public class SteamNetworkingComponent : MonoBehaviour
     {
+        public static UnityTaskScheduler scheduler = new UnityTaskScheduler();
+
         private void Start()
         {
             SteamNetworkingUtils.InitRelayNetworkAccess();
@@ -14,6 +17,8 @@ namespace ONI_MP.Networking.Components
 
         private void Update()
         {
+            scheduler.Tick();
+
             if (!SteamManager.Initialized)
                 return;
 

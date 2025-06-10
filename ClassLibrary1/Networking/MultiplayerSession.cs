@@ -22,6 +22,8 @@ namespace ONI_MP.Networking
 
         public static bool IsClient => InSession && !IsHost;
 
+        public static bool BlockPacketProcessing = false;
+
         public static void AddPeer(CSteamID peer)
         {
             if (!ConnectedPlayers.ContainsKey(peer))

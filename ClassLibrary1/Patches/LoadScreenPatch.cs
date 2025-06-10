@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using ONI_MP.DebugTools;
+using ONI_MP.Networking;
 using System.Reflection;
 
 namespace ONI_MP.Patches
@@ -20,16 +21,19 @@ namespace ONI_MP.Patches
             );
         }
 
+        // Updating this bool here doesn't affect SP
         [HarmonyPrefix]
         public static void Prefix_DoLoad(string filename)
         {
             DebugConsole.Log($"Loading {filename}");
+            MultiplayerSession.BlockPacketProcessing = true;
         }
 
         [HarmonyPostfix]
         public static void Postfix_DoLoad(string filename)
         {
             DebugConsole.Log($"Loaded {filename}");
+            MultiplayerSession.BlockPacketProcessing = false;
         }
     }
 }

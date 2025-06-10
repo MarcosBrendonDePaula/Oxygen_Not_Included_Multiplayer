@@ -35,12 +35,12 @@ public static class SaveHelper
             }
         }
 
-        CSteamID host = MultiplayerSession.HostSteamID;
-        SteamLobby.LeaveLobby(); // Having to do this to just open a level is utterly stupid
+        //CSteamID host = MultiplayerSession.HostSteamID;
+        //SteamLobby.LeaveLobby(); // Having to do this to just open a level is utterly stupid
         LoadingOverlay.Load(() =>
         {
-            LoadScreen.DoLoad(path);
-            SteamLobby.JoinLobby(host); // I hate this, I hate this, I hate this
+            LoadScreen.DoLoad(path); // Why do you only work when not in a lobby?!
+            //SteamLobby.JoinLobby(host); // I hate this, I hate this, I hate this
         });
     }
 

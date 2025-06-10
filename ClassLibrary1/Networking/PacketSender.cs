@@ -22,6 +22,9 @@ namespace ONI_MP.Networking
 
         public static void SendToPlayer(CSteamID target, IPacket packet, EP2PSend sendType = EP2PSend.k_EP2PSendReliable)
         {
+            if (MultiplayerSession.BlockPacketProcessing)
+                return;
+
             var bytes = SerializePacket(packet);
             bool sent = SteamNetworking.SendP2PPacket(target, bytes, (uint)bytes.Length, sendType, 0);
 
@@ -39,6 +42,9 @@ namespace ONI_MP.Networking
 
         public static void SendToAll(IPacket packet, EP2PSend sendType = EP2PSend.k_EP2PSendReliable, CSteamID? exclude = null)
         {
+            if (MultiplayerSession.BlockPacketProcessing)
+                return;
+
             if (MultiplayerSession.ConnectedPlayers.Count == 0)
             {
                 DebugConsole.LogWarning("[PacketSender] SendToAll called but no peers in ConnectedPlayers.");

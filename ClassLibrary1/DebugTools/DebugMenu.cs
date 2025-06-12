@@ -1,5 +1,8 @@
 ﻿using ONI_MP.Networking;
+using ONI_MP.Networking.Packets;
+using Utils = ONI_MP.Misc.Utils;
 using UnityEngine;
+using ONI_MP.Networking.Components;
 
 namespace ONI_MP.DebugTools
 {
@@ -11,6 +14,9 @@ namespace ONI_MP.DebugTools
         private Rect windowRect = new Rect(10, 10, 250, 300); // Position and size
         private HierarchyViewer hierarchyViewer;
         private DebugConsole debugConsole;
+
+        private Vector2 scrollPosition = Vector2.zero;
+
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         public static void Init()
@@ -40,29 +46,42 @@ namespace ONI_MP.DebugTools
         {
             if (!showMenu) return;
 
-            GUIStyle windowStyle = new GUIStyle(GUI.skin.window) { padding = new RectOffset(10, 10, 20, 10) };
+            GUIStyle windowStyle = new GUIStyle(GUI.skin.window) { padding = new RectOffset(10, 10, 20, 20) };
             windowRect = GUI.ModalWindow(888, windowRect, DrawMenuContents, "DEBUG MENU", windowStyle);
         }
 
         private void DrawMenuContents(int windowID)
         {
+            scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, true, GUILayout.Width(windowRect.width - 20), GUILayout.Height(windowRect.height - 40));
+
             if (GUILayout.Button("Toggle Hierarchy Viewer"))
                 hierarchyViewer.Toggle();
 
             if (GUILayout.Button("Toggle Debug Console"))
                 debugConsole.Toggle();
 
-            if (GUILayout.Button("Print all fonts"))
-                Utils.ListAllTMPFonts();
+            if (GUILayout.Button("Test DoLoad"))
+            {
+                
+                SteamNetworkingComponent.scheduler.Run(() => {
+                    LoadingOverlay.Load(() =>
+                    {
+                        LoadScreen.DoLoad("C:\\Users\\luke\\Documents\\Klei\\OxygenNotIncluded\\cloud_save_files\\76561198021490625\\Dump\\Dump.sav");
+                    });
+                });
 
-            if (GUILayout.Button("Test steamworks"))
-                DebugConsole.Log($"Steamworks Initialized: {SteamManager.Initialized}");
+            }
 
             if (GUILayout.Button("Create Lobby"))
-                SteamLobby.CreateLobby();
+                SteamLobby.CreateLobby(onSuccess: () => {
+                    SpeedControlScreen.Instance?.Unpause(false);
+                });
 
             if (GUILayout.Button("Leave lobby"))
                 SteamLobby.LeaveLobby();
+
+            if (GUILayout.Button("Player list"))
+                DrawPlayerList();
 
             GUILayout.Space(10);
 
@@ -75,7 +94,8 @@ namespace ONI_MP.DebugTools
                     {
                         string pingDisplay = local.Ping >= 0 ? $"{local.Ping} ms" : "Pending...";
                         GUILayout.Label($"Ping to Host: {pingDisplay}");
-                    } else
+                    }
+                    else
                     {
                         GUILayout.Label("Hosting multiplayer session.");
                     }
@@ -84,6 +104,19 @@ namespace ONI_MP.DebugTools
                 {
                     GUILayout.Label("Ping to Host: Unknown");
                 }
+
+                GUILayout.Label($"Packets Sent: {SteamLobby.Stats.PacketsSent} ({SteamLobby.Stats.SentPerSecond}/sec)");
+                GUILayout.Label($"Packets Received: {SteamLobby.Stats.PacketsReceived} ({SteamLobby.Stats.ReceivedPerSecond}/sec)");
+                GUILayout.Label($"Total Bandwidth Sent: {Utils.FormatBytes(SteamLobby.Stats.BytesSent)}");
+                GUILayout.Label($"Total Bandwidth Received: {Utils.FormatBytes(SteamLobby.Stats.BytesReceived)}");
+                GUILayout.Label($"Bandwidth Sent/sec: {Utils.FormatBytes(SteamLobby.Stats.BytesSentSec)}");
+                GUILayout.Label($"Bandwidth Received/sec: {Utils.FormatBytes(SteamLobby.Stats.BytesReceivedSec)}");
+
+                if (GUILayout.Button("Reset Packet Counters"))
+                    SteamLobby.Stats.ResetPacketCounters();
+
+                if (GUILayout.Button("Test Save packet"))
+                    SaveFileRequestPacket.SendSaveFile(MultiplayerSession.HostSteamID);
             }
             else
             {
@@ -91,7 +124,27 @@ namespace ONI_MP.DebugTools
             }
 
             GUILayout.Space(20);
-            GUI.DragWindow(); // Makes the window draggable
+            GUILayout.EndScrollView();
+
+            GUI.DragWindow();
+        }
+
+        private void DrawPlayerList()
+        {
+            GUILayout.Label("Players in Lobby:", UnityEngine.GUI.skin.label);
+
+            if (MultiplayerSession.ConnectedPlayers.Count == 0)
+            {
+                GUILayout.Label("<none>", UnityEngine.GUI.skin.label);
+                return;
+            }
+
+            foreach (var kvp in MultiplayerSession.ConnectedPlayers)
+            {
+                var player = kvp.Value;
+                string prefix = (MultiplayerSession.HostSteamID == player.SteamID) ? "[HOST] " : "";
+                GUILayout.Label($"{prefix}{player.SteamName} ({player.SteamID})", UnityEngine.GUI.skin.label);
+            }
         }
 
     }

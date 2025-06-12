@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using ONI_MP.DebugTools;
+using ONI_MP.Menus;
 using ONI_MP.Networking;
-using System.Reflection;
 using UnityEngine;
 
 namespace ONI_MP.Patches
@@ -9,7 +9,6 @@ namespace ONI_MP.Patches
     [HarmonyPatch]
     public static class SaveLoaderPatch
     {
-        // Patch private method: SaveLoader.OnSpawn
         [HarmonyPostfix]
         [HarmonyPatch(typeof(SaveLoader), "OnSpawn")]
         public static void Postfix_OnSpawn()
@@ -17,7 +16,6 @@ namespace ONI_MP.Patches
             TryCreateLobbyAfterLoad("[Multiplayer] Lobby created after world load.");
         }
 
-        // Patch public method: SaveLoader.LoadFromWorldGen
         [HarmonyPostfix]
         [HarmonyPatch(typeof(SaveLoader), nameof(SaveLoader.LoadFromWorldGen))]
         public static void Postfix_LoadFromWorldGen(bool __result)
@@ -34,6 +32,7 @@ namespace ONI_MP.Patches
 
                 SteamLobby.CreateLobby(onSuccess: () =>
                 {
+                    SpeedControlScreen.Instance?.Unpause(false);
                     DebugConsole.Log(logMessage);
                 });
             }

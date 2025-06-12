@@ -39,7 +39,7 @@ namespace ONI_MP.Networking.Packets
             if (NetEntityRegistry.TryGet(NetId, out var entity))
             {
                 entity.transform.SetPosition(Position);
-                DebugConsole.Log($"[Packets/EntityPosition] Entity {NetId} moved to {Position}");
+                //DebugConsole.Log($"[Packets/EntityPosition] Entity {NetId} moved to {Position}");
             }
             else
             {

@@ -1,4 +1,6 @@
-﻿using ONI_MP.Networking;
+﻿using Klei;
+using ONI_MP.Menus;
+using ONI_MP.Networking;
 using ONI_MP.Patches.MainMenuScreen;
 using Steamworks;
 using UnityEngine;
@@ -38,6 +40,7 @@ public static class MultiplayerPopup
         {
             MultiplayerSession.ShouldHostAfterLoad = true;
             MainMenuPatch.Instance.Button_ResumeGame.SignalClick(KKeyCode.Mouse0);
+            //HostLastSave();
             /*
             SteamLobby.CreateLobby(onSuccess: () =>
             {
@@ -48,7 +51,8 @@ public static class MultiplayerPopup
 
         AddPopupButton(popup.transform, "Join Game", new Vector2(0, 0), () =>
         {
-            SteamFriends.ActivateGameOverlay("friends");
+            //SteamFriends.ActivateGameOverlay("friends");
+            SteamFriends.ActivateGameOverlayInviteDialog(MultiplayerSession.LocalSteamID);
         });
 
         AddPopupButton(popup.transform, "Cancel", new Vector2(0, -70), () =>
@@ -63,6 +67,29 @@ public static class MultiplayerPopup
         {
             Object.Destroy(currentPopup);
             currentPopup = null;
+        }
+    }
+
+    private static void HostLastSave()
+    {
+        MultiplayerOverlay.Show("Hosting game...");
+        string text;
+        if (!KPlayerPrefs.HasKey("AutoResumeSaveFile"))
+        {
+            text = (string.IsNullOrEmpty(GenericGameSettings.instance.performanceCapture.saveGame) ? SaveLoader.GetLatestSaveForCurrentDLC() : GenericGameSettings.instance.performanceCapture.saveGame);
+        }
+        else
+        {
+            text = KPlayerPrefs.GetString("AutoResumeSaveFile");
+            KPlayerPrefs.DeleteKey("AutoResumeSaveFile");
+        }
+
+        if (!string.IsNullOrEmpty(text))
+        {
+            KCrashReporter.MOST_RECENT_SAVEFILE = text;
+            SaveLoader.SetActiveSaveFilePath(text);
+            
+            App.LoadScene("backend");
         }
     }
 

@@ -16,27 +16,13 @@ namespace ONI_MP.Networking
 
         public static CSteamID HostSteamID { get; private set; } = CSteamID.Nil;
 
-        public static bool InSession => SteamLobby.InLobby && HostSteamID.IsValid();
+        public static bool InSession = false;
 
         public static bool IsHost => HostSteamID == LocalSteamID;
 
         public static bool IsClient => InSession && !IsHost;
 
-        public static void AddPeer(CSteamID peer)
-        {
-            if (!ConnectedPlayers.ContainsKey(peer))
-            {
-                ConnectedPlayers[peer] = new MultiplayerPlayer(peer);
-            }
-        }
-
-        public static void RemovePeer(CSteamID peer)
-        {
-            if (ConnectedPlayers.ContainsKey(peer))
-            {
-                ConnectedPlayers.Remove(peer);
-            }
-        }
+        public static bool BlockPacketProcessing = false;
 
         public static void Clear()
         {

@@ -11,11 +11,12 @@ namespace ONI_MP.Patches
     {
         public static bool Prefix(ref bool update_all)
         {
+            /* Old code, replaced with navigator patch
             if (!MultiplayerSession.IsHost)
             {
                 //DebugConsole.LogError("We are not the host!");
                 return false; // Skip updating navgrids for clients
-            }
+            }*/
 
             return true; // Allow host to run original method
         }

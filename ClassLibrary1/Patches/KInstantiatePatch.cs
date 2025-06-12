@@ -1,0 +1,54 @@
+﻿using HarmonyLib;
+using ONI_MP.DebugTools;
+using ONI_MP.Networking;
+using ONI_MP.Networking.Packets;
+using ONI_MP.Sync;
+using UnityEngine;
+
+[HarmonyPatch(typeof(Util), nameof(Util.KInstantiate),
+    new[] {
+        typeof(GameObject),
+        typeof(Vector3),
+        typeof(Quaternion),
+        typeof(GameObject),
+        typeof(string),
+        typeof(bool),
+        typeof(int)
+    })]
+public static class KInstantiatePatch
+{
+    public static bool Prefix(GameObject original, Vector3 position, Quaternion rotation, GameObject parent, string name, bool initialize_id, int gameLayer)
+    {
+        if (MultiplayerSession.IsClient)
+        {
+            //DebugConsole.Log($"[MP] Blocked KInstantiate on client for prefab '{original?.name}'");
+            return false; // Prevent instantiation
+        }
+
+        return true; // Allow host to instantiate
+    }
+
+    // Queue instantiation into batcher on host
+    public static void Postfix(GameObject __result, GameObject original, Vector3 position, Quaternion rotation, GameObject parent, string name, bool initialize_id, int gameLayer)
+    {
+        if (__result == null || original == null)
+            return;
+
+        if (MultiplayerSession.IsHost)
+        {
+            /*
+            var entry = new InstantiationsPacket.InstantiationEntry
+            {
+                PrefabName = original.name,
+                Position = position,
+                Rotation = rotation,
+                ObjectName = name,
+                InitializeId = initialize_id,
+                GameLayer = gameLayer
+            };
+
+            InstantiationBatcher.Queue(entry);
+            */
+        }
+    }
+}

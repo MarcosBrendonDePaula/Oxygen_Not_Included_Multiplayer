@@ -31,6 +31,14 @@ namespace ONI_MP.Networking
             Register(PacketType.ChoreAssignment, () => new ChoreAssignmentPacket());
             Register(PacketType.EntityPosition, () => new EntityPositionPacket());
             Register(PacketType.ChatMessage, () => new ChatMessagePacket());
+            Register(PacketType.WorldData, () => new WorldDataPacket());
+            Register(PacketType.WorldDataRequest, () => new WorldDataRequestPacket());
+            Register(PacketType.WorldUpdate, () => new WorldUpdatePacket());
+            Register(PacketType.Instantiate, () => new InstantiatePacket());
+            Register(PacketType.Instantiations, () => new InstantiationsPacket());
+            Register(PacketType.NavigatorPath, () => new NavigatorPathPacket());
+            Register(PacketType.SaveFileRequest, () => new SaveFileRequestPacket());
+            Register(PacketType.SaveFileChunk, () => new SaveFileChunkPacket());
             // Add more registrations here
         }
     }

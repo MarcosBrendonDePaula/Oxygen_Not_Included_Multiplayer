@@ -12,7 +12,15 @@ namespace ONI_MP.Networking
         ChatMessage = 2,
         Ping = 3,
         Pong = 4,
-        EntityPosition = 5,
-        ChoreAssignment = 6
+        EntityPosition = 5, // OLD
+        ChoreAssignment = 6,
+        WorldData = 7,
+        WorldDataRequest = 8,
+        WorldUpdate = 9,
+        Instantiate = 10,
+        Instantiations = 11,
+        NavigatorPath = 12,
+        SaveFileRequest = 13,
+        SaveFileChunk = 14
     }
 }

@@ -6,9 +6,11 @@ using UnityEngine;
 
 namespace ONI_MP.Patches
 {
-    [HarmonyPatch(typeof(PauseScreen), "OnQuitConfirm")]
+    [HarmonyPatch]
     public static class PauseScreenPatch
     {
+        // This method is called when "Quit" is confirmed in the pause menu
+        [HarmonyPatch(typeof(PauseScreen), "OnQuitConfirm")]
         [HarmonyPrefix]
         [UsedImplicitly]
         public static void OnQuitConfirm_Prefix(bool saveFirst)
@@ -18,7 +20,21 @@ namespace ONI_MP.Patches
                 SteamLobby.LeaveLobby();
                 MultiplayerSession.Clear();
             }
-
         }
+
+        // This prevents the game from pausing when the PauseScreen opens in multiplayer
+        [HarmonyPatch(typeof(SpeedControlScreen), nameof(SpeedControlScreen.Pause))]
+        [HarmonyPrefix]
+        [UsedImplicitly]
+        public static bool PreventPauseInMultiplayer(bool playSound = true, bool isCrashed = false)
+        {
+            if (MultiplayerSession.InSession && !isCrashed)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
     }
 }

@@ -149,7 +149,7 @@ namespace ONI_MP.Networking
                     if(Utils.IsInMenu())
                     {
                         //RequestHostWorldFile(); // Host can also auto-send this on connect
-                        MultiplayerOverlay.Show("Downloading world...");
+                        MultiplayerOverlay.Show("Downloading world: Waiting...");
                     }
                     break;
 

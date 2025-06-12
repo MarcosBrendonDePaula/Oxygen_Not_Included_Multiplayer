@@ -15,14 +15,16 @@ namespace ONI_MP.Patches.Navigation
             if (!__instance.path.IsValid() || __instance.path.nodes == null || __instance.path.nodes.Count == 0)
                 return;
 
-            if (MultiplayerSession.IsClient)
-                return;
-
             if (!MultiplayerSession.InSession)
                 return;
 
             if (!__instance.TryGetComponent<NetworkIdentity>(out var identity))
                 return;
+
+            // Only the host can inform clients where to go
+            if (!MultiplayerSession.IsHost)
+                return;
+            
 
             var packet = new NavigatorPathPacket
             {

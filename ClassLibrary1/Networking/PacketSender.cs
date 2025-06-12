@@ -73,9 +73,6 @@ namespace ONI_MP.Networking
         /// </summary>
         public static void SendToPlayer(CSteamID steamID, IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
         {
-            if (MultiplayerSession.BlockPacketProcessing)
-                return;
-
             if (!MultiplayerSession.ConnectedPlayers.TryGetValue(steamID, out var player) || player.Connection == null)
             {
                 DebugConsole.LogWarning($"[PacketSender] No connection found for SteamID {steamID}");
@@ -90,9 +87,6 @@ namespace ONI_MP.Networking
         /// </summary>
         public static void SendToAll(IPacket packet, CSteamID? exclude = null, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
         {
-            if (MultiplayerSession.BlockPacketProcessing)
-                return;
-
             foreach (var player in MultiplayerSession.ConnectedPlayers.Values)
             {
                 if (exclude.HasValue && player.SteamID == exclude.Value)

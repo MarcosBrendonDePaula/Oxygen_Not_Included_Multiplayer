@@ -14,15 +14,6 @@ namespace ONI_MP.Patches
         public static void Postfix_OnSpawn()
         {
             TryCreateLobbyAfterLoad("[Multiplayer] Lobby created after world load.");
-            MultiplayerSession.BlockPacketProcessing = false;
-
-            if (MultiplayerSession.IsClient)
-            {
-                if(MultiplayerOverlay.IsOpen)
-                {
-                    MultiplayerOverlay.Close();
-                }
-            }
         }
 
         [HarmonyPostfix]

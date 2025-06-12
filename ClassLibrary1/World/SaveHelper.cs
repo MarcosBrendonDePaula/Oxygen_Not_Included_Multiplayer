@@ -40,6 +40,7 @@ public static class SaveHelper
         GameClient.Disconnect();
 
         LoadScreen.DoLoad(path);
+        MultiplayerOverlay.Close();
     }
 
     public static string WorldName

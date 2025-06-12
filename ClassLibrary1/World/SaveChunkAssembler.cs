@@ -8,6 +8,7 @@ using ONI_MP.Networking.Packets;
 using ONI_MP.Misc;
 using Steamworks;
 using ONI_MP.Networking;
+using ONI_MP.Menus;
 
 namespace ONI_MP.World
 {
@@ -37,6 +38,8 @@ namespace ONI_MP.World
             save.ReceivedBytes += chunk.Chunk.Length;
 
             DebugConsole.Log($"[ChunkReceiver] Received {chunk.Chunk.Length} bytes for '{chunk.FileName}' (offset {chunk.Offset})");
+            int percent = save.ReceivedBytes * 100 / chunk.TotalSize;
+            MultiplayerOverlay.Show($"Downloading world: {percent}%");
 
             if (save.ReceivedBytes >= chunk.TotalSize)
             {
@@ -50,7 +53,8 @@ namespace ONI_MP.World
 
         private static System.Collections.IEnumerator DelayedLoad(WorldSave save)
         {
-            yield return new WaitForSecondsRealtime(1f);   
+            yield return new WaitForSecondsRealtime(1f);
+            MultiplayerOverlay.Show("Loading...");
             SaveHelper.RequestWorldLoad(save);
         }
     }

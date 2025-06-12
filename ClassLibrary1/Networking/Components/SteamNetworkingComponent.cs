@@ -25,9 +25,6 @@ namespace ONI_MP.Networking.Components
             if (!MultiplayerSession.InSession)
                 return;
 
-            if (MultiplayerSession.BlockPacketProcessing)
-                return;
-
             SteamLobby.Stats.UpdatePacketRates(Time.deltaTime);
 
             if (MultiplayerSession.IsHost)

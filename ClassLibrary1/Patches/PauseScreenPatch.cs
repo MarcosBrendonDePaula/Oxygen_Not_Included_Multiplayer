@@ -1,8 +1,13 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using HarmonyLib;
 using JetBrains.Annotations;
 using ONI_MP.DebugTools;
+using ONI_MP.Misc;
 using ONI_MP.Networking;
+using Steamworks;
 using UnityEngine;
+using UnityEngine.Events;
+using System.Linq;
 
 namespace ONI_MP.Patches
 {
@@ -36,5 +41,34 @@ namespace ONI_MP.Patches
             return true;
         }
 
+        [HarmonyPatch(typeof(PauseScreen), "ConfigureButtonInfos")]
+        public static class PauseScreen_AddInviteButton
+        {
+            static void Postfix(PauseScreen __instance)
+            {
+                // Only in multiplayer
+                if (!MultiplayerSession.InSession) return; // Do we want clients to be able to invite people???
+
+                var buttonsField = AccessTools.Field(typeof(KModalButtonMenu), "buttons");
+                var buttonInfos = ((KModalButtonMenu.ButtonInfo[])buttonsField.GetValue(__instance))?.ToList()
+                                  ?? new List<KModalButtonMenu.ButtonInfo>();
+
+                if (buttonInfos.Any(b => b.text == "Invite"))
+                    return;
+
+                // Insert after "Resume"
+                int idx = buttonInfos.FindIndex(b => b.text == "Resume") + 1;
+                if (idx <= 0) idx = 1;
+
+                buttonInfos.Insert(idx, new KModalButtonMenu.ButtonInfo(
+                    "Invite",
+                    new UnityAction(() => {
+                        SteamFriends.ActivateGameOverlayInviteDialog(MultiplayerSession.LocalSteamID);
+                    })
+                ));
+
+                buttonsField.SetValue(__instance, buttonInfos.ToArray());
+            }
+        }
     }
 }

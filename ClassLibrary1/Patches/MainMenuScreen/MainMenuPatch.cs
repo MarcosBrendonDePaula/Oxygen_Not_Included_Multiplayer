@@ -1,68 +1,87 @@
-﻿using System;
-using HarmonyLib;
+﻿using HarmonyLib;
+using UnityEngine;
 using JetBrains.Annotations;
-using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using Steamworks;
-using UnityEngine;
-using Object = UnityEngine.Object;
+using System;
+using System.Reflection;
+using System.Linq;
 
-namespace ONI_MP.Patches.MainMenuScreen
+[HarmonyPatch(typeof(MainMenu), "OnPrefabInit")]
+internal static class MainMenuPatch
 {
-    [UsedImplicitly]
-    [HarmonyPatch(typeof(MainMenu))]
-    internal static class MainMenuPatch
+    private static void Postfix(MainMenu __instance)
     {
-        public static MainMenu Instance { get; private set; }
+        int normalFontSize = 20;
+        var normalStyle = Traverse.Create(__instance).Field("normalButtonStyle").GetValue<ColorStyleSetting>();
 
-        [HarmonyPrefix]
-        [HarmonyPatch("OnPrefabInit")]
-        [UsedImplicitly]
-        private static void OnPrefabInit(MainMenu __instance)
+        var buttonInfoType = __instance.GetType().GetNestedType("ButtonInfo", BindingFlags.NonPublic);
+
+        var makeButton = __instance.GetType().GetMethod("MakeButton", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        // Host Game
+        var hostInfo = CreateButtonInfo(
+            "Host Game",
+            new System.Action(() => {
+                MultiplayerSession.ShouldHostAfterLoad = true;
+                __instance.Button_ResumeGame.SignalClick(KKeyCode.Mouse0);
+            }),
+            normalFontSize,
+            normalStyle,
+            buttonInfoType
+        );
+        makeButton.Invoke(__instance, new object[] { hostInfo });
+
+        // Join Game
+        var joinInfo = CreateButtonInfo(
+            "Join Game",
+            new System.Action(() => {
+                SteamFriends.ActivateGameOverlay("friends");
+            }),
+            normalFontSize,
+            normalStyle,
+            buttonInfoType
+        );
+        makeButton.Invoke(__instance, new object[] { joinInfo });
+
+        UpdatePlacements(__instance);
+    }
+
+    // Reflection utility to build ButtonInfo struct
+    private static object CreateButtonInfo(string text, System.Action action, int fontSize, ColorStyleSetting style, Type buttonInfoType)
+    {
+        var buttonInfo = Activator.CreateInstance(buttonInfoType);
+        buttonInfoType.GetField("text").SetValue(buttonInfo, new LocString(text));
+        buttonInfoType.GetField("action").SetValue(buttonInfo, action);
+        buttonInfoType.GetField("fontSize").SetValue(buttonInfo, fontSize);
+        buttonInfoType.GetField("style").SetValue(buttonInfo, style);
+        return buttonInfo;
+    }
+
+    private static void UpdatePlacements(MainMenu __instance)
+    {
+        var buttonParent = Traverse.Create(__instance).Field("buttonParent").GetValue<GameObject>();
+        if (buttonParent != null)
         {
-            if (Instance == null)
+            var children = buttonParent.GetComponentsInChildren<KButton>(true);
+
+            // Find "Load Game" button
+            var loadGameBtn = children.FirstOrDefault(b =>
+                b.GetComponentInChildren<LocText>().text.ToUpper().Contains("LOAD GAME"));
+
+            // Find your buttons
+            var hostBtn = children.FirstOrDefault(b =>
+                b.GetComponentInChildren<LocText>().text.ToUpper().Contains("HOST GAME"));
+            var joinBtn = children.FirstOrDefault(b =>
+                b.GetComponentInChildren<LocText>().text.ToUpper().Contains("JOIN GAME"));
+
+            if (loadGameBtn != null && hostBtn != null && joinBtn != null)
             {
-                Instance = __instance;
+                int loadGameIdx = loadGameBtn.transform.GetSiblingIndex();
+                // Move host and join immediately after "Load Game"
+                hostBtn.transform.SetSiblingIndex(loadGameIdx + 1);
+                joinBtn.transform.SetSiblingIndex(loadGameIdx + 2);
             }
-
-            /*
-            __instance.AddClonedButton(
-                "MULTIPLAYER",
-                "Play together!",
-                highlight: true,
-                () => OnMultiplayerClicked()
-            );
-            */
-            __instance.AddClonedButton(
-                "Host Game",
-                "Resume your last save!",
-                highlight: true,
-                () => OnHostClicked()
-            );
-
-            __instance.AddClonedButton(
-                "Join Game",
-                "Join your friends!",
-                highlight: true,
-                () => OnJoinClicked()
-            );
         }
-
-        private static void OnMultiplayerClicked()
-        {
-            MultiplayerPopup.Show(FrontEndManager.Instance.transform);
-        }
-
-        private static void OnHostClicked()
-        {
-            MultiplayerSession.ShouldHostAfterLoad = true;
-            MainMenuPatch.Instance.Button_ResumeGame.SignalClick(KKeyCode.Mouse0);
-        }
-
-        private static void OnJoinClicked()
-        {
-            SteamFriends.ActivateGameOverlay("friends");
-        }
-
     }
 }

@@ -63,7 +63,7 @@ namespace ONI_MP.Patches
                 buttonInfos.Insert(idx, new KModalButtonMenu.ButtonInfo(
                     "Invite",
                     new UnityAction(() => {
-                        SteamFriends.ActivateGameOverlayInviteDialog(MultiplayerSession.LocalSteamID);
+                        SteamFriends.ActivateGameOverlayInviteDialog(MultiplayerSession.HostSteamID);
                     })
                 ));
 

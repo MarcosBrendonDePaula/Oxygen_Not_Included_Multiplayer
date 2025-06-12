@@ -70,7 +70,7 @@ namespace ONI_MP.Networking
                 DebugConsole.Log("[GameClient] Reconnecting: First disconnecting existing connection.");
                 Disconnect();
 
-                // Optional: Brief delay to ensure the connection is properly closed
+                // Delay to ensure the connection is properly closed
                 System.Threading.Thread.Sleep(100); // 100ms
             }
 
@@ -161,13 +161,10 @@ namespace ONI_MP.Networking
                     Connection = null;
                     break;
 
-                // You can add more cases for other connection states if desired
                 default:
-                    // No action needed for other states, but you can log or handle as needed
                     break;
             }
         }
-
 
         public static void RequestHostWorldFile()
         {
@@ -195,7 +192,6 @@ namespace ONI_MP.Networking
                 _connectionStatusChangedCallback = null;
                 DebugConsole.Log("[GameClient] Networking message handlers disabled.");
             }
-            // If you have more callbacks, unregister them here too
         }
 
         public static void EnableMessageHandlers()
@@ -205,7 +201,6 @@ namespace ONI_MP.Networking
                 _connectionStatusChangedCallback = Callback<SteamNetConnectionStatusChangedCallback_t>.Create(OnConnectionStatusChanged);
                 DebugConsole.Log("[GameClient] Networking message handlers enabled.");
             }
-            // Register other callbacks here as well
         }
 
     }

@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using ONI_MP.DebugTools;
+using ONI_MP.Misc;
 using ONI_MP.Networking.Components;
 using UnityEngine;
 
@@ -11,7 +12,8 @@ public static class MinionPatch
         var saveRoot = __result.GetComponent<SaveLoadRoot>();
         if (saveRoot != null)
         {
-            saveRoot.DeclareOptionalComponent<NetworkIdentity>();
+            //saveRoot.DeclareOptionalComponent<NetworkIdentity>();
+            saveRoot.TryDeclareOptionalComponent<NetworkIdentity>();
             DebugConsole.Log($"[SaveLoadRoot] Declared optional component: {typeof(NetworkIdentity)}");
         }
 

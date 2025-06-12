@@ -171,7 +171,6 @@ namespace ONI_MP.Misc
                 if (!list.Contains(typeName))
                 {
                     root.DeclareOptionalComponent<T>();
-                    DebugConsole.Log($"[SaveLoadRoot] Declared optional component: {typeName}");
                 }
             }
             else

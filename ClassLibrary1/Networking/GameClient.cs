@@ -171,7 +171,7 @@ namespace ONI_MP.Networking
             if (Connection.HasValue)
             {
                 SteamNetConnectionRealTimeStatus_t status = default;
-                SteamNetConnectionRealTimeLaneStatus_t laneStatus = default; // Or more if you want more lanes
+                SteamNetConnectionRealTimeLaneStatus_t laneStatus = default;
 
                 EResult res = SteamNetworkingSockets.GetConnectionRealTimeStatus(
                     Connection.Value,
@@ -182,7 +182,6 @@ namespace ONI_MP.Networking
 
                 if (res == EResult.k_EResultOK)
                 {
-                    // You can now access both status.m_nPing and laneStatus[0].m_nQueueTime or other lane stats
                     return status.m_nPing >= 0 ? (int?)status.m_nPing : null;
                 }
             }

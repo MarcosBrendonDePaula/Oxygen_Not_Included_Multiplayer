@@ -81,9 +81,6 @@ namespace ONI_MP.DebugTools
             if (GUILayout.Button("Leave lobby"))
                 SteamLobby.LeaveLobby();
 
-            if (GUILayout.Button("Player list"))
-                DrawPlayerList();
-
             GUILayout.Space(10);
 
             if (MultiplayerSession.InSession)
@@ -111,6 +108,9 @@ namespace ONI_MP.DebugTools
 
                 if (GUILayout.Button("Test Save packet"))
                     SaveFileRequestPacket.SendSaveFile(MultiplayerSession.HostSteamID);
+
+                GUILayout.Space(10);
+                DrawPlayerList();
             }
             else
             {

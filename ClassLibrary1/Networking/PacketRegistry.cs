@@ -25,9 +25,6 @@ namespace ONI_MP.Networking
 
         public static void RegisterDefaults()
         {
-            Register(PacketType.Hello, () => new HelloPacket());
-            Register(PacketType.Ping, () => new PingPacket());
-            Register(PacketType.Pong, () => new PongPacket());
             Register(PacketType.ChoreAssignment, () => new ChoreAssignmentPacket());
             Register(PacketType.EntityPosition, () => new EntityPositionPacket());
             Register(PacketType.ChatMessage, () => new ChatMessagePacket());

@@ -3,6 +3,7 @@ using ONI_MP.Networking.Packets;
 using Utils = ONI_MP.Misc.Utils;
 using UnityEngine;
 using ONI_MP.Networking.Components;
+using KMod;
 
 namespace ONI_MP.DebugTools
 {
@@ -87,22 +88,15 @@ namespace ONI_MP.DebugTools
 
             if (MultiplayerSession.InSession)
             {
-                var local = MultiplayerSession.LocalPlayer;
-                if (local != null)
+                if (!MultiplayerSession.IsHost)
                 {
-                    if (!MultiplayerSession.IsHost)
-                    {
-                        string pingDisplay = local.Ping >= 0 ? $"{local.Ping} ms" : "Pending...";
-                        GUILayout.Label($"Ping to Host: {pingDisplay}");
-                    }
-                    else
-                    {
-                        GUILayout.Label("Hosting multiplayer session.");
-                    }
+                    int? ping = GameClient.GetPingToHost();
+                    string pingDisplay = ping >= 0 ? $"{ping} ms" : "Pending...";
+                    GUILayout.Label($"Ping to Host: {pingDisplay}");
                 }
                 else
                 {
-                    GUILayout.Label("Ping to Host: Unknown");
+                    GUILayout.Label("Hosting multiplayer session.");
                 }
 
                 GUILayout.Label($"Packets Sent: {SteamLobby.Stats.PacketsSent} ({SteamLobby.Stats.SentPerSecond}/sec)");

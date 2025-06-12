@@ -8,19 +8,16 @@ namespace ONI_MP.Networking
 {
     public enum PacketType : byte
     {
-        Hello = 1,
-        ChatMessage = 2,
-        Ping = 3,
-        Pong = 4,
-        EntityPosition = 5, // OLD
-        ChoreAssignment = 6,
-        WorldData = 7,
-        WorldDataRequest = 8,
-        WorldUpdate = 9,
-        Instantiate = 10,
-        Instantiations = 11,
-        NavigatorPath = 12,
-        SaveFileRequest = 13,
-        SaveFileChunk = 14
+        ChatMessage = 1,
+        EntityPosition = 2,     // OLD, Keeping for now, might find a use
+        ChoreAssignment = 3,
+        WorldData = 4,          // Keeping for now, might find a use
+        WorldDataRequest = 5,   // Keeping for now, might find a use
+        WorldUpdate = 6,        // Batched world updates
+        Instantiate = 7,        // Singular instantiation
+        Instantiations = 8,     // Batched instantiations
+        NavigatorPath = 9,
+        SaveFileRequest = 10,
+        SaveFileChunk = 11
     }
 }

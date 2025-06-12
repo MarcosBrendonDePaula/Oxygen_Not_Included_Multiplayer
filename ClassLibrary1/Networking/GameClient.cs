@@ -166,6 +166,34 @@ namespace ONI_MP.Networking
             }
         }
 
+        public static int? GetPingToHost()
+        {
+            if (Connection.HasValue)
+            {
+                SteamNetConnectionRealTimeStatus_t status = default;
+                SteamNetConnectionRealTimeLaneStatus_t laneStatus = default; // Or more if you want more lanes
+
+                EResult res = SteamNetworkingSockets.GetConnectionRealTimeStatus(
+                    Connection.Value,
+                    ref status,
+                    0,
+                    ref laneStatus
+                );
+
+                if (res == EResult.k_EResultOK)
+                {
+                    // You can now access both status.m_nPing and laneStatus[0].m_nQueueTime or other lane stats
+                    return status.m_nPing >= 0 ? (int?)status.m_nPing : null;
+                }
+            }
+            return null;
+        }
+
+
+
+
+
+
         public static void RequestHostWorldFile()
         {
             var req = new SaveFileRequestPacket { Requester = SteamUser.GetSteamID() };

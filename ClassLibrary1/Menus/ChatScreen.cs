@@ -9,6 +9,7 @@ using ONI_MP.Networking.Packets;
 using ONI_MP.Networking.Components;
 using ONI_MP.Misc;
 using Utils = ONI_MP.Misc.Utils;
+using Steamworks;
 
 namespace ONI_MP.UI
 {
@@ -371,7 +372,7 @@ namespace ONI_MP.UI
 
             if (!string.IsNullOrWhiteSpace(text))
             {
-                string senderName = MultiplayerSession.LocalPlayer?.SteamName ?? "You";
+                string senderName = SteamFriends.GetPersonaName();
 
                 QueueMessage($"<color=green>{senderName}:</color> {text}");
                 inputField.text = "";

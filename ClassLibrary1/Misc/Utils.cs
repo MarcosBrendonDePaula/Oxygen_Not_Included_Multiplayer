@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using HarmonyLib;
@@ -40,6 +41,19 @@ namespace ONI_MP.Misc
                 prefab.AddOrGet<T>();
             }
         }
+
+        public static void InjectAll(GameObject prefab, params Type[] types)
+        {
+            foreach (var type in types)
+            {
+                if (!typeof(KMonoBehaviour).IsAssignableFrom(type)) continue;
+                if (prefab.GetComponent(type) != null) continue;
+
+                DebugConsole.Log($"Added {type.Name} to {prefab.name}");
+                prefab.AddComponent(type);
+            }
+        }
+
 
         public static void ListAllTMPFonts()
         {
@@ -144,5 +158,27 @@ namespace ONI_MP.Misc
             return App.GetCurrentSceneName() == "backend";
         }
 
+#region SaveLoadRoot Extensions
+        private static readonly FieldInfo optionalComponentListField =
+            typeof(SaveLoadRoot).GetField("m_optionalComponentTypeNames", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        public static void TryDeclareOptionalComponent<T>(this SaveLoadRoot root) where T : KMonoBehaviour
+        {
+            if (optionalComponentListField?.GetValue(root) is List<string> list)
+            {
+                string typeName = typeof(T).ToString();
+
+                if (!list.Contains(typeName))
+                {
+                    root.DeclareOptionalComponent<T>();
+                    DebugConsole.Log($"[SaveLoadRoot] Declared optional component: {typeName}");
+                }
+            }
+            else
+            {
+                DebugConsole.LogWarning("Could not access m_optionalComponentTypeNames via reflection.");
+            }
+        }
+        #endregion
     }
 }

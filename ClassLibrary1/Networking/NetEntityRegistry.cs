@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking.Components;
 using UnityEngine;
 
@@ -25,6 +26,20 @@ namespace ONI_MP.Networking
         {
             entities.Remove(netId);
         }
+
+        public static void RegisterExisting(NetworkIdentity entity, int netId)
+        {
+            if (!entities.ContainsKey(netId))
+            {
+                entities[netId] = entity;
+                DebugConsole.Log($"[NetEntityRegistry] Registered existing entity with net id: {netId}");
+            }
+            else
+            {
+                DebugConsole.LogWarning($"[NetEntityRegistry] NetId {netId} already registered. Skipping duplicate registration.");
+            }
+        }
+
 
         public static bool TryGet(int netId, out NetworkIdentity entity)
         {

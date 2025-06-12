@@ -31,6 +31,34 @@ namespace ONI_MP.Networking
             DebugConsole.Log($"[GameClient] ConnectP2P returned handle: {Connection.Value.m_HSteamNetConnection}");
         }
 
+        public static void Disconnect()
+        {
+            if (Connection.HasValue)
+            {
+                DebugConsole.Log("[GameClient] Disconnecting from host...");
+
+                // Close the connection
+                bool result = SteamNetworkingSockets.CloseConnection(
+                    Connection.Value,
+                    0,
+                    "Client disconnecting",
+                    false // do not linger; close immediately
+                );
+
+                DebugConsole.Log($"[GameClient] CloseConnection result: {result}");
+
+                // Update state
+                Connection = null;
+                Connected = false;
+                MultiplayerSession.InSession = false;
+            }
+            else
+            {
+                DebugConsole.LogWarning("[GameClient] Disconnect called, but no connection exists.");
+            }
+        }
+
+
         public static void Poll()
         {
             SteamNetworkingSockets.RunCallbacks();

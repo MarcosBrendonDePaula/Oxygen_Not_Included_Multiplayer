@@ -35,6 +35,9 @@ public static class SaveHelper
             }
         }
 
+        GameClient.Disconnect();
+        SteamLobby.LeaveLobby();
+
         LoadScreen.DoLoad(path);
     }
 

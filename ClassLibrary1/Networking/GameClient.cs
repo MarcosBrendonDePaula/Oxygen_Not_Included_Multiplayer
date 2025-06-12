@@ -3,6 +3,8 @@ using ONI_MP.DebugTools;
 using System;
 using System.Runtime.InteropServices;
 using ONI_MP.Networking.Packets;
+using ONI_MP.Misc;
+using ONI_MP.Menus;
 
 namespace ONI_MP.Networking
 {
@@ -11,6 +13,8 @@ namespace ONI_MP.Networking
         private static Callback<SteamNetConnectionStatusChangedCallback_t> _connectionStatusChangedCallback;
         public static HSteamNetConnection? Connection { get; private set; }
         public static bool Connected { get; private set; } = false;
+
+        private static bool _pollingPaused = false;
 
         public static void Init()
         {
@@ -58,9 +62,38 @@ namespace ONI_MP.Networking
             }
         }
 
+        public static void ReconnectToSession()
+        {
+            // Disconnect if currently connected or have a connection
+            if (Connection.HasValue || Connected)
+            {
+                DebugConsole.Log("[GameClient] Reconnecting: First disconnecting existing connection.");
+                Disconnect();
+
+                // Optional: Brief delay to ensure the connection is properly closed
+                System.Threading.Thread.Sleep(100); // 100ms
+            }
+
+            // Re-attempt to connect to the last known host
+            if (MultiplayerSession.HostSteamID != CSteamID.Nil)
+            {
+                DebugConsole.Log("[GameClient] Attempting to reconnect to host...");
+                ConnectToHost(MultiplayerSession.HostSteamID);
+            }
+            else
+            {
+                DebugConsole.LogWarning("[GameClient] Cannot reconnect: HostSteamID is not set.");
+            }
+        }
+
 
         public static void Poll()
         {
+            if(_pollingPaused)
+            {
+                return;
+            }
+
             SteamNetworkingSockets.RunCallbacks();
 
             // If connected, process incoming messages
@@ -103,30 +136,77 @@ namespace ONI_MP.Networking
 
             DebugConsole.Log($"[GameClient] Connection status changed: {state} (remote={remote})");
 
+            // Ignore if this is not for our active connection
             if (Connection.HasValue && data.m_hConn.m_HSteamNetConnection != Connection.Value.m_HSteamNetConnection)
-                return; // Not for our main host connection
+                return;
 
-            if (state == ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_Connected)
+            switch (state)
             {
-                Connected = true;
-                DebugConsole.Log("[GameClient] Connection to host established!");
-                MultiplayerSession.InSession = true;
-                //RequestHostWorldFile(); // Have host just send it on connect
-            }
-            else if (state == ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ClosedByPeer ||
-                     state == ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ProblemDetectedLocally)
-            {
-                DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}");
-                MultiplayerSession.InSession = false;
-                Connected = false;
-                Connection = null;
+                case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_Connected:
+                    Connected = true;
+                    MultiplayerSession.InSession = true;
+                    DebugConsole.Log("[GameClient] Connection to host established!");
+                    if(Utils.IsInMenu())
+                    {
+                        //RequestHostWorldFile(); // Host can also auto-send this on connect
+                        MultiplayerOverlay.Show("Downloading world...");
+                    }
+                    break;
+
+                case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ClosedByPeer:
+                case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
+                    DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}");
+                    MultiplayerSession.InSession = false;
+                    Connected = false;
+                    Connection = null;
+                    break;
+
+                // You can add more cases for other connection states if desired
+                default:
+                    // No action needed for other states, but you can log or handle as needed
+                    break;
             }
         }
+
 
         public static void RequestHostWorldFile()
         {
             var req = new SaveFileRequestPacket { Requester = SteamUser.GetSteamID() };
             PacketSender.SendToPlayer(MultiplayerSession.HostSteamID, req);
         }
+
+        public static void PauseNetworkingCallbacks()
+        {
+            _pollingPaused = true;
+            DebugConsole.Log("[GameClient] Networking callbacks paused.");
+        }
+
+        public static void ResumeNetworkingCallbacks()
+        {
+            _pollingPaused = false;
+            DebugConsole.Log("[GameClient] Networking callbacks resumed.");
+        }
+
+        public static void DisableMessageHandlers()
+        {
+            if (_connectionStatusChangedCallback != null)
+            {
+                _connectionStatusChangedCallback.Unregister();
+                _connectionStatusChangedCallback = null;
+                DebugConsole.Log("[GameClient] Networking message handlers disabled.");
+            }
+            // If you have more callbacks, unregister them here too
+        }
+
+        public static void EnableMessageHandlers()
+        {
+            if (_connectionStatusChangedCallback == null)
+            {
+                _connectionStatusChangedCallback = Callback<SteamNetConnectionStatusChangedCallback_t>.Create(OnConnectionStatusChanged);
+                DebugConsole.Log("[GameClient] Networking message handlers enabled.");
+            }
+            // Register other callbacks here as well
+        }
+
     }
 }

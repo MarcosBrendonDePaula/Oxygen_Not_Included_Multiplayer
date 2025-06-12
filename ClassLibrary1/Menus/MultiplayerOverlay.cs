@@ -46,6 +46,8 @@ namespace ONI_MP.Menus
             }
         }
 
+        public static bool IsOpen => overlay != null;
+
         public MultiplayerOverlay()
         {
             SceneManager.sceneLoaded += OnPostLoadScene;

@@ -43,7 +43,6 @@ namespace ONI_MP.Networking.Packets
 
             try
             {
-                SaveLoader.Instance.InitialSave(); // Trigger autosave
                 string name = SaveHelper.WorldName;
                 byte[] data = SaveHelper.GetWorldSave();
                 string fileName = name + ".sav";

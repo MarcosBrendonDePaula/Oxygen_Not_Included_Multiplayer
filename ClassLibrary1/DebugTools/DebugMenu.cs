@@ -64,13 +64,10 @@ namespace ONI_MP.DebugTools
             {
                 
                 SteamNetworkingComponent.scheduler.Run(() => {
-                    LoadScreen.DoLoad("Fake.sav");
-                    
-                    /*
                     LoadingOverlay.Load(() =>
                     {
+                        LoadScreen.DoLoad("C:\\Users\\luke\\Documents\\Klei\\OxygenNotIncluded\\cloud_save_files\\76561198021490625\\Dump\\Dump.sav");
                     });
-                    */
                 });
 
             }

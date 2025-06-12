@@ -1,4 +1,5 @@
 ﻿using ONI_MP.DebugTools;
+using ONI_MP.Menus;
 using ONI_MP.Misc;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
@@ -35,8 +36,8 @@ public static class SaveHelper
             }
         }
 
+        // Why does THIS have to be called
         GameClient.Disconnect();
-        SteamLobby.LeaveLobby();
 
         LoadScreen.DoLoad(path);
     }

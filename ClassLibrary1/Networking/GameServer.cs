@@ -7,9 +7,9 @@ using ONI_MP.Networking.Packets;
 using Steamworks;
 using UnityEngine;
 
-namespace ONI_MP.Networking.Game
+namespace ONI_MP.Networking
 {
-    public static class SteamServer
+    public static class GameServer
     {
         public static HSteamListenSocket ListenSocket { get; private set; }
         public static HSteamNetPollGroup PollGroup { get; private set; }

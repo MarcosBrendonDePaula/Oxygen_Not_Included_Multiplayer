@@ -38,12 +38,12 @@ namespace ONI_MP.DebugTools
 
         private void Awake()
         {
-            Application.logMessageReceived += HandleLog;
+            //Application.logMessageReceived += HandleLog;
         }
 
         private void OnDestroy()
         {
-            Application.logMessageReceived -= HandleLog;
+            //Application.logMessageReceived -= HandleLog;
         }
 
         private void OnGUI()

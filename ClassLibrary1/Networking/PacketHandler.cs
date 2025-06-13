@@ -7,8 +7,15 @@ namespace ONI_MP.Networking
 
     public static class PacketHandler
     {
+        public static bool readyToProcess = true;
+
         public static void HandleIncoming(byte[] data)
         {
+            if(!readyToProcess)
+            {
+                return;
+            }
+
             using (var ms = new MemoryStream(data))
             {
                 using (var reader = new BinaryReader(ms))

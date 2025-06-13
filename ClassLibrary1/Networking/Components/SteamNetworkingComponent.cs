@@ -2,6 +2,8 @@
 using ONI_MP.DebugTools;
 using Steamworks;
 using ONI_MP.Misc;
+using ONI_MP.Networking.States;
+using ONI_MP.Menus;
 
 namespace ONI_MP.Networking.Components
 {
@@ -13,6 +15,15 @@ namespace ONI_MP.Networking.Components
         {
             SteamNetworkingUtils.InitRelayNetworkAccess();
             GameClient.Init();
+
+            MultiplayerMod.OnPostSceneLoaded += () =>
+            {
+                if (GameClient.State.Equals(ClientState.LoadingWorld))
+                {
+                    GameClient.ReconnectFromCache();
+                    MultiplayerOverlay.Close();
+                }
+            };
         }
 
         private void Update()

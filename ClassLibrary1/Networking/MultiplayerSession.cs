@@ -14,7 +14,7 @@ namespace ONI_MP.Networking
 
         public static CSteamID LocalSteamID => SteamUser.GetSteamID();
 
-        public static CSteamID HostSteamID { get; private set; } = CSteamID.Nil;
+        public static CSteamID HostSteamID { get; set; } = CSteamID.Nil;
 
         public static bool InSession = false;
 

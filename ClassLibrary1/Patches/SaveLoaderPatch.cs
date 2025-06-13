@@ -14,6 +14,7 @@ namespace ONI_MP.Patches
         public static void Postfix_OnSpawn()
         {
             TryCreateLobbyAfterLoad("[Multiplayer] Lobby created after world load.");
+            PacketHandler.readyToProcess = true;
         }
 
         [HarmonyPostfix]

@@ -13,6 +13,8 @@ namespace ONI_MP
     public class MultiplayerMod : UserMod2
     {
 
+        public static System.Action OnPostSceneLoaded;
+
         public override void OnLoad(Harmony harmony)
         {
             base.OnLoad(harmony);
@@ -25,7 +27,16 @@ namespace ONI_MP
             go.AddComponent<SteamNetworkingComponent>();
             go.AddComponent<UIVisibilityController>();
             go.AddComponent<MainThreadExecutor>();
+            SetupListeners();
             Debug.Log("[ONI_MP] Loaded Oxygen Not Included Multiplayer Mod.");
+        }
+
+        private void SetupListeners()
+        {
+            App.OnPostLoadScene += () =>
+            {
+                OnPostSceneLoaded.Invoke();
+            };
         }
     }
 }

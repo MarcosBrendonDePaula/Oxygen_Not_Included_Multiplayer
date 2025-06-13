@@ -3,6 +3,7 @@ using ONI_MP.Menus;
 using ONI_MP.Misc;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
+using ONI_MP.Networking.States;
 using ONI_MP.World;
 using Steamworks;
 using System;
@@ -10,6 +11,7 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public static class SaveHelper
 {
@@ -37,17 +39,13 @@ public static class SaveHelper
             }
         }
 
-        GameClient.PauseNetworkingCallbacks();
-        // Why does THIS have to be called
-        var result = SteamNetworkingSockets.FlushMessagesOnConnection(GameClient.Connection.Value);
-        DebugConsole.Log("Flush result: {result}");
-        //GameClient.Disconnect();
+        // We've saved a copy of the downloaded world now load it
+        GameClient.CacheCurrentServer();
+        GameClient.Disconnect();
+        GameClient.SetState(ClientState.LoadingWorld);
+        PacketHandler.readyToProcess = false;
 
-        if (result == EResult.k_EResultOK)
-        {
-            LoadScreen.DoLoad(path);
-            MultiplayerOverlay.Close();
-        }
+        LoadScreen.DoLoad(path);
     }
 
     public static string WorldName
@@ -65,4 +63,5 @@ public static class SaveHelper
         SaveLoader.Instance.Save(path); // Saves current state to that file
         return File.ReadAllBytes(path);
     }
+
 }

@@ -8,15 +8,6 @@ using ONI_MP.Misc;
 namespace ONI_MP.Networking
 {
 
-    public enum SteamNetworkingSend
-    {
-        Unreliable = 0,
-        NoNagle = 2,
-        UnreliableNoNagle = Unreliable | NoNagle, // 2
-        Reliable = 1,
-        ReliableNoNagle = Reliable | NoNagle      // 3
-    }
-
     public static class PacketSender
     {
         public static int MAX_PACKET_SIZE_RELIABLE = 512;
@@ -36,7 +27,7 @@ namespace ONI_MP.Networking
         /// <summary>
         /// Send to one connection by HSteamNetConnection handle.
         /// </summary>
-        public static void SendToConnection(HSteamNetConnection conn, IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
+        public static void SendToConnection(HSteamNetConnection conn, IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.ReliableNoNagle)
         {
             var bytes = SerializePacket(packet);
             var _sendType = (int)sendType;
@@ -57,6 +48,7 @@ namespace ONI_MP.Networking
                 }
                 else
                 {
+                    var n = nameof(Game);
                     DebugConsole.Log($"[Sockets] Sent {packet.Type} to conn {conn} ({Utils.FormatBytes(bytes.Length)})");
                     SteamLobby.Stats.AddBytesSent(bytes.Length);
                     SteamLobby.Stats.IncrementSentPackets();
@@ -71,7 +63,7 @@ namespace ONI_MP.Networking
         /// <summary>
         /// Send a packet to a player by their SteamID.
         /// </summary>
-        public static void SendToPlayer(CSteamID steamID, IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
+        public static void SendToPlayer(CSteamID steamID, IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.ReliableNoNagle)
         {
             if (!MultiplayerSession.ConnectedPlayers.TryGetValue(steamID, out var player) || player.Connection == null)
             {

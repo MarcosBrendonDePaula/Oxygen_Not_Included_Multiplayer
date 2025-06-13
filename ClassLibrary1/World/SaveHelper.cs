@@ -5,6 +5,7 @@ using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
 using ONI_MP.World;
 using Steamworks;
+using System;
 using System.Collections;
 using System.IO;
 using System.Reflection;
@@ -36,11 +37,17 @@ public static class SaveHelper
             }
         }
 
+        GameClient.PauseNetworkingCallbacks();
         // Why does THIS have to be called
-        GameClient.Disconnect();
+        var result = SteamNetworkingSockets.FlushMessagesOnConnection(GameClient.Connection.Value);
+        DebugConsole.Log("Flush result: {result}");
+        //GameClient.Disconnect();
 
-        LoadScreen.DoLoad(path);
-        MultiplayerOverlay.Close();
+        if (result == EResult.k_EResultOK)
+        {
+            LoadScreen.DoLoad(path);
+            MultiplayerOverlay.Close();
+        }
     }
 
     public static string WorldName

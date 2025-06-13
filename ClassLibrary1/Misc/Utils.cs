@@ -17,6 +17,13 @@ namespace ONI_MP.Misc
 {
     public static class Utils
     {
+        /// <summary>
+        /// Max size of a single message that we can SEND.
+        /// <para/>
+        /// Note: We might be wiling to receive larger messages, and our peer might, too.
+        /// </summary>
+        public static int MaxSteamNetworkingSocketsMessageSizeSend = 512 * 1024;
+
         public static void LogHierarchy(Transform root, string prefix = "")
         {
             if (root == null)

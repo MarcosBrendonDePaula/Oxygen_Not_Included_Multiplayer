@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using ONI_MP.DebugTools;
 using ONI_MP.Misc;
 using ONI_MP.Networking.Components;
 using ONI_MP.Patches.LoadingOverlayPatch;
@@ -23,11 +24,12 @@ namespace ONI_MP.Menus
             {
                 if (overlay == null)
                     return;
-
                 overlay.text = value;
-                overlay.textComponent.text = value;
+                if (overlay.textComponent != null)
+                    overlay.textComponent.text = value;
             }
         }
+
 
         private LocText textComponent = null;
         private string text = "";
@@ -58,20 +60,48 @@ namespace ONI_MP.Menus
         private void CreateOverlay()
         {
             LoadingOverlay.Load(() => { });
-            textComponent = instance.GetComponentInChildren<LocText>();
+            var inst = instance;
+            if (inst == null)
+            {
+                DebugConsole.LogWarning("[MultiplayerOverlay] LoadingOverlayExtensions.GetSingleton() returned null.");
+                return;
+            }
+
+            textComponent = inst.GetComponentInChildren<LocText>();
+            if (textComponent == null)
+            {
+                DebugConsole.LogWarning("[MultiplayerOverlay] Could not find LocText in LoadingOverlay.");
+                return;
+            }
+
             textComponent.alignment = TextAlignmentOptions.Top;
             textComponent.margin = new Vector4(0, -21.0f, 0, 0);
             textComponent.text = text;
 
-            GetScale = instance.GetComponentInParent<KCanvasScaler>().GetCanvasScale;
+            var scaler = inst.GetComponentInParent<KCanvasScaler>();
+            if (scaler == null)
+            {
+                DebugConsole.LogWarning("[MultiplayerOverlay] KCanvasScaler missing.");
+                GetScale = () => 1.0f;
+            }
+            else
+            {
+                GetScale = scaler.GetCanvasScale;
+            }
 
             rect = textComponent.gameObject.GetComponent<RectTransform>();
+            if (rect == null)
+            {
+                DebugConsole.LogWarning("[MultiplayerOverlay] RectTransform missing on LocText GameObject.");
+                return;
+            }
             rect.sizeDelta = new Vector2(Screen.width / GetScale(), 0);
         }
 
+
         private void OnPostLoadScene(Scene scene, LoadSceneMode mode)
         {
-            SteamNetworkingComponent.scheduler.Run(CreateOverlay);
+            //SteamNetworkingComponent.scheduler.Run(CreateOverlay);
         }
 
         private void OnResize()

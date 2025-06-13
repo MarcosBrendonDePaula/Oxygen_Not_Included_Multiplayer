@@ -10,6 +10,7 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public static class SaveHelper
 {
@@ -37,17 +38,9 @@ public static class SaveHelper
             }
         }
 
-        GameClient.PauseNetworkingCallbacks();
-        // Why does THIS have to be called
-        var result = SteamNetworkingSockets.FlushMessagesOnConnection(GameClient.Connection.Value);
-        DebugConsole.Log("Flush result: {result}");
-        //GameClient.Disconnect();
-
-        if (result == EResult.k_EResultOK)
-        {
-            LoadScreen.DoLoad(path);
-            MultiplayerOverlay.Close();
-        }
+        // We've saved a copy of the downloaded world now load it
+        LoadScreen.DoLoad(path);
+        MultiplayerOverlay.Close();
     }
 
     public static string WorldName
@@ -65,4 +58,5 @@ public static class SaveHelper
         SaveLoader.Instance.Save(path); // Saves current state to that file
         return File.ReadAllBytes(path);
     }
+
 }

@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using ONI_MP.Networking.Packets;
 using ONI_MP.Misc;
 using ONI_MP.Menus;
+using ONI_MP.Networking.States;
 
 namespace ONI_MP.Networking
 {
@@ -12,9 +13,25 @@ namespace ONI_MP.Networking
     {
         private static Callback<SteamNetConnectionStatusChangedCallback_t> _connectionStatusChangedCallback;
         public static HSteamNetConnection? Connection { get; private set; }
-        public static bool Connected { get; private set; } = false;
+
+        private static ClientState _state = ClientState.Disconnected;
+        public static ClientState State => _state;
 
         private static bool _pollingPaused = false;
+
+        public static readonly System.Action SetInGame = () =>
+        {
+            SetState(ClientState.InGame);
+        };
+
+        private static void SetState(ClientState newState)
+        {
+            if (_state != newState)
+            {
+                _state = newState;
+                DebugConsole.Log($"[GameClient] State changed to: {_state}");
+            }
+        }
 
         public static void Init()
         {
@@ -28,6 +45,8 @@ namespace ONI_MP.Networking
         public static void ConnectToHost(CSteamID hostSteamId)
         {
             DebugConsole.Log($"[GameClient] Attempting ConnectP2P to host {hostSteamId}...");
+            SetState(ClientState.Connecting);
+
             var identity = new SteamNetworkingIdentity();
             identity.SetSteamID64(hostSteamId.m_SteamID);
 
@@ -41,19 +60,16 @@ namespace ONI_MP.Networking
             {
                 DebugConsole.Log("[GameClient] Disconnecting from host...");
 
-                // Close the connection
                 bool result = SteamNetworkingSockets.CloseConnection(
                     Connection.Value,
                     0,
                     "Client disconnecting",
-                    false // do not linger; close immediately
+                    false
                 );
 
                 DebugConsole.Log($"[GameClient] CloseConnection result: {result}");
-
-                // Update state
                 Connection = null;
-                Connected = false;
+                SetState(ClientState.Disconnected);
                 MultiplayerSession.InSession = false;
             }
             else
@@ -64,17 +80,13 @@ namespace ONI_MP.Networking
 
         public static void ReconnectToSession()
         {
-            // Disconnect if currently connected or have a connection
-            if (Connection.HasValue || Connected)
+            if (Connection.HasValue || State == ClientState.Connected || State == ClientState.Connecting)
             {
                 DebugConsole.Log("[GameClient] Reconnecting: First disconnecting existing connection.");
                 Disconnect();
-
-                // Delay to ensure the connection is properly closed
-                System.Threading.Thread.Sleep(100); // 100ms
+                System.Threading.Thread.Sleep(100);
             }
 
-            // Re-attempt to connect to the last known host
             if (MultiplayerSession.HostSteamID != CSteamID.Nil)
             {
                 DebugConsole.Log("[GameClient] Attempting to reconnect to host...");
@@ -86,20 +98,25 @@ namespace ONI_MP.Networking
             }
         }
 
-
         public static void Poll()
         {
-            if(_pollingPaused)
-            {
+            if (_pollingPaused)
                 return;
-            }
 
             SteamNetworkingSockets.RunCallbacks();
 
-            // If connected, process incoming messages
-            if (Connected && Connection.HasValue)
+            switch (State)
             {
-                ProcessIncomingMessages(Connection.Value);
+                case ClientState.Connected:
+                case ClientState.InGame:
+                    if (Connection.HasValue)
+                        ProcessIncomingMessages(Connection.Value);
+                    break;
+                case ClientState.Connecting:
+                case ClientState.Disconnected:
+                case ClientState.Error:
+                default:
+                    break;
             }
         }
 
@@ -136,34 +153,40 @@ namespace ONI_MP.Networking
 
             DebugConsole.Log($"[GameClient] Connection status changed: {state} (remote={remote})");
 
-            // Ignore if this is not for our active connection
             if (Connection.HasValue && data.m_hConn.m_HSteamNetConnection != Connection.Value.m_HSteamNetConnection)
                 return;
 
             switch (state)
             {
                 case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_Connected:
-                    Connected = true;
-                    MultiplayerSession.InSession = true;
-                    DebugConsole.Log("[GameClient] Connection to host established!");
-                    if(Utils.IsInMenu())
-                    {
-                        //RequestHostWorldFile(); // Host can also auto-send this on connect
-                        MultiplayerOverlay.Show("Downloading world: Waiting...");
-                    }
+                    OnConnected();
                     break;
-
                 case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ClosedByPeer:
                 case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
-                    DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}");
-                    MultiplayerSession.InSession = false;
-                    Connected = false;
-                    Connection = null;
+                    OnDisconnected("Closed by peer or problem detected locally", remote, state);
                     break;
-
                 default:
                     break;
             }
+        }
+
+        private static void OnConnected()
+        {
+            SetState(ClientState.Connected);
+            MultiplayerSession.InSession = true;
+            DebugConsole.Log("[GameClient] Connection to host established!");
+            if (Utils.IsInMenu())
+            {
+                MultiplayerOverlay.Show("Downloading world: Waiting...");
+            }
+        }
+
+        private static void OnDisconnected(string reason, CSteamID remote, ESteamNetworkingConnectionState state)
+        {
+            DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
+            MultiplayerSession.InSession = false;
+            SetState(ClientState.Disconnected);
+            Connection = null;
         }
 
         public static int? GetPingToHost()
@@ -187,11 +210,6 @@ namespace ONI_MP.Networking
             }
             return null;
         }
-
-
-
-
-
 
         public static void RequestHostWorldFile()
         {
@@ -229,6 +247,5 @@ namespace ONI_MP.Networking
                 DebugConsole.Log("[GameClient] Networking message handlers enabled.");
             }
         }
-
     }
 }

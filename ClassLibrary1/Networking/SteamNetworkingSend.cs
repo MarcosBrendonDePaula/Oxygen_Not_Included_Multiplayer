@@ -32,7 +32,11 @@ namespace ONI_MP.Networking
         NoNagle = 1,
 
         /// <summary>
-        /// Send a message unreliably, bypassing Nagle's algorithm for this message and any messages currently pending on the Nagle timer. This is equivalent to using steamnetworkingtypes::k_ESteamNetworkingSend_Unreliable and then immediately flushing the messages using ISteamNetworkingSockets::FlushMessagesOnConnection or ISteamNetworkingMessages::FlushMessagesToUser. (But using this flag is more efficient since you only make one API call.)
+        /// Send a message unreliably, bypassing Nagle's algorithm for this message and any messages currently pending on the Nagle timer.
+        /// <para/>
+        /// This is equivalent to using k_ESteamNetworkingSend_Unreliable and then immediately flushing the messages using ISteamNetworkingSockets::FlushMessagesOnConnection or ISteamNetworkingMessages::FlushMessagesToUser.
+        /// <para/>
+        /// (But using this flag is more efficient since you only make one API call.)
         /// </summary>
         UnreliableNoNagle = Unreliable | NoNagle,
 

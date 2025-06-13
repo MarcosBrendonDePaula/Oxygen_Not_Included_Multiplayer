@@ -6,6 +6,7 @@
         Disconnected,
         Connecting,
         Connected,
+        LoadingWorld,
         InGame
     }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ONI_MP.Misc;
 using ONI_MP.World;
 
 namespace ONI_MP.Networking.Packets
@@ -37,6 +38,11 @@ namespace ONI_MP.Networking.Packets
 
         public void OnDispatched()
         {
+            if(Utils.IsInGame())
+            {
+                return;
+            }
+
             SaveChunkAssembler.ReceiveChunk(this);
         }
     }

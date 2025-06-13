@@ -22,23 +22,12 @@ namespace ONI_MP.Patches
             }
         }
 
-        // Patch Game.OnSpawn to set client state to InGame
         [HarmonyPatch(typeof(Game), "OnSpawn")]
-        [HarmonyPrefix]
-        public static void OnSpawnPrefix()
-        {
-            if (MultiplayerSession.IsClient)
-            {
-                DebugConsole.Log("Game on spawn pre fix");
-                GameClient.SetInGame();
-            }
-        }
-
-        [HarmonyPatch(typeof(Game), "OnSpawn")]
-        [HarmonyPrefix]
+        [HarmonyPostfix]
         public static void OnSpawnPostfix()
         {
-            DebugConsole.Log("Game on spawn post fix");
+            PacketHandler.readyToProcess = true;
+            DebugConsole.Log("Ready to process packets!");
         }
     }
 }

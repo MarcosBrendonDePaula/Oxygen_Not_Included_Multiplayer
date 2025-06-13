@@ -19,12 +19,19 @@ namespace ONI_MP.Networking
 
         private static bool _pollingPaused = false;
 
-        public static readonly System.Action SetInGame = () =>
-        {
-            SetState(ClientState.InGame);
-        };
+        private static CachedConnectionInfo? _cachedConnectionInfo = null;
 
-        private static void SetState(ClientState newState)
+        private struct CachedConnectionInfo
+        {
+            public CSteamID HostSteamID;
+
+            public CachedConnectionInfo(CSteamID id)
+            {
+                HostSteamID = id;
+            }
+        }
+
+        public static void SetState(ClientState newState)
         {
             if (_state != newState)
             {
@@ -173,6 +180,10 @@ namespace ONI_MP.Networking
         private static void OnConnected()
         {
             SetState(ClientState.Connected);
+            if(Utils.IsInGame())
+            {
+                SetState(ClientState.InGame);
+            }
             MultiplayerSession.InSession = true;
             DebugConsole.Log("[GameClient] Connection to host established!");
             if (Utils.IsInMenu())
@@ -211,11 +222,35 @@ namespace ONI_MP.Networking
             return null;
         }
 
-        public static void RequestHostWorldFile()
+        public static void CacheCurrentServer()
         {
-            var req = new SaveFileRequestPacket { Requester = SteamUser.GetSteamID() };
-            PacketSender.SendToPlayer(MultiplayerSession.HostSteamID, req);
+            if (MultiplayerSession.HostSteamID != CSteamID.Nil)
+            {
+                _cachedConnectionInfo = new CachedConnectionInfo(
+                    MultiplayerSession.HostSteamID
+                );
+                DebugConsole.Log($"[GameClient] Cached server: {_cachedConnectionInfo.Value.HostSteamID}");
+            }
+            else
+            {
+                DebugConsole.LogWarning("[GameClient] Tried to cache, but HostSteamID is Nil.");
+            }
         }
+
+        public static void ReconnectFromCache()
+        {
+            if (_cachedConnectionInfo.HasValue)
+            {
+                DebugConsole.Log($"[GameClient] Reconnecting to cached server: {_cachedConnectionInfo.Value.HostSteamID}");
+                ConnectToHost(_cachedConnectionInfo.Value.HostSteamID);
+            }
+            else
+            {
+                DebugConsole.LogWarning("[GameClient] No cached server info available to reconnect.");
+            }
+        }
+
+
 
         public static void PauseNetworkingCallbacks()
         {

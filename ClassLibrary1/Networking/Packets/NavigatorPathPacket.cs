@@ -103,11 +103,17 @@ namespace ONI_MP.Networking.Packets
                 return;
             }
 
+            if(!entity)
+                return;
+
             if (!entity.TryGetComponent(out Navigator navigator))
             {
                 DebugConsole.LogWarning($"[NavigatorPathPacket] Entity {NetId} has no Navigator");
                 return;
             }
+
+            if (!navigator)
+                return;
 
             if (Steps.Count < 2)
             {
@@ -131,6 +137,8 @@ namespace ONI_MP.Networking.Packets
             }
 
             navigator.path = newPath;
+            DebugConsole.Log($"Got path: {newPath}");
+            return;
 
             // Final destination position
             int finalCell = Steps[Steps.Count - 1].Cell;

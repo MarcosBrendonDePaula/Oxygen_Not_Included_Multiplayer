@@ -29,6 +29,9 @@ namespace ONI_MP.Networking.Packets
 
         public void OnDispatched()
         {
+            // Disabled
+            return;
+
             // Host doesn't need to do this
             if (MultiplayerSession.IsHost)
                 return;

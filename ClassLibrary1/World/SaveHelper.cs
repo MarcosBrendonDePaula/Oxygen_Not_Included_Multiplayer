@@ -3,6 +3,7 @@ using ONI_MP.Menus;
 using ONI_MP.Misc;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
+using ONI_MP.Networking.States;
 using ONI_MP.World;
 using Steamworks;
 using System;
@@ -39,8 +40,12 @@ public static class SaveHelper
         }
 
         // We've saved a copy of the downloaded world now load it
+        GameClient.CacheCurrentServer();
+        GameClient.Disconnect();
+        GameClient.SetState(ClientState.LoadingWorld);
+        PacketHandler.readyToProcess = false;
+
         LoadScreen.DoLoad(path);
-        MultiplayerOverlay.Close();
     }
 
     public static string WorldName

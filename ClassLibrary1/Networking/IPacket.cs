@@ -15,6 +15,7 @@ namespace ONI_MP.Networking
         void Deserialize(BinaryReader reader);
 
         void OnDispatched();
+
     }
 
 }

@@ -81,6 +81,16 @@ namespace ONI_MP.DebugTools
             if (GUILayout.Button("Leave lobby"))
                 SteamLobby.LeaveLobby();
 
+            if (GUILayout.Button("Client disconnect"))
+            {
+                var n = nameof(WorldDamage);
+                GameClient.CacheCurrentServer();
+                GameClient.Disconnect();
+            }
+
+            if (GUILayout.Button("Reconnect"))
+                GameClient.ReconnectFromCache();
+
             GUILayout.Space(10);
 
             if (MultiplayerSession.InSession)

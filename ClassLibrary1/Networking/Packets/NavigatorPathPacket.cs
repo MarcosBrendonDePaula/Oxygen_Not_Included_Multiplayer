@@ -97,29 +97,8 @@ namespace ONI_MP.Networking.Packets
             if (MultiplayerSession.IsHost)
                 return;
 
-            if (!NetEntityRegistry.TryGet(NetId, out var entity))
-            {
-                DebugConsole.LogWarning($"[NavigatorPathPacket] Could not find entity with NetId {NetId}");
+            if (!PassesPreliminaryChecks(out var entity, out var navigator))
                 return;
-            }
-
-            if(!entity)
-                return;
-
-            if (!entity.TryGetComponent(out Navigator navigator))
-            {
-                DebugConsole.LogWarning($"[NavigatorPathPacket] Entity {NetId} has no Navigator");
-                return;
-            }
-
-            if (!navigator)
-                return;
-
-            if (Steps.Count < 2)
-            {
-                DebugConsole.LogWarning($"[NavigatorPathPacket] Received invalid path for {NetId}");
-                return;
-            }
 
             var newPath = new PathFinder.Path
             {
@@ -137,8 +116,6 @@ namespace ONI_MP.Networking.Packets
             }
 
             navigator.path = newPath;
-            DebugConsole.Log($"Got path: {newPath}");
-            return;
 
             // Final destination position
             int finalCell = Steps[Steps.Count - 1].Cell;
@@ -157,6 +134,7 @@ namespace ONI_MP.Networking.Packets
                 {
                     UnityEngine.Object.Destroy(dummyTarget);
                     DebugConsole.Log($"[NavigatorPathPacket] Cleaned up dummy target for NetId {NetId}");
+                    navigator.SetCanAdvance(false);
                 }
             };
 
@@ -175,5 +153,40 @@ namespace ONI_MP.Networking.Packets
 
             DebugConsole.Log($"[NavigatorPathPacket] Path with {Steps.Count} nodes applied to NetId {NetId}");
         }
+
+        private bool PassesPreliminaryChecks(out Component entity, out Navigator navigator)
+        {
+            entity = null;
+            navigator = null;
+
+            if (!NetEntityRegistry.TryGet(NetId, out var foundEntity))
+            {
+                DebugConsole.LogWarning($"[NavigatorPathPacket] Could not find entity with NetId {NetId}");
+                return false;
+            }
+
+            if (!foundEntity)
+                return false;
+
+            entity = foundEntity;
+
+            if (!entity.TryGetComponent(out navigator))
+            {
+                DebugConsole.LogWarning($"[NavigatorPathPacket] Entity {NetId} has no Navigator");
+                return false;
+            }
+
+            if (!navigator)
+                return false;
+
+            if (Steps == null || Steps.Count < 2)
+            {
+                DebugConsole.LogWarning($"[NavigatorPathPacket] Received invalid path for {NetId}");
+                return false;
+            }
+
+            return true;
+        }
+
     }
 }

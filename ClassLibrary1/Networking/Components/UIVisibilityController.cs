@@ -19,7 +19,7 @@ namespace ONI_MP.Components
 
         private void Update()
         {
-            UpdatePauseButton();
+            //UpdatePauseButton();
         }
 
         void UpdatePauseButton()

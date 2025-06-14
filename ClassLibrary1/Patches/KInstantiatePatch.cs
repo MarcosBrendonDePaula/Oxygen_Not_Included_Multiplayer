@@ -22,7 +22,7 @@ public static class KInstantiatePatch
         if (MultiplayerSession.IsClient)
         {
             //DebugConsole.Log($"[MP] Blocked KInstantiate on client for prefab '{original?.name}'");
-            return false; // Prevent instantiation
+            return true; // Prevent instantiation
         }
 
         return true; // Allow host to instantiate

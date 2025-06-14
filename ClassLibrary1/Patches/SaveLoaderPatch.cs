@@ -15,6 +15,10 @@ namespace ONI_MP.Patches
         {
             TryCreateLobbyAfterLoad("[Multiplayer] Lobby created after world load.");
             PacketHandler.readyToProcess = true;
+            if(MultiplayerSession.InSession)
+            {
+                SpeedControlScreen.Instance?.Unpause(false); // Unpause the game
+            }
         }
 
         [HarmonyPostfix]

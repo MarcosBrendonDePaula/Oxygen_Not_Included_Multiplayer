@@ -15,7 +15,7 @@ namespace ONI_MP.Patches
             if (MultiplayerSession.InSession)
             {
                 Debug.Log("[ONI_MP] Pause prevented during multiplayer session.");
-                return false;
+                return true;
             }
 
             return true;

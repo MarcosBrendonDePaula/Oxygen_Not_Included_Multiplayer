@@ -5,7 +5,7 @@ using ONI_MP.DebugTools;
 
 namespace ONI_MP.Networking.Components
 {
-    public class EntityPositionSender : KMonoBehaviour
+    public class EntityPositionHandler : KMonoBehaviour
     {
         private Vector3 lastSentPosition;
         private float timer;
@@ -29,7 +29,7 @@ namespace ONI_MP.Networking.Components
         private void Update()
         {
             // Block clients from sending position data
-            if (MultiplayerSession.IsClient || networkedEntity == null)
+            if (networkedEntity == null)
                 return;
 
             // Only send when in a session and host
@@ -38,6 +38,17 @@ namespace ONI_MP.Networking.Components
                 return;
             }
 
+            if(MultiplayerSession.IsClient)
+            {
+                return;
+            }
+
+            // Host sends the positionPacket every x milliseconds
+            SendPositionPacket();
+        }
+
+        private void SendPositionPacket()
+        {
             timer += Time.unscaledDeltaTime;
             if (timer < SendInterval)
                 return;

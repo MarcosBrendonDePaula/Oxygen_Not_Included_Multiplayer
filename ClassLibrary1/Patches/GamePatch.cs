@@ -27,7 +27,6 @@ namespace ONI_MP.Patches
         public static void OnSpawnPostfix()
         {
             PacketHandler.readyToProcess = true;
-            DebugConsole.Log("Ready to process packets!");
         }
     }
 }

@@ -60,6 +60,9 @@ namespace ONI_MP.Networking
                 if (MultiplayerSession.IsHost)
                     GameServer.Shutdown();
 
+                if (MultiplayerSession.IsClient)
+                    GameClient.Disconnect();
+
                 SteamMatchmaking.LeaveLobby(CurrentLobby);
                 MultiplayerSession.Clear();
                 CurrentLobby = CSteamID.Nil;

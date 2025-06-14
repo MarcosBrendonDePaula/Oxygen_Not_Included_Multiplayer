@@ -32,7 +32,6 @@ namespace ONI_MP.Patches.Navigation
                 return true;
             }
 
-            var t = nameof(WorldDamage);
             if(__instance.GetCanAdvance())
             {
                 return true;

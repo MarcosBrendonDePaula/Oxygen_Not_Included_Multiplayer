@@ -179,7 +179,7 @@ namespace ONI_MP.Networking.Packets
             if (!navigator)
                 return false;
 
-            if (Steps == null || Steps.Count < 2)
+            if (Steps == null/* || Steps.Count < 2*/)
             {
                 DebugConsole.LogWarning($"[NavigatorPathPacket] Received invalid path for {NetId}");
                 return false;

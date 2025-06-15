@@ -14,35 +14,42 @@ namespace ONI_MP.Patches.Chores
     {
         public static void AssignChoreToDuplicant(this Chore newChore, GameObject dupeGO)
         {
-            if (newChore == null || dupeGO == null)
+            try
             {
-                DebugConsole.LogWarning("[ChoreAssignment] Invalid chore or duplicant.");
-                return;
-            }
+                if (newChore == null || dupeGO == null || !newChore.IsValid())
+                {
+                    DebugConsole.LogWarning("[ChoreAssignment] Invalid chore or duplicant.");
+                    return;
+                }
 
-            var consumer = dupeGO.GetComponent<ChoreConsumer>();
-            if (consumer == null || consumer.choreDriver == null)
+                var consumer = dupeGO.GetComponent<ChoreConsumer>();
+                if (consumer == null || consumer.choreDriver == null)
+                {
+                    DebugConsole.LogWarning("[ChoreAssignment] Missing ChoreConsumer or ChoreDriver.");
+                    return;
+                }
+
+                var driver = consumer.choreDriver;
+
+                // Cancel current chore
+                var current = driver.GetCurrentChore();
+                if (current != null)
+                {
+                    current.Cancel("Override chore from MP");
+                }
+
+                // Build context and begin
+                var state = new ChoreConsumerState(consumer);
+                var context = new Chore.Precondition.Context(newChore, state, true);
+
+                newChore.Begin(context);
+
+                DebugConsole.Log($"[ChoreAssignment] Assigned chore {newChore.choreType.Id} to {dupeGO.name}");
+            }
+            catch (Exception ex)
             {
-                DebugConsole.LogWarning("[ChoreAssignment] Missing ChoreConsumer or ChoreDriver.");
-                return;
+                DebugConsole.LogException(ex);
             }
-
-            var driver = consumer.choreDriver;
-
-            // Cancel current chore
-            var current = driver.GetCurrentChore();
-            if (current != null)
-            {
-                current.Cancel("Override chore from MP");
-            }
-
-            // Build context and begin
-            var state = new ChoreConsumerState(consumer);
-            var context = new Chore.Precondition.Context(newChore, state, true);
-
-            newChore.Begin(context);
-
-            DebugConsole.Log($"[ChoreAssignment] Assigned chore {newChore.id} to {dupeGO.name}");
         }
     }
 }

@@ -18,6 +18,7 @@ namespace ONI_MP.Networking
         Instantiations = 8,     // Batched instantiations
         NavigatorPath = 9,
         SaveFileRequest = 10,
-        SaveFileChunk = 11
+        SaveFileChunk = 11,
+        Diggable = 12
     }
 }

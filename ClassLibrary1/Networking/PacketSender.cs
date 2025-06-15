@@ -74,9 +74,17 @@ namespace ONI_MP.Networking
             SendToConnection(player.Connection.Value, packet, sendType);
         }
 
-        /// <summary>
-        /// Send to all players, optionally excluding one SteamID.
-        /// </summary>
+        public static void SendToHost(IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.ReliableNoNagle)
+        {
+            if (!MultiplayerSession.HostSteamID.IsValid())
+            {
+                DebugConsole.LogWarning($"[PacketSender] Failed to send to host. Host is invalid.");
+                return;
+            }
+            SendToPlayer(MultiplayerSession.HostSteamID, packet, sendType);
+        }
+
+        /// Original single-exclude overload
         public static void SendToAll(IPacket packet, CSteamID? exclude = null, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
         {
             foreach (var player in MultiplayerSession.ConnectedPlayers.Values)
@@ -88,6 +96,20 @@ namespace ONI_MP.Networking
                     SendToConnection(player.Connection.Value, packet, sendType);
             }
         }
+
+        /// Renamed multiple-exclude method to avoid conflict
+        public static void SendToAllExcluding(IPacket packet, HashSet<CSteamID> excludedIds, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
+        {
+            foreach (var player in MultiplayerSession.ConnectedPlayers.Values)
+            {
+                if (excludedIds != null && excludedIds.Contains(player.SteamID))
+                    continue;
+
+                if (player.Connection != null)
+                    SendToConnection(player.Connection.Value, packet, sendType);
+            }
+        }
+
 
     }
 }

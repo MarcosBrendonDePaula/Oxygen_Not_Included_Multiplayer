@@ -46,7 +46,7 @@ public static class ChoreFactory
             case "Flee": return CreateFlee(dupeGO);
             case "FoodFight": return CreateFoodFight(consumer);
             case "Harvest": return CreateWorkChore<Harvestable>(type, consumer, cell);
-            case "Idle": return CreateIdle(consumer);
+            case "IdleChore": return CreateIdle(consumer);
             case "Mingle": return CreateMingle(consumer);
             case "Mop": return CreateWorkChore<Moppable>(type, consumer, cell);
             case "Mourn": return CreateMourn(consumer);
@@ -693,4 +693,30 @@ public static class ChoreFactory
         var death = field?.GetValue(deathMonitor) as Death;
         return death != null ? new DieChore(consumer, death) : null;
     }
+
+    public static Chore CreateDig(ChoreConsumer consumer, int cell)
+    {
+        if (!Grid.IsValidCell(cell))
+        {
+            DebugConsole.LogWarning($"[ChoreFactory] Invalid dig cell: {cell}");
+            return null;
+        }
+
+        Diggable diggable = Diggable.GetDiggable(cell);
+        if (diggable == null)
+        {
+            DebugConsole.LogWarning($"[ChoreFactory] No Diggable found at cell {cell}");
+            return null;
+        }
+
+        if (diggable.chore == null)
+        {
+            DebugConsole.LogWarning($"[ChoreFactory] Diggable at cell {cell} has no chore instance");
+            return null;
+        }
+
+        return diggable.chore;
+    }
+
+
 }

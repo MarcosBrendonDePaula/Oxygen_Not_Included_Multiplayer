@@ -12,14 +12,24 @@ namespace ONI_MP.Patches
     {
         public static void Postfix(int cell, int animationDelay, GameObject __result)
         {
+
             if (!MultiplayerSession.InSession)
+            {
+                DebugConsole.LogWarning("[PlaceDig Patch] Skipped: MultiplayerSession.InSession is false");
                 return;
+            }
 
             if (__result == null)
+            {
+                DebugConsole.LogWarning($"[PlaceDig Patch] Skipped: __result is null for cell {cell}");
                 return;
+            }
 
-            if (Diggable.GetDiggable(cell) != null)
-                return;
+            //if (Diggable.GetDiggable(cell) != null)
+            //{
+            //    DebugConsole.LogWarning($"[PlaceDig Patch] Skipped: Cell {cell} is already diggable");
+            //    return;
+            //}
 
             var packet = new DiggablePacket()
             {
@@ -30,12 +40,12 @@ namespace ONI_MP.Patches
             if (MultiplayerSession.IsHost)
             {
                 PacketSender.SendToAll(packet);
-                DebugConsole.Log($"[Chores] Host sent DiggablePacket to all for cell {cell}");
+                DebugConsole.Log($"[Chores/Dig] Host sent DiggablePacket to all for cell {cell}");
             }
             else
             {
                 PacketSender.SendToHost(packet);
-                DebugConsole.Log($"[Chores] Client sent DiggablePacket to host for cell {cell}");
+                DebugConsole.Log($"[Chores/Dig] Client sent DiggablePacket to host for cell {cell}");
             }
         }
     }

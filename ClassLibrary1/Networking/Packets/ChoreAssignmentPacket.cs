@@ -1,5 +1,6 @@
 ﻿using ONI_MP.DebugTools;
 using ONI_MP.Networking;
+using ONI_MP.Patches.Chores;
 using System.IO;
 using UnityEngine;
 
@@ -36,7 +37,31 @@ public class ChoreAssignmentPacket : IPacket
 
     public void OnDispatched()
     {
-        var chore = ChoreFactory.Create(ChoreTypeId, dupeGO, TargetPosition, TargetCell, TargetPrefabId);
+        if (!NetEntityRegistry.TryGet(NetId, out var entity))
+        {
+            DebugConsole.LogWarning($"[ChoreAssignment] Could not find entity with NetId {NetId}");
+            return;
+        }
+
+        var dupeGO = entity.gameObject;
+        var consumer = dupeGO.GetComponent<ChoreConsumer>();
+        var type = Db.Get().ChoreTypes.Get(ChoreTypeId);
+
+        if (consumer == null || type == null)
+        {
+            DebugConsole.LogWarning($"[ChoreAssignment] Missing consumer or chore type: {ChoreTypeId}");
+            return;
+        }
+
+        // Create the context to pass for precondition-aware chores
+        var context = new Chore.Precondition.Context
+        {
+            consumerState = consumer.GetComponent<ChoreConsumerState>(),
+            choreTypeForPermission = type
+        };
+
+        var chore = ChoreFactory.Create(ChoreTypeId, context, dupeGO, TargetPosition, TargetCell, TargetPrefabId);
+
         if (chore != null)
         {
             chore.AssignChoreToDuplicant(dupeGO);
@@ -45,6 +70,7 @@ public class ChoreAssignmentPacket : IPacket
         {
             DebugConsole.LogWarning($"[ChoreAssignment] Could not create chore: {ChoreTypeId} for {dupeGO.name}");
         }
-
     }
+
+
 }

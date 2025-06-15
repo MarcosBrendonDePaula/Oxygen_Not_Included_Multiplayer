@@ -44,7 +44,7 @@ namespace ONI_MP.Patches.Chores
         }
     }
 
-    /* Disabled because they all use base.Begin which we patched above but they do all have unique Begin methods
+    /* Disabled because they all use base.Begin which we patched above but they do all have unique Begin methods, every other chore uses the standard base begin
     [HarmonyPatch(typeof(AttackChore), nameof(AttackChore.Begin))]
     public static class AttackChorePatch { public static void Postfix(AttackChore __instance) => ChoresPatch.SendAssignmentPacket(__instance); }
 

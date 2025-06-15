@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using ONI_MP.DebugTools;
 using ONI_MP.Misc;
 using STRINGS;
 using UnityEngine;
@@ -78,7 +79,7 @@ public static class ChoreFactory
             case "Vomit": return CreateVomit(dupeGO);
             case "WaterCooler": return CreateWaterCoolerChore(dupeGO);
             default:
-                Debug.LogWarning($"[ChoreFactory] Unhandled chore type: {choreTypeId}");
+                DebugConsole.LogWarning($"[ChoreFactory] Unhandled chore type: {choreTypeId}");
                 return null;
         }
     }
@@ -88,28 +89,28 @@ public static class ChoreFactory
     {
         if (!Grid.IsValidCell(cell))
         {
-            Debug.LogWarning($"[ChoreFactory] Invalid cell passed to CreateRancher: {cell}");
+            DebugConsole.LogWarning($"[ChoreFactory] Invalid cell passed to CreateRancher: {cell}");
             return null;
         }
 
         var buildingObj = Grid.Objects[cell, (int)ObjectLayer.Building];
         if (buildingObj == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No building found at cell {cell} for Rancher chore.");
+            DebugConsole.LogWarning($"[ChoreFactory] No building found at cell {cell} for Rancher chore.");
             return null;
         }
 
         var kPrefab = buildingObj.GetComponent<KPrefabID>();
         if (kPrefab == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No KPrefabID on building at cell {cell} for Rancher chore.");
+            DebugConsole.LogWarning($"[ChoreFactory] No KPrefabID on building at cell {cell} for Rancher chore.");
             return null;
         }
 
         var smi = kPrefab.GetSMI<RanchStation.Instance>();
         if (smi == null)
         {
-            Debug.LogWarning($"[ChoreFactory] KPrefabID at cell {cell} does not have RanchStation.Instance.");
+            DebugConsole.LogWarning($"[ChoreFactory] KPrefabID at cell {cell} does not have RanchStation.Instance.");
             return null;
         }
 
@@ -122,7 +123,7 @@ public static class ChoreFactory
         var smTarget = consumer.GetComponent<IStateMachineTarget>();
         if (smTarget == null)
         {
-            Debug.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for PutOnHatChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for PutOnHatChore.");
             return null;
         }
 
@@ -140,7 +141,7 @@ public static class ChoreFactory
         var smTarget = consumer.GetComponent<IStateMachineTarget>();
         if (smTarget == null)
         {
-            Debug.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for PartyChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for PartyChore.");
             return null;
         }
 
@@ -153,7 +154,7 @@ public static class ChoreFactory
 
         if (workable == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No valid Workable (Partying) found near {consumer.name} for PartyChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] No valid Workable (Partying) found near {consumer.name} for PartyChore.");
             return null;
         }
 
@@ -171,7 +172,7 @@ public static class ChoreFactory
         var smTarget = consumer.GetComponent<IStateMachineTarget>();
         if (smTarget == null)
         {
-            Debug.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for MoveToQuarantineChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for MoveToQuarantineChore.");
             return null;
         }
 
@@ -184,7 +185,7 @@ public static class ChoreFactory
 
         if (quarantineObj == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No valid quarantine area (MedicalCot) found near {consumer.name} for MoveToQuarantineChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] No valid quarantine area (MedicalCot) found near {consumer.name} for MoveToQuarantineChore.");
             return null;
         }
 
@@ -196,7 +197,7 @@ public static class ChoreFactory
         var smTarget = consumer.GetComponent<IStateMachineTarget>();
         if (smTarget == null)
         {
-            Debug.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for MovePickupableChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for MovePickupableChore.");
             return null;
         }
 
@@ -212,7 +213,7 @@ public static class ChoreFactory
 
         if (pickupable == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No valid pickupable item found near {consumer.name} for MovePickupableChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] No valid pickupable item found near {consumer.name} for MovePickupableChore.");
             return null;
         }
 
@@ -224,7 +225,7 @@ public static class ChoreFactory
 
         if (storageTarget == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No valid delivery target found near {consumer.name} for MovePickupableChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] No valid delivery target found near {consumer.name} for MovePickupableChore.");
             return null;
         }
 
@@ -236,14 +237,14 @@ public static class ChoreFactory
     {
         if (consumer == null || targetObject == null)
         {
-            Debug.LogWarning("[ChoreFactory] Invalid consumer or targetObject for MoveChore.");
+            DebugConsole.LogWarning("[ChoreFactory] Invalid consumer or targetObject for MoveChore.");
             return null;
         }
 
         var smTarget = consumer.GetComponent<IStateMachineTarget>();
         if (smTarget == null)
         {
-            Debug.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget.");
+            DebugConsole.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget.");
             return null;
         }
 
@@ -273,7 +274,7 @@ public static class ChoreFactory
 
         if (closestCell == Grid.InvalidCell)
         {
-            Debug.LogWarning($"[ChoreFactory] No valid walkable cell found near {targetObject.name}.");
+            DebugConsole.LogWarning($"[ChoreFactory] No valid walkable cell found near {targetObject.name}.");
             return null;
         }
 
@@ -302,7 +303,7 @@ public static class ChoreFactory
         var smTarget = consumer.GetComponent<IStateMachineTarget>();
         if (smTarget == null)
         {
-            Debug.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for FoodFightChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for FoodFightChore.");
             return null;
         }
 
@@ -313,7 +314,7 @@ public static class ChoreFactory
         GameObject locator = Utils.FindClosestGameObjectWithTag(origin, GameTags.Decoration, searchRadius);
         if (locator == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No valid FoodFight locator found near {consumer.name}.");
+            DebugConsole.LogWarning($"[ChoreFactory] No valid FoodFight locator found near {consumer.name}.");
             return null;
         }
 
@@ -321,14 +322,14 @@ public static class ChoreFactory
         var rationMonitor = consumer.GetSMI<RationMonitor.Instance>();
         if (rationMonitor == null)
         {
-            Debug.LogWarning($"[ChoreFactory] {consumer.name} has no RationMonitor.");
+            DebugConsole.LogWarning($"[ChoreFactory] {consumer.name} has no RationMonitor.");
             return null;
         }
 
         var edible = rationMonitor.GetEdible();
         if (edible == null || edible.gameObject == null)
         {
-            Debug.LogWarning($"[ChoreFactory] {consumer.name} has no edible item for FoodFightChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] {consumer.name} has no edible item for FoodFightChore.");
             return null;
         }
 
@@ -380,7 +381,7 @@ public static class ChoreFactory
         var smTarget = consumer.GetComponent<IStateMachineTarget>();
         if (smTarget == null)
         {
-            Debug.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for RemoteChore.");
+            DebugConsole.LogWarning($"[ChoreFactory] {consumer.name} does not implement IStateMachineTarget for RemoteChore.");
             return null;
         }
 
@@ -393,7 +394,7 @@ public static class ChoreFactory
 
         if (terminalGO == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No valid RemoteWorkTerminal found near {consumer.name}.");
+            DebugConsole.LogWarning($"[ChoreFactory] No valid RemoteWorkTerminal found near {consumer.name}.");
             return null;
         }
 
@@ -413,7 +414,7 @@ public static class ChoreFactory
 
         if (incapacitated == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No incapacitated duplicant found near {consumer.name}");
+            DebugConsole.LogWarning($"[ChoreFactory] No incapacitated duplicant found near {consumer.name}");
             return null;
         }
 
@@ -433,7 +434,7 @@ public static class ChoreFactory
 
         if (sweepBot == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No trapped SweepBot found near {consumer.name}");
+            DebugConsole.LogWarning($"[ChoreFactory] No trapped SweepBot found near {consumer.name}");
             return null;
         }
 
@@ -442,7 +443,7 @@ public static class ChoreFactory
 
         if (baseStation == null)
         {
-            Debug.LogWarning($"[ChoreFactory] No base station found for SweepBot {sweepBot.name}");
+            DebugConsole.LogWarning($"[ChoreFactory] No base station found for SweepBot {sweepBot.name}");
             return null;
         }
 
@@ -634,14 +635,14 @@ public static class ChoreFactory
     {
         if (!Grid.IsValidCell(cell))
         {
-            Debug.LogWarning($"[ChoreFactory] Invalid grid cell: {cell}");
+            DebugConsole.LogWarning($"[ChoreFactory] Invalid grid cell: {cell}");
             return null;
         }
 
         var choreProvider = consumer.GetComponent<ChoreProvider>();
         if (choreProvider == null)
         {
-            Debug.LogWarning("[ChoreFactory] Consumer has no ChoreProvider.");
+            DebugConsole.LogWarning("[ChoreFactory] Consumer has no ChoreProvider.");
             return null;
         }
 
@@ -668,7 +669,7 @@ public static class ChoreFactory
             }
         }
 
-        Debug.LogWarning($"[ChoreFactory] No workable of type {typeof(T).Name} found in cell {cell}");
+        DebugConsole.LogWarning($"[ChoreFactory] No workable of type {typeof(T).Name} found in cell {cell}");
         return null;
     }
 
@@ -677,7 +678,7 @@ public static class ChoreFactory
         var emote = Db.Get().Emotes.Get(id) as Klei.AI.Emote;
         if (emote == null)
         {
-            Debug.LogWarning($"[ChoreFactory] Emote '{id}' not found or invalid type.");
+            DebugConsole.LogWarning($"[ChoreFactory] Emote '{id}' not found or invalid type.");
             return null;
         }
 

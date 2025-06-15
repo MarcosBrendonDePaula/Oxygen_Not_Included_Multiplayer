@@ -13,29 +13,51 @@ namespace ONI_MP.Patches.Chores
     {
         public static void SendAssignmentPacket(Chore __instance)
         {
+            // Only the host/server sends assignment packets
             if (MultiplayerSession.IsClient || !MultiplayerSession.InSession)
                 return;
 
+            // Get the assigned duplicant's GameObject
             var dupeGO = __instance.driver?.gameObject;
             if (dupeGO == null)
+            {
+                DebugConsole.LogWarning("[Chores] Cannot send chore assignment: driver GameObject is null.");
                 return;
+            }
 
-            var netComponent = dupeGO.GetComponent<NetworkIdentity>();
-            if (netComponent == null)
+            // Ensure the dupe has a NetworkIdentity component
+            if (!dupeGO.TryGetComponent(out NetworkIdentity netComponent))
+            {
+                DebugConsole.LogWarning($"[Chores] Duplicant {dupeGO.name} has no NetworkIdentity; skipping chore assignment packet.");
                 return;
+            }
 
+            // Validate the chore type
+            var choreType = __instance.choreType;
+            if (choreType == null)
+            {
+                DebugConsole.LogWarning("[Chores] Cannot send chore assignment: chore type is null.");
+                return;
+            }
+
+            // Build and send the packet
             var packet = new ChoreAssignmentPacket
             {
                 NetId = netComponent.NetId,
-                ChoreId = __instance.choreType.Id
+                ChoreTypeId = choreType.Id,
+                TargetPosition = __instance.gameObject?.transform.position ?? Vector3.zero,
+                TargetCell = Grid.PosToCell(__instance.gameObject),
+                TargetPrefabId = __instance.gameObject?.PrefabID().Name ?? ""
             };
 
             PacketSender.SendToAll(packet);
-            DebugConsole.Log($"[Chores] Sent ChoreAssignmentPacket: NetId={packet.NetId}, ChoreId={packet.ChoreId}, Type={__instance.choreType.Name}:{__instance.choreType.Id}");
+
+            DebugConsole.Log($"[Chores] Sent ChoreAssignmentPacket: NetId={packet.NetId}, ChoreId={packet.ChoreTypeId}, Type={choreType.Name}:{choreType.Id}");
         }
     }
 
-    [HarmonyPatch(typeof(StandardChoreBase), nameof(StandardChoreBase.Begin))]
+
+        [HarmonyPatch(typeof(StandardChoreBase), nameof(StandardChoreBase.Begin))]
     public static class StandardChoreBase_Begin_Patch
     {
         public static void Postfix(Chore __instance)

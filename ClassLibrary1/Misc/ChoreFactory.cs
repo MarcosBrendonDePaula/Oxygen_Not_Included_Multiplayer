@@ -49,14 +49,14 @@ public static class ChoreFactory
             case "Mingle": return CreateMingle(consumer);
             case "Mop": return CreateWorkChore<Moppable>(type, consumer, cell);
             case "Mourn": return CreateMourn(consumer);
-            case "Move": return CreateMove(consumer, pos);
+            case "Move": return CreateMove(consumer, dupeGO);
             case "MovePickupable": return CreateMovePickupable(consumer);
             case "MoveToQuarantine": return CreateMoveToQuarantine(consumer);
             case "MoveToSafety": return CreateMoveToSafety(consumer);
             case "Party": return CreateParty(consumer);
             case "Pee": return CreatePee(consumer);
             case "PutOnHat": return CreatePutOnHat(consumer);
-            case "Rancher": return CreateRancher(consumer);
+            case "Rancher": return CreateRancher(consumer, cell);
             case "ReactEmote": return CreateNamedEmote("ReactEmote", type, consumer);
             case "RecoverBreath": return CreateRecoverBreath(consumer);
             case "RecoverFromCold": return CreateRecoverFromCold(consumer);
@@ -67,21 +67,22 @@ public static class ChoreFactory
             case "RescueIncapacitated": return CreateRescueIncapacitated(consumer);
             case "RescueSweepBot": return CreateRescueSweepBot(consumer);
             case "SeekAndInstallBionicUpgrade": return CreateSeekAndInstallUpgrade(consumer);
-            case "Sleep": return CreateSleep(consumer);
+            case "Sleep": return CreateSleep(dupeGO);
             case "StressIdle": return CreateStressIdle(consumer);
-            case "StressShock": return CreateStressShock(consumer);
+            case "StressShock": return CreateStressShock(dupeGO);
             case "Sweep": return CreateWorkChore<Pickupable>(type, consumer, cell);
-            case "SwitchRoleHat": return CreateSwitchRoleHat(consumer);
-            case "TakeMedicine": return CreateTakeMedicine(consumer);
-            case "TakeOffHat": return CreateTakeOffHat(consumer);
+            case "SwitchRoleHat": return CreateSwitchRoleHat(dupeGO);
+            //case "TakeMedicine": return CreateTakeMedicine(dupeGO, pillWorkable); // TODO Figure out
+            case "TakeOffHat": return CreateTakeOffHat(dupeGO);
             case "UseSolidLubricant": return CreateUseSolidLubricant(consumer);
-            case "Vomit": return CreateVomit(consumer);
-            case "WaterCooler": return CreateWaterCooler(consumer);
+            case "Vomit": return CreateVomit(dupeGO);
+            case "WaterCooler": return CreateWaterCoolerChore(dupeGO);
             default:
                 Debug.LogWarning($"[ChoreFactory] Unhandled chore type: {choreTypeId}");
                 return null;
         }
     }
+
 
     private static Chore CreateRancher(ChoreConsumer consumer, int cell)
     {
@@ -231,7 +232,7 @@ public static class ChoreFactory
     }
 
 
-    private static Chore CreateMoveChore(ChoreConsumer consumer, GameObject targetObject)
+    private static Chore CreateMove(ChoreConsumer consumer, GameObject targetObject)
     {
         if (consumer == null || targetObject == null)
         {
@@ -296,7 +297,7 @@ public static class ChoreFactory
         return new IdleChore(consumer);
     }
 
-    private static Chore CreateFoodFightChore(ChoreConsumer consumer)
+    private static Chore CreateFoodFight(ChoreConsumer consumer)
     {
         var smTarget = consumer.GetComponent<IStateMachineTarget>();
         if (smTarget == null)
@@ -374,7 +375,7 @@ public static class ChoreFactory
     private static Chore CreateRecoverFromHeat(ChoreConsumer consumer) => new RecoverFromHeatChore(consumer);
     private static Chore CreateRecoverFromCold(ChoreConsumer consumer) => new RecoverFromColdChore(consumer);
     private static Chore CreateRecoverBreath(ChoreConsumer consumer) => new RecoverBreathChore(consumer);
-    private static Chore CreateRemoteChore(ChoreConsumer consumer)
+    private static Chore CreateRemote(ChoreConsumer consumer)
     {
         var smTarget = consumer.GetComponent<IStateMachineTarget>();
         if (smTarget == null)
@@ -401,7 +402,7 @@ public static class ChoreFactory
     }
 
     private static Chore CreateReloadElectrobank(ChoreConsumer consumer) => new ReloadElectrobankChore(consumer);
-    private static Chore CreateRescueIncapacitatedChore(ChoreConsumer consumer)
+    private static Chore CreateRescueIncapacitated(ChoreConsumer consumer)
     {
         Vector3 origin = consumer.transform.position;
         float searchRadius = 10f;
@@ -419,7 +420,7 @@ public static class ChoreFactory
         return new RescueIncapacitatedChore(consumer, incapacitated);
     }
 
-    private static Chore CreateRescueSweepBotChore(ChoreConsumer consumer)
+    private static Chore CreateRescueSweepBot(ChoreConsumer consumer)
     {
         Vector3 origin = consumer.transform.position;
         float searchRadius = 10f;
@@ -449,7 +450,7 @@ public static class ChoreFactory
     }
 
     private static Chore CreateSeekAndInstallUpgrade(ChoreConsumer consumer) => new SeekAndInstallBionicUpgradeChore(consumer);
-    private static Chore CreateSleepChore(GameObject dupeGO)
+    private static Chore CreateSleep(GameObject dupeGO)
     {
         GameObject bed = null;
         bool bedIsLocator = true;
@@ -502,7 +503,7 @@ public static class ChoreFactory
         return stressShockChore;
     }
 
-    public static Chore CreateSwitchRoleHatChore(GameObject dupe)
+    public static Chore CreateSwitchRoleHat(GameObject dupe)
     {
         if (dupe == null || dupe.GetComponent<ChoreProvider>() == null)
             return null;
@@ -522,7 +523,7 @@ public static class ChoreFactory
         return hatChore;
     }
 
-    public static Chore CreateTakeMedicineChore(GameObject dupe, MedicinalPillWorkable pillWorkable)
+    public static Chore CreateTakeMedicine(GameObject dupe, MedicinalPillWorkable pillWorkable)
     {
         if (dupe == null || pillWorkable == null)
             return null;
@@ -545,7 +546,7 @@ public static class ChoreFactory
         return new TakeMedicineChore(pillWorkable);
     }
 
-    public static Chore CreateTakeOffHatChore(GameObject dupe)
+    public static Chore CreateTakeOffHat(GameObject dupe)
     {
         if (dupe == null)
             return null;
@@ -568,7 +569,7 @@ public static class ChoreFactory
     }
 
     private static Chore CreateUseSolidLubricant(ChoreConsumer consumer) => new UseSolidLubricantChore(consumer);
-    public static Chore CreateVomitChore(GameObject dupe)
+    public static Chore CreateVomit(GameObject dupe)
     {
         if (dupe == null)
             return null;

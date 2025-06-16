@@ -32,6 +32,7 @@ namespace ONI_MP.Patches.Navigation
                 return true;
             }
 
+            // Only move if they've been informed they can move
             if(__instance.GetCanAdvance())
             {
                 return true;
@@ -73,31 +74,4 @@ namespace ONI_MP.Patches.Navigation
             DebugConsole.Log(log);
         }
     }
-
-    [HarmonyPatch(typeof(Navigator), nameof(Navigator.GoTo), new[] {
-    typeof(KMonoBehaviour), typeof(CellOffset[]), typeof(NavTactic)
-})]
-    public static class Navigator_GoTo_Target_Patch
-    {
-        static bool Prefix(Navigator __instance)
-        {
-            if (!MultiplayerSession.InSession)
-            {
-                return true; // Not in a multiplayer session, allow
-            }
-
-            if (__instance.TryGetComponent<NetworkIdentity>(out var netIdentity))
-            {
-                // Only allow host can initiate
-                return MultiplayerSession.IsHost;
-            }
-            else
-            {
-                // A non networked object. Default to vanilla behavior
-                return true;
-            }
-        }
-    }
-
-
 }

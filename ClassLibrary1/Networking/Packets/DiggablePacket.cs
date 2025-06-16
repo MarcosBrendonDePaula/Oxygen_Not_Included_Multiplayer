@@ -47,7 +47,7 @@ namespace ONI_MP.Networking.Packets
             }
 
             // Create diggable object at the given cell
-            Vector3 position = Grid.CellToPos(Cell);
+            Vector3 position = Grid.CellToPos(Cell, 0.5f, 0f, 0f);
             GameObject diggableGO = Util.KInstantiate(Assets.GetPrefab(new Tag("DigPlacer")), position);
             diggableGO.SetActive(true);
 
@@ -59,7 +59,7 @@ namespace ONI_MP.Networking.Packets
                     SenderId,
                     MultiplayerSession.LocalSteamID
                 };
-
+                var t = nameof(IdleChore);
                 PacketSender.SendToAllExcluding(this, excludeSet);
                 DebugConsole.Log($"[DiggablePacket] Host forwarded diggable packet for cell {Cell} to all except sender {SenderId} and self.");
             }

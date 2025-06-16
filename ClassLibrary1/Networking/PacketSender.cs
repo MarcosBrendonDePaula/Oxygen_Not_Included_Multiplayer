@@ -48,7 +48,6 @@ namespace ONI_MP.Networking
                 }
                 else
                 {
-                    var n = nameof(Game);
                     DebugConsole.Log($"[Sockets] Sent {packet.Type} to conn {conn} ({Utils.FormatBytes(bytes.Length)})");
                     SteamLobby.Stats.AddBytesSent(bytes.Length);
                     SteamLobby.Stats.IncrementSentPackets();

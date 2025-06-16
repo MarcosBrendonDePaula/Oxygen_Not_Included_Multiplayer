@@ -61,18 +61,6 @@ namespace ONI_MP.DebugTools
             if (GUILayout.Button("Toggle Debug Console"))
                 debugConsole.Toggle();
 
-            if (GUILayout.Button("Test DoLoad"))
-            {
-                
-                SteamNetworkingComponent.scheduler.Run(() => {
-                    LoadingOverlay.Load(() =>
-                    {
-                        LoadScreen.DoLoad("C:\\Users\\luke\\Documents\\Klei\\OxygenNotIncluded\\cloud_save_files\\76561198021490625\\Dump\\Dump.sav");
-                    });
-                });
-
-            }
-
             if (GUILayout.Button("Create Lobby"))
                 SteamLobby.CreateLobby(onSuccess: () => {
                     SpeedControlScreen.Instance?.Unpause(false);

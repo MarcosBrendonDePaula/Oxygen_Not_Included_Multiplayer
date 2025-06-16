@@ -54,7 +54,6 @@ namespace ONI_MP.World
         private static System.Collections.IEnumerator DelayedLoad(WorldSave save)
         {
             yield return new WaitForSecondsRealtime(1f);
-            MultiplayerOverlay.Show("Loading...");
             SaveHelper.RequestWorldLoad(save);
         }
     }

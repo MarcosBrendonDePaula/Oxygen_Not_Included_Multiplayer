@@ -21,6 +21,8 @@ namespace ONI_MP.Networking
         SaveFileChunk = 11,
         Diggable = 12,
         DigComplete = 13,
-        PlayAnim = 14
+        PlayAnim = 14,
+        Build = 15,
+        BuildComplete = 16
     }
 }

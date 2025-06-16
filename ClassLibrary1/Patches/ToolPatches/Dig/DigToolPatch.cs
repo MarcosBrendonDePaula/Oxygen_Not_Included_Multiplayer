@@ -5,7 +5,7 @@ using ONI_MP.Networking.Packets;
 using Steamworks;
 using UnityEngine;
 
-namespace ONI_MP.Patches
+namespace ONI_MP.Patches.ToolPatches.Dig
 {
     [HarmonyPatch(typeof(DigTool), nameof(DigTool.PlaceDig))]
     public static class DigTool_PlaceDig_Patch

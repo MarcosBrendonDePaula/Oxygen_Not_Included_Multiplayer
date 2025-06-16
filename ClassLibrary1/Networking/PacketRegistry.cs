@@ -39,6 +39,8 @@ namespace ONI_MP.Networking
             Register(PacketType.Diggable, () => new DiggablePacket());
             Register(PacketType.DigComplete, () => new DigCompletePacket());
             Register(PacketType.PlayAnim, () => new PlayAnimPacket());
+            Register(PacketType.Build, () => new BuildPacket());
+            Register(PacketType.BuildComplete, () => new BuildCompletePacket());
         }
     }
 }

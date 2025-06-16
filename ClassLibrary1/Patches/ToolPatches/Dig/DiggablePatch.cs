@@ -4,7 +4,7 @@ using ONI_MP.Networking;
 using ONI_MP.Networking.Packets;
 using UnityEngine;
 
-namespace ONI_MP.Patches
+namespace ONI_MP.Patches.ToolPatches.Dig
 {
     [HarmonyPatch(typeof(Diggable), "OnStopWork")]
     public static class DiggablePatch

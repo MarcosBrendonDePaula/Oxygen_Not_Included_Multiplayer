@@ -71,7 +71,6 @@ namespace ONI_MP.DebugTools
 
             if (GUILayout.Button("Client disconnect"))
             {
-                var n = nameof(WorldDamage);
                 GameClient.CacheCurrentServer();
                 GameClient.Disconnect();
             }

@@ -19,6 +19,7 @@ namespace ONI_MP.Networking
         NavigatorPath = 9,
         SaveFileRequest = 10,
         SaveFileChunk = 11,
-        Diggable = 12
+        Diggable = 12,
+        PlayAnim = 13
     }
 }

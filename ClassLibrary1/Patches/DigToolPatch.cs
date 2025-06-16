@@ -39,7 +39,7 @@ namespace ONI_MP.Patches
 
             if (MultiplayerSession.IsHost)
             {
-                PacketSender.SendToAll(packet);
+                PacketSender.SendToAllClients(packet);
                 DebugConsole.Log($"[Chores/Dig] Host sent DiggablePacket to all for cell {cell}");
             }
             else

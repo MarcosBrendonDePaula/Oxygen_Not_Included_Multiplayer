@@ -59,7 +59,6 @@ namespace ONI_MP.Networking.Packets
                     SenderId,
                     MultiplayerSession.LocalSteamID
                 };
-                var t = nameof(IdleChore);
                 PacketSender.SendToAllExcluding(this, excludeSet);
                 DebugConsole.Log($"[DiggablePacket] Host forwarded diggable packet for cell {Cell} to all except sender {SenderId} and self.");
             }

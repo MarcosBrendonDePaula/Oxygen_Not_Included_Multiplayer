@@ -22,6 +22,6 @@ public static class MinionPatch
             __result.AddOrGet<NetworkIdentity>();
             DebugConsole.Log("[NetworkIdentity] Injected via MinionConfig.CreatePrefab");
         }
-        //__result.AddOrGet<EntityPositionHandler>();
+        __result.AddOrGet<EntityPositionHandler>();
     }
 }

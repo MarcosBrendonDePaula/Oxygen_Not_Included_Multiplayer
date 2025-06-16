@@ -33,10 +33,10 @@ namespace ONI_MP.Patches.Navigation
             }
 
             // Only move if they've been informed they can move
-            if(__instance.GetCanAdvance())
+            /*if(__instance.GetCanAdvance())
             {
                 return true;
-            }
+            }*/
 
             return false;
         }

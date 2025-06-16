@@ -96,6 +96,16 @@ namespace ONI_MP.Networking
             }
         }
 
+        public static void SendToAllClients(IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
+        {
+            if(!MultiplayerSession.IsHost)
+            {
+                DebugConsole.LogWarning("[PacketSender] Only the host can send to all clients");
+                return;
+            }
+            SendToAll(packet, MultiplayerSession.HostSteamID, sendType);
+        }
+
         /// Renamed multiple-exclude method to avoid conflict
         public static void SendToAllExcluding(IPacket packet, HashSet<CSteamID> excludedIds, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
         {

@@ -37,6 +37,7 @@ namespace ONI_MP.Networking
             Register(PacketType.SaveFileRequest, () => new SaveFileRequestPacket());
             Register(PacketType.SaveFileChunk, () => new SaveFileChunkPacket());
             Register(PacketType.Diggable, () => new DiggablePacket());
+            Register(PacketType.DigComplete, () => new DigCompletePacket());
             Register(PacketType.PlayAnim, () => new PlayAnimPacket());
         }
     }

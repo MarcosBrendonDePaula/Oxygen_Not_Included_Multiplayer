@@ -8,15 +8,30 @@ public class DigCompletePacket : IPacket
     public PacketType Type => PacketType.DigComplete;
 
     public int Cell;
+    public float Mass;
+    public float Temperature;
+    public ushort ElementIdx;
+    public byte DiseaseIdx;
+    public int DiseaseCount;
 
     public void Serialize(BinaryWriter writer)
     {
         writer.Write(Cell);
+        writer.Write(Mass);
+        writer.Write(Temperature);
+        writer.Write(ElementIdx);
+        writer.Write(DiseaseIdx);
+        writer.Write(DiseaseCount);
     }
 
     public void Deserialize(BinaryReader reader)
     {
         Cell = reader.ReadInt32();
+        Mass = reader.ReadSingle();
+        Temperature = reader.ReadSingle();
+        ElementIdx = reader.ReadUInt16();
+        DiseaseIdx = reader.ReadByte();
+        DiseaseCount = reader.ReadInt32();
     }
 
     public void OnDispatched()
@@ -32,21 +47,11 @@ public class DigCompletePacket : IPacket
                 Util.KDestroyGameObject(obj);
         }
 
-        // Read current sim data from the cell
-        float mass = Grid.Mass[Cell];
-        float temperature = Grid.Temperature[Cell];
-        ushort element_idx = Grid.ElementIdx[Cell];
-        byte disease_idx = Grid.DiseaseIdx[Cell];
-        int disease_count = Grid.DiseaseCount[Cell];
-
         // Spawn ore + FX from the dig
-        WorldDamage.Instance.OnDigComplete(Cell, mass, temperature, element_idx, disease_idx, disease_count);
+        WorldDamage.Instance.OnDigComplete(Cell, Mass, Temperature, ElementIdx, DiseaseIdx, DiseaseCount);
         // Destroy cell via sim
         WorldDamage.Instance.DestroyCell(Cell);
         // Trigger on solid state changed
         WorldDamage.Instance.OnSolidStateChanged(Cell);
-
     }
-
-
 }

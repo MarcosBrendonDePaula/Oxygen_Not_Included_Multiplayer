@@ -49,8 +49,13 @@ namespace ONI_MP.Networking
             }
         }
 
-        public static void ConnectToHost(CSteamID hostSteamId)
+        public static void ConnectToHost(CSteamID hostSteamId, bool showLoadingScreen = true)
         {
+            if(showLoadingScreen)
+            {
+                MultiplayerOverlay.Show($"Connecting to {SteamFriends.GetFriendPersonaName(hostSteamId)}!");
+            }
+
             DebugConsole.Log($"[GameClient] Attempting ConnectP2P to host {hostSteamId}...");
             SetState(ClientState.Connecting);
 
@@ -179,16 +184,30 @@ namespace ONI_MP.Networking
 
         private static void OnConnected()
         {
+            MultiplayerOverlay.Close();
             SetState(ClientState.Connected);
+
             if(Utils.IsInGame())
             {
                 SetState(ClientState.InGame);
+                PacketHandler.readyToProcess = true;
             }
             MultiplayerSession.InSession = true;
+
+            var hostId = MultiplayerSession.HostSteamID;
+            if (!MultiplayerSession.ConnectedPlayers.ContainsKey(hostId))
+            {
+                var hostPlayer = new MultiplayerPlayer(hostId);
+                MultiplayerSession.ConnectedPlayers[hostId] = hostPlayer;
+            }
+
+            // Store the connection handle for host
+            MultiplayerSession.ConnectedPlayers[hostId].Connection = Connection;
+
             DebugConsole.Log("[GameClient] Connection to host established!");
             if (Utils.IsInMenu())
             {
-                MultiplayerOverlay.Show("Downloading world: Waiting...");
+                MultiplayerOverlay.Show($"Waiting for {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
             }
         }
 
@@ -242,7 +261,7 @@ namespace ONI_MP.Networking
             if (_cachedConnectionInfo.HasValue)
             {
                 DebugConsole.Log($"[GameClient] Reconnecting to cached server: {_cachedConnectionInfo.Value.HostSteamID}");
-                ConnectToHost(_cachedConnectionInfo.Value.HostSteamID);
+                ConnectToHost(_cachedConnectionInfo.Value.HostSteamID, false);
             }
             else
             {

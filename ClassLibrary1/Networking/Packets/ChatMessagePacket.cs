@@ -31,8 +31,7 @@ namespace ONI_MP.Networking.Packets
             if (SenderId == MultiplayerSession.LocalSteamID)
                 return;
 
-            var sender = MultiplayerSession.GetPlayer(SenderId);
-            var senderName = sender != null ? sender.SteamName : SenderId.ToString();
+            var senderName = SteamFriends.GetFriendPersonaName(SenderId);
 
             // Add message to chat
             ChatScreen.QueueMessage($"<color=#00FFFF>{senderName}:</color> {Message}");

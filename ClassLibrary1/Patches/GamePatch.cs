@@ -4,6 +4,7 @@ using ONI_MP.Networking;
 using ONI_MP.Sync;
 using ONI_MP.World;
 using UnityEngine;
+using static STRINGS.UI;
 
 namespace ONI_MP.Patches
 {
@@ -26,7 +27,7 @@ namespace ONI_MP.Patches
         [HarmonyPostfix]
         public static void OnSpawnPostfix()
         {
-            PacketHandler.readyToProcess = true;
+
         }
     }
 }

@@ -1,83 +1,79 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using HarmonyLib;
-using ONI_MP.DebugTools;
+﻿using ONI_MP.DebugTools;
+using ONI_MP.Networking;
 using ONI_MP.Patches.Chores;
+using System.IO;
 using UnityEngine;
 
-namespace ONI_MP.Networking.Packets
+public class ChoreAssignmentPacket : IPacket
 {
-    public class ChoreAssignmentPacket : IPacket
+    public int NetId;
+    public string ChoreTypeId;
+
+    public Vector3 TargetPosition;
+    public int TargetCell = -1;
+    public string TargetPrefabId; // optional
+
+    public PacketType Type => PacketType.ChoreAssignment;
+
+    public void Serialize(BinaryWriter writer)
     {
-        public int NetId;
-        public string ChoreId;
+        writer.Write(NetId);
+        writer.Write(ChoreTypeId ?? string.Empty);
+        writer.Write(TargetPosition.x);
+        writer.Write(TargetPosition.y);
+        writer.Write(TargetPosition.z);
+        writer.Write(TargetCell);
+        writer.Write(TargetPrefabId ?? string.Empty);
+    }
 
-        public PacketType Type => PacketType.ChoreAssignment;
+    public void Deserialize(BinaryReader reader)
+    {
+        NetId = reader.ReadInt32();
+        ChoreTypeId = reader.ReadString();
+        TargetPosition = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+        TargetCell = reader.ReadInt32();
+        TargetPrefabId = reader.ReadString();
+    }
 
-        public void Serialize(BinaryWriter writer)
+    public void OnDispatched()
+    {
+        // Disabled for now
+        return;
+
+        if (!NetEntityRegistry.TryGet(NetId, out var entity))
         {
-            writer.Write(NetId);
-            writer.Write(ChoreId ?? string.Empty);
-        }
-
-        public void Deserialize(BinaryReader reader)
-        {
-            NetId = reader.ReadInt32();
-            ChoreId = reader.ReadString(); // 🔧 FIXED: reading string, not int
-        }
-
-        public void OnDispatched()
-        {
-            // Disabled
+            DebugConsole.LogWarning($"[ChoreAssignment] Could not find entity with NetId {NetId}");
             return;
+        }
 
-            // Host doesn't need to do this
-            if (MultiplayerSession.IsHost)
-                return;
-            
-            if (!NetEntityRegistry.TryGet(NetId, out var netEntity))
-            {
-                DebugConsole.LogWarning($"[ChoreAssignment] Could not find entity with NetId {NetId}");
-                return;
-            }
+        var dupeGO = entity.gameObject;
+        var consumer = dupeGO.GetComponent<ChoreConsumer>();
+        var type = Db.Get().ChoreTypes.Get(ChoreTypeId);
 
-            GameObject dupeGO = netEntity.gameObject;
-            if (dupeGO == null)
-            {
-                DebugConsole.LogWarning($"[ChoreAssignment] GameObject is null for NetId {NetId}");
-                return;
-            }
+        if (consumer == null || type == null)
+        {
+            DebugConsole.LogWarning($"[ChoreAssignment] Missing consumer or chore type: {ChoreTypeId}");
+            return;
+        }
 
-            ChoreConsumer consumer = dupeGO.GetComponent<ChoreConsumer>();
-            if (consumer == null)
-            {
-                DebugConsole.LogWarning($"[ChoreAssignment] No ChoreConsumer found on {dupeGO.name}");
-                return;
-            }
+        // Create the context to pass for precondition-aware chores
+        var context = new Chore.Precondition.Context
+        {
+            consumerState = consumer.GetComponent<ChoreConsumerState>(),
+            choreTypeForPermission = type
+        };
 
-            int worldId = dupeGO.GetMyParentWorldId();
-            List<ChoreProvider> providers = Traverse.Create(consumer).Field("providers").GetValue<List<ChoreProvider>>();
+        var chore = ChoreFactory.Create(ChoreTypeId, context, dupeGO, TargetPosition, TargetCell, TargetPrefabId);
 
-            foreach (var provider in providers)
-            {
-                if (provider == null) continue;
-
-                if (!provider.choreWorldMap.TryGetValue(worldId, out var choreList))
-                    continue;
-
-                foreach (var chore in choreList)
-                {
-                    if (chore != null && chore.choreType.Id == ChoreId)
-                    {
-                        chore.AssignChoreToDuplicant(dupeGO);
-                        DebugConsole.Log($"[ChoreAssignment] Assigned chore '{ChoreId}' to {dupeGO.name}");
-                        return;
-                    }
-                }
-            }
-
-            DebugConsole.LogWarning($"[ChoreAssignment] Chore with ID '{ChoreId}' not found for duplicant {dupeGO.name}");
+        if (chore != null)
+        {
+            chore.AssignChoreToDuplicant(dupeGO);
+        }
+        else
+        {
+            DebugConsole.LogWarning($"[ChoreAssignment] Could not create chore: {ChoreTypeId} for {dupeGO.name}");
         }
     }
+
+
 }

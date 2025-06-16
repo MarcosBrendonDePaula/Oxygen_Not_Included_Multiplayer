@@ -165,7 +165,59 @@ namespace ONI_MP.Misc
             return App.GetCurrentSceneName() == "backend";
         }
 
-#region SaveLoadRoot Extensions
+        public static GameObject FindNearbyWorkable(Vector3 position, float radius, Predicate<GameObject> predicate)
+        {
+            foreach (Workable workable in UnityEngine.Object.FindObjectsOfType<Workable>())
+            {
+                if (workable == null) continue;
+
+                var go = workable.gameObject;
+                float dist = Vector3.Distance(go.transform.position, position);
+
+                if (dist <= radius && predicate(go))
+                    return go;
+            }
+
+            return null;
+        }
+
+        public static GameObject FindClosestGameObjectWithTag(Vector3 position, Tag tag, float radius)
+        {
+            GameObject closest = null;
+            float closestDistSq = radius * radius;
+
+            foreach (var go in GameObject.FindObjectsOfType<GameObject>())
+            {
+                if (!go.HasTag(tag))
+                    continue;
+
+                float distSq = (go.transform.position - position).sqrMagnitude;
+                if (distSq < closestDistSq)
+                {
+                    closest = go;
+                    closestDistSq = distSq;
+                }
+            }
+
+            return closest;
+        }
+
+        public static GameObject FindEntityInRadius(Vector3 origin, float radius, Predicate<GameObject> predicate)
+        {
+            foreach (var go in GameObject.FindObjectsOfType<GameObject>())
+            {
+                if (go == null) continue;
+
+                float dist = (go.transform.position - origin).sqrMagnitude;
+                if (dist <= radius * radius && predicate(go))
+                    return go;
+            }
+
+            return null;
+        }
+
+
+        #region SaveLoadRoot Extensions
         private static readonly FieldInfo optionalComponentListField =
             typeof(SaveLoadRoot).GetField("m_optionalComponentTypeNames", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -184,6 +236,15 @@ namespace ONI_MP.Misc
             {
                 DebugConsole.LogWarning("Could not access m_optionalComponentTypeNames via reflection.");
             }
+        }
+        #endregion
+        #region Grid Extensions
+        public static bool IsWalkableCell(int cell)
+        {
+            return Grid.IsValidCell(cell)
+                && !Grid.Solid[cell]
+                && !Grid.DupeImpassable[cell]
+                && Grid.DupePassable[cell];
         }
         #endregion
     }

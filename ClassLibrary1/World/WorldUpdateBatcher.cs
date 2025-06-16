@@ -34,10 +34,6 @@ namespace ONI_MP.World
 
         public static void Flush()
         {
-            // Disabled for testing
-            pendingUpdates.Clear();
-            return;
-            
             lock (pendingUpdates)
             {
                 if (pendingUpdates.Count == 0)

@@ -1,7 +1,10 @@
 ﻿using ONI_MP.Networking;
 using ONI_MP.Networking.Packets.Architecture;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using UnityEngine;
 
 public class PlayAnimPacket : IPacket
 {
@@ -72,6 +75,28 @@ public class PlayAnimPacket : IPacket
             else
             {
                 controller.Play(new HashedString(SingleAnimHash), Mode, Speed, Offset);
+            }
+
+            // Force update sync on KBatchedAnimController
+            if (controller is KBatchedAnimController batched)
+            {
+                try
+                {
+                    batched.SetVisiblity(true);
+
+                    var forceRebuildField = typeof(KBatchedAnimController).GetField("_forceRebuild", BindingFlags.Instance | BindingFlags.NonPublic);
+                    forceRebuildField?.SetValue(batched, true);
+
+                    var suspendUpdatesMethod = typeof(KBatchedAnimController).GetMethod("SuspendUpdates", BindingFlags.Instance | BindingFlags.NonPublic);
+                    suspendUpdatesMethod?.Invoke(batched, new object[] { false });
+
+                    var configureMethod = typeof(KBatchedAnimController).GetMethod("ConfigureUpdateListener", BindingFlags.Instance | BindingFlags.NonPublic);
+                    configureMethod?.Invoke(batched, null);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[ONI_MP] Failed to force anim update for NetId {NetId}: {ex}");
+                }
             }
         }
     }

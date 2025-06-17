@@ -1,9 +1,9 @@
 ﻿using ONI_MP.Networking;
-using ONI_MP.Networking.Packets;
 using Utils = ONI_MP.Misc.Utils;
 using UnityEngine;
 using ONI_MP.Networking.Components;
 using KMod;
+using ONI_MP.Networking.Packets.World;
 
 namespace ONI_MP.DebugTools
 {

@@ -10,6 +10,8 @@ using ONI_MP.Networking.Components;
 using ONI_MP.Misc;
 using Utils = ONI_MP.Misc.Utils;
 using Steamworks;
+using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.Social;
 
 namespace ONI_MP.UI
 {

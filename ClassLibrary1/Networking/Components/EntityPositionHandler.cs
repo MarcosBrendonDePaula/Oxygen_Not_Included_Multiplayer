@@ -2,6 +2,8 @@
 using UnityEngine;
 using ONI_MP.Networking.Packets;
 using ONI_MP.DebugTools;
+using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.Core;
 
 namespace ONI_MP.Networking.Components
 {

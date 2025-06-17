@@ -44,7 +44,12 @@ public class DigCompletePacket : IPacket
         {
             GameObject obj = Grid.Objects[Cell, i];
             if (obj != null)
-                Util.KDestroyGameObject(obj);
+            {
+                if(obj.HasTag(new Tag("DigPlacer")))
+                {
+                    Util.KDestroyGameObject(obj);
+                }
+            }
         }
 
         // Spawn ore + FX from the dig

@@ -14,6 +14,7 @@ namespace ONI_MP.Networking.Components
         private const float SendInterval = 0.1f; // 100ms
 
         private NetworkIdentity networkedEntity;
+        private bool facingLeft;
 
         protected override void OnSpawn()
         {
@@ -26,26 +27,17 @@ namespace ONI_MP.Networking.Components
             }
 
             lastSentPosition = transform.position;
+            facingLeft = false; // default facing direction
         }
 
         private void Update()
         {
-            // Block clients from sending position data
             if (networkedEntity == null)
                 return;
 
-            // Only send when in a session and host
-            if (!MultiplayerSession.InSession)
-            {
+            if (!MultiplayerSession.InSession || MultiplayerSession.IsClient)
                 return;
-            }
 
-            if(MultiplayerSession.IsClient)
-            {
-                return;
-            }
-
-            // Host sends the positionPacket every x milliseconds
             SendPositionPacket();
         }
 
@@ -58,18 +50,27 @@ namespace ONI_MP.Networking.Components
             timer = 0f;
 
             Vector3 currentPosition = transform.position;
+            float deltaX = currentPosition.x - lastSentPosition.x;
+
             if (Vector3.Distance(currentPosition, lastSentPosition) > 0.01f)
             {
+                // Determine facing direction by horizontal movement
+                if (Mathf.Abs(deltaX) > 0.001f)
+                {
+                    facingLeft = deltaX < 0;
+                }
+
                 lastSentPosition = currentPosition;
 
                 var packet = new EntityPositionPacket
                 {
                     NetId = networkedEntity.NetId,
-                    Position = currentPosition
+                    Position = currentPosition,
+                    FacingLeft = facingLeft
                 };
 
                 PacketSender.SendToAll(packet, sendType: SteamNetworkingSend.Unreliable);
-                DebugConsole.Log($"[EntityPositionSender] Sent position packet for entity {networkedEntity.NetId}");
+                DebugConsole.Log($"[EntityPositionSender] Sent position packet for entity {networkedEntity.NetId}, FacingLeft: {facingLeft}");
             }
         }
     }

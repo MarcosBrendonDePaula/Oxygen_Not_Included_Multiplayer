@@ -28,6 +28,7 @@ namespace ONI_MP.Networking.Packets.Architecture
         WorldCycle = 18,
         Cancel = 19,
         Deconstruct = 20,
-        DeconstructComplete = 21
+        DeconstructComplete = 21,
+        WireBuild = 22
     }
 }

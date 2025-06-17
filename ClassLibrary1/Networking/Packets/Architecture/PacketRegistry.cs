@@ -10,6 +10,7 @@ using ONI_MP.Networking.Packets.Tools.Build;
 using ONI_MP.Networking.Packets.Tools.Cancel;
 using ONI_MP.Networking.Packets.Tools.Deconstruct;
 using ONI_MP.Networking.Packets.Tools.Dig;
+using ONI_MP.Networking.Packets.Tools.Wire;
 using ONI_MP.Networking.Packets.World;
 
 namespace ONI_MP.Networking.Packets.Architecture
@@ -53,6 +54,7 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.Cancel, () => new CancelPacket());
             Register(PacketType.Deconstruct, () => new DeconstructPacket());
             Register(PacketType.DeconstructComplete, () => new DeconstructCompletePacket());
+            Register(PacketType.WireBuild, () => new WireBuildPacket());
         }
     }
 }

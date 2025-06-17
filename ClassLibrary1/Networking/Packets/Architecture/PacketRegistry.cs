@@ -8,6 +8,7 @@ using ONI_MP.Networking.Packets.Core;
 using ONI_MP.Networking.Packets.Social;
 using ONI_MP.Networking.Packets.Tools.Build;
 using ONI_MP.Networking.Packets.Tools.Cancel;
+using ONI_MP.Networking.Packets.Tools.Deconstruct;
 using ONI_MP.Networking.Packets.Tools.Dig;
 using ONI_MP.Networking.Packets.World;
 
@@ -50,6 +51,8 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.WorldDamageSpawnResource, () => new WorldDamageSpawnResourcePacket());
             Register(PacketType.WorldCycle, () => new WorldCyclePacket());
             Register(PacketType.Cancel, () => new CancelPacket());
+            Register(PacketType.Deconstruct, () => new DeconstructPacket());
+            Register(PacketType.DeconstructComplete, () => new DeconstructCompletePacket());
         }
     }
 }

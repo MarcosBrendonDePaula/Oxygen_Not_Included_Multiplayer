@@ -22,9 +22,4 @@
 	<Reference Include="UnityEngine.TextRenderingModule" HintPath="$(ManagedPath)\UnityEngine.TextRenderingModule.dll" Private="false" />
 	<Reference Include="ImGui.NET" HintPath="$(ManagedPath)\ImGui.NET.dll" Private="false" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Networking\Packets\Tools\Deconstruct\" />
-    <Folder Include="Patches\ToolPatches\Deconstruct\" />
-  </ItemGroup>
 </Project>

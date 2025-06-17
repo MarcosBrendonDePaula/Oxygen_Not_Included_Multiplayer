@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ONI_MP.Networking.Packets;
 using ONI_MP.Networking.Packets.Core;
+using ONI_MP.Networking.Packets.DuplicantActions;
 using ONI_MP.Networking.Packets.Social;
 using ONI_MP.Networking.Packets.Tools.Build;
 using ONI_MP.Networking.Packets.Tools.Cancel;
@@ -56,6 +57,8 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.DeconstructComplete, () => new DeconstructCompletePacket());
             Register(PacketType.WireBuild, () => new WireBuildPacket());
             Register(PacketType.ToggleMinionEffect, () => new ToggleMinionEffectPacket());
+            Register(PacketType.ToolEquip, () => new ToolEquipPacket());
+            Register(PacketType.DuplicantCondition, () => new DuplicantConditionPacket());
         }
     }
 }

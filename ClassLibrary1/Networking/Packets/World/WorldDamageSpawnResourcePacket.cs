@@ -82,7 +82,7 @@ namespace ONI_MP.Networking.Packets.World
 
             if (method == null)
             {
-                Debug.LogWarning("[Multiplayer] Could not find PlaySoundForSubstance via reflection.");
+                DebugConsole.LogWarning("[Multiplayer] Could not find PlaySoundForSubstance via reflection.");
                 return;
             }
 
@@ -90,7 +90,7 @@ namespace ONI_MP.Networking.Packets.World
 
             if (worldDamage == null)
             {
-                Debug.LogWarning("[Multiplayer] WorldDamage.Instance is null.");
+                DebugConsole.LogWarning("[Multiplayer] WorldDamage.Instance is null.");
                 return;
             }
 

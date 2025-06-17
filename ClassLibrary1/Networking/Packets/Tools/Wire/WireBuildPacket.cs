@@ -70,7 +70,7 @@ namespace ONI_MP.Networking.Packets.Tools.Wire
 
             if (def == null)
             {
-                Debug.LogError("[WireBuildPacket] Could not find BuildingDef for 'WireRefined'");
+                DebugConsole.LogError("[WireBuildPacket] Could not find BuildingDef for 'WireRefined'");
                 return;
             }
 

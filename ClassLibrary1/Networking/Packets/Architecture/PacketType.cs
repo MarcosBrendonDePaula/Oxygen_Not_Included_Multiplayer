@@ -30,6 +30,8 @@ namespace ONI_MP.Networking.Packets.Architecture
         Deconstruct = 20,
         DeconstructComplete = 21,
         WireBuild = 22,
-        ToggleMinionEffect = 23
+        ToggleMinionEffect = 23,
+        ToolEquip = 24,
+        DuplicantCondition = 25
     }
 }

@@ -37,7 +37,7 @@ namespace ONI_MP.Networking.Packets.Tools.Deconstruct
         {
             if (!Grid.IsValidCell(Cell))
             {
-                Debug.LogWarning($"[DeconstructPacket] Invalid cell: {Cell}");
+                DebugConsole.LogWarning($"[DeconstructPacket] Invalid cell: {Cell}");
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace ONI_MP.Networking.Packets.Tools.Deconstruct
             {
                 var exclude = new HashSet<CSteamID> { SenderId, MultiplayerSession.LocalSteamID };
                 PacketSender.SendToAllExcluding(this, exclude);
-                Debug.Log($"[DeconstructPacket] Host rebroadcasted deconstruct at cell {Cell}");
+                DebugConsole.Log($"[DeconstructPacket] Host rebroadcasted deconstruct at cell {Cell}");
             }
         }
     }

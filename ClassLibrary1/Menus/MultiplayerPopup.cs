@@ -13,7 +13,7 @@ public static class MultiplayerPopup
     {
         if (currentPopup != null)
         {
-            Debug.Log("[MultiplayerPopup] Popup already open.");
+            DebugConsole.Log("[MultiplayerPopup] Popup already open.");
             return;
         }
 
@@ -98,7 +98,7 @@ public static class MultiplayerPopup
         var template = UnityEngine.Object.FindObjectOfType<MainMenu>()?.Button_ResumeGame;
         if (template == null)
         {
-            Debug.LogError("Cannot find template button to clone.");
+            DebugConsole.LogError("Cannot find template button to clone.");
             return;
         }
 

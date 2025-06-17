@@ -100,7 +100,7 @@ public class PlayAnimPacket : IPacket
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ONI_MP] Failed to force anim update for NetId {NetId}: {ex}");
+                DebugConsole.LogError($"[ONI_MP] Failed to force anim update for NetId {NetId}: {ex}");
             }
         }
     }

@@ -1,13 +1,14 @@
 ﻿using HarmonyLib;
-using ONI_MP.DebugTools;
-using ONI_MP.Networking.Packets;
-using ONI_MP.Networking.Packets.Architecture;
-using Steamworks;
 using UnityEngine;
 using System.Linq;
+using ONI_MP.DebugTools;
 using ONI_MP.Misc;
-using ONI_MP.Networking.Components;
 using ONI_MP.Networking;
+using ONI_MP.Networking.Components;
+using ONI_MP.Networking.Packets;
+using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.DuplicantActions;
+using System.Diagnostics.Tracing;
 
 [HarmonyPatch(typeof(MinionConfig), nameof(MinionConfig.CreatePrefab))]
 public static class DuplicantPatch
@@ -18,13 +19,15 @@ public static class DuplicantPatch
         if (saveRoot != null)
             saveRoot.TryDeclareOptionalComponent<NetworkIdentity>();
 
-        if (__result.GetComponent<NetworkIdentity>() == null)
+        var networkIdentity = __result.GetComponent<NetworkIdentity>();
+        if (networkIdentity == null)
         {
-            __result.AddOrGet<NetworkIdentity>();
+            networkIdentity = __result.AddOrGet<NetworkIdentity>();
             DebugConsole.Log("[NetworkIdentity] Injected into Duplicant");
         }
 
         __result.AddOrGet<EntityPositionHandler>();
+        __result.AddOrGet<ConditionTracker>();
     }
 
     public static void ToggleEffect(GameObject minion, string eventName, string context, bool enable)
@@ -49,3 +52,68 @@ public static class DuplicantPatch
         PacketSender.SendToAllClients(packet);
     }
 }
+
+[HarmonyPatch(typeof(MinionConfig), "OnSpawn")]
+public static class DuplicantToolSyncPatch
+{
+    public static void Postfix(GameObject go)
+    {
+        if (!go.HasTag(GameTags.Minions.Models.Standard) || go.HasTag(GameTags.Minions.Models.Bionic)) return;
+
+        var identity = go.GetComponent<NetworkIdentity>();
+        if (identity == null) return;
+
+        DebugConsole.Log("[MinionConfig] Just before toggler");
+
+        foreach (var toggler in go.GetComponentsInChildren<KBatchedAnimEventToggler>(true))
+        {
+            if (toggler == null || toggler.entries == null || toggler.entries.Count == 0)
+                continue;
+
+            string enableEvent = toggler.enableEvent;
+            string disableEvent = toggler.disableEvent;
+            string prefabName = toggler.entries[0].controller?.name ?? "";
+            string animName = toggler.entries[0].anim ?? "";
+
+            if (string.IsNullOrEmpty(prefabName)) continue;
+
+            if (enableEvent != "LaserOn" &&
+                enableEvent != "BuildToolOn" &&
+                enableEvent != "MopOn")
+                continue;
+
+            if (toggler.eventSource == null) continue;
+
+            toggler.Subscribe(toggler.eventSource, Hash.SDBMLower(enableEvent), _ =>
+            {
+                DebugConsole.Log($"[ToolEquip] {enableEvent} -> Equip");
+                if (!MultiplayerSession.InSession || !MultiplayerSession.IsHost)
+                    return;
+
+                PacketSender.SendToAllClients(new ToolEquipPacket
+                {
+                    TargetNetId = identity.NetId,
+                    PrefabName = prefabName,
+                    ParentBoneName = "snapto_hand",
+                    AnimName = animName,
+                    LoopAnim = true,
+                    Equip = true
+                });
+            });
+
+            toggler.Subscribe(toggler.eventSource, Hash.SDBMLower(disableEvent), _ =>
+            {
+                DebugConsole.Log($"[ToolEquip] {disableEvent} -> Unequip");
+                if (!MultiplayerSession.InSession || !MultiplayerSession.IsHost)
+                    return;
+
+                PacketSender.SendToAllClients(new ToolEquipPacket
+                {
+                    TargetNetId = identity.NetId,
+                    Equip = false
+                });
+            });
+        }
+    }
+}
+

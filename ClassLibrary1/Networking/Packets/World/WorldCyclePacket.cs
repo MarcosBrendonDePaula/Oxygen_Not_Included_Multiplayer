@@ -29,7 +29,7 @@ namespace ONI_MP.Networking.Packets.World
             if (MultiplayerSession.IsHost)
                 return;
 
-            Debug.Log($"[Multiplayer] Received cycle sync: Cycle {Cycle} @ {CycleTime:0.00}s");
+            DebugConsole.Log($"[Multiplayer] Received cycle sync: Cycle {Cycle} @ {CycleTime:0.00}s");
 
             float totalTime = Cycle * 600f + CycleTime;
 
@@ -38,11 +38,11 @@ namespace ONI_MP.Networking.Packets.World
                 GameClockPatch.allowAddTimeForSetTime = true;
                 GameClock.Instance.SetTime(totalTime);
                 GameClockPatch.allowAddTimeForSetTime = false;
-                Debug.Log($"[Multiplayer] GameClock updated to {totalTime:0.00}s ({Cycle} + {CycleTime:0.00}s)");
+                DebugConsole.Log($"[Multiplayer] GameClock updated to {totalTime:0.00}s ({Cycle} + {CycleTime:0.00}s)");
             }
             else
             {
-                Debug.LogWarning("[Multiplayer] GameClock.Instance is null — cannot apply cycle sync.");
+                DebugConsole.LogWarning("[Multiplayer] GameClock.Instance is null — cannot apply cycle sync.");
             }
         }
     }

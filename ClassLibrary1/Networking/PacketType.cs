@@ -24,6 +24,7 @@ namespace ONI_MP.Networking
         PlayAnim = 14,
         Build = 15,
         BuildComplete = 16,
-        WorldDamageSpawnResource = 17
+        WorldDamageSpawnResource = 17,
+        WorldCycle = 18
     }
 }

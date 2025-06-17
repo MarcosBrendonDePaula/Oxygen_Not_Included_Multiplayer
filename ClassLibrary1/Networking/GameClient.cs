@@ -6,6 +6,7 @@ using ONI_MP.Networking.Packets;
 using ONI_MP.Misc;
 using ONI_MP.Menus;
 using ONI_MP.Networking.States;
+using ONI_MP.Networking.Packets.Architecture;
 
 namespace ONI_MP.Networking
 {

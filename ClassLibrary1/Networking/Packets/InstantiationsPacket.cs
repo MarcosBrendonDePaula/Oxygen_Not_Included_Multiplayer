@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using UnityEngine;
 using ONI_MP.DebugTools;
+using ONI_MP.Networking.Packets.Architecture;
 
 namespace ONI_MP.Networking.Packets
 {

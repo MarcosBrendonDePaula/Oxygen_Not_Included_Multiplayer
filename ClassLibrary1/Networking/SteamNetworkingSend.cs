@@ -11,6 +11,7 @@ namespace ONI_MP.Networking
     /// <para />
     /// Reference: https://partner.steamgames.com/doc/api/steamnetworkingtypes
     /// </summary>
+    [Flags]
     public enum SteamNetworkingSend
     {
         /// <summary>

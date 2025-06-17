@@ -9,4 +9,10 @@
         LoadingWorld,
         InGame
     }
+
+    public enum ClientReadyState
+    {
+        Ready,
+        Unready
+    }
 }

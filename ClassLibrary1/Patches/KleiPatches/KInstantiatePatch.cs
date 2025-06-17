@@ -2,7 +2,6 @@
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Packets;
-using ONI_MP.Sync;
 using UnityEngine;
 
 [HarmonyPatch(typeof(Util), nameof(Util.KInstantiate),

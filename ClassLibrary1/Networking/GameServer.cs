@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using ONI_MP.DebugTools;
 using ONI_MP.Menus;
-using ONI_MP.Networking.Packets;
 using Steamworks;
 using UnityEngine;
 using ONI_MP.Networking.States;
+using ONI_MP.Networking.Packets.World;
+using ONI_MP.Networking.Packets.Architecture;
 
 namespace ONI_MP.Networking
 {

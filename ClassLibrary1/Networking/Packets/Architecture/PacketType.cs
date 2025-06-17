@@ -29,6 +29,7 @@ namespace ONI_MP.Networking.Packets.Architecture
         Cancel = 19,
         Deconstruct = 20,
         DeconstructComplete = 21,
-        WireBuild = 22
+        WireBuild = 22,
+        ToggleMinionEffect = 23
     }
 }

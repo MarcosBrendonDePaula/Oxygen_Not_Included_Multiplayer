@@ -73,8 +73,6 @@ namespace ONI_MP.Patches.KleiPatches
                 };
 
                 PacketSender.SendToAllClients(packet);
-
-                var t = nameof(MoveChore)();
             }
         }
     }

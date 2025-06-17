@@ -238,6 +238,17 @@ namespace ONI_MP.Misc
             }
         }
         #endregion
+
+        #region KBatchedAnimEventToggler Extensions
+        public static void Trigger(this KBatchedAnimEventToggler toggler, int eventHash, bool enable)
+        {
+            if (enable)
+                toggler.SendMessage("Enable", null, SendMessageOptions.DontRequireReceiver);
+            else
+                toggler.SendMessage("Disable", null, SendMessageOptions.DontRequireReceiver);
+        }
+        #endregion
+
         #region Grid Extensions
         public static bool IsWalkableCell(int cell)
         {

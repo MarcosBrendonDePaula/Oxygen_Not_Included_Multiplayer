@@ -36,8 +36,6 @@ public class PlayAnimPacket : IPacket
         writer.Write(Speed);
         writer.Write(Offset);
 
-        var n = nameof(BuildTool)
-
         if (IsMulti)
         {
             writer.Write(AnimHashes.Count);

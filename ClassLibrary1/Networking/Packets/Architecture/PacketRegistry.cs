@@ -55,6 +55,7 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.Deconstruct, () => new DeconstructPacket());
             Register(PacketType.DeconstructComplete, () => new DeconstructCompletePacket());
             Register(PacketType.WireBuild, () => new WireBuildPacket());
+            Register(PacketType.ToggleMinionEffect, () => new ToggleMinionEffectPacket());
         }
     }
 }

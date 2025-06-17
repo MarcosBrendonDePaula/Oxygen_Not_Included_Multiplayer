@@ -39,20 +39,20 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
     - Themed to look like other UI elements (95% finished)
     - Expandable
     - Can be dragged and moved around
+ 
+ - Synchronization
+    - Building tool
+    - Cancel tool
+    - Deconstruct tool
+    - Digging
+    - World Cycle (Controlled by the host)
+    - Rough duplicant position and orientation synchronization
+    - Rough Duplicant animation synchronization
 
 ---
 
 ## Work in Progress
-
-- Navigator synchronization
-  >Implemented, Undergoing testing, Clients can no longer trigger GoTo calls on the navigator thus preventing them from moving locally and their path is set by the server
-- Chore synchronization
-  >Implemented, Chore packet is being sent to clients when a duplicant starts a new chore on the host, when a client recieves this packet they force begin the chore
-- Main menu UI  
-  - Host/Join/Cancel
-    > Host game resumes your last save and starts a lobby, Join opens your steam friends list and Close just closes the menu
-- World synchronization
-  >Implemented, undergoing testing. Users should be able to request the world data and join at any point. Hosts are also able to stop and start a server at any time.
+- Tool synchronization (Building, Wire building, Pipe building, Mopping, Sweeping etc)
 
 ---
 

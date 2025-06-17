@@ -11,7 +11,7 @@ namespace ONI_MP.Networking.Components
     {
         private Vector3 lastSentPosition;
         private float timer;
-        private const float SendInterval = 0.1f; // 100ms
+        public static float SendInterval = 0.1f; // 100ms
 
         private NetworkIdentity networkedEntity;
         private bool facingLeft;

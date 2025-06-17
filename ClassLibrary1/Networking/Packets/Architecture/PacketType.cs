@@ -25,6 +25,7 @@ namespace ONI_MP.Networking.Packets.Architecture
         Build = 15,
         BuildComplete = 16,
         WorldDamageSpawnResource = 17,
-        WorldCycle = 18
+        WorldCycle = 18,
+        Cancel = 19
     }
 }

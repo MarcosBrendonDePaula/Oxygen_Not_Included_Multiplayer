@@ -9,7 +9,7 @@ namespace ONI_MP.Networking
     public enum PacketType : byte
     {
         ChatMessage = 1,
-        EntityPosition = 2,     // OLD, Keeping for now, might find a use
+        EntityPosition = 2,
         ChoreAssignment = 3,
         WorldData = 4,          // Keeping for now, might find a use
         WorldDataRequest = 5,   // Keeping for now, might find a use
@@ -23,6 +23,7 @@ namespace ONI_MP.Networking
         DigComplete = 13,
         PlayAnim = 14,
         Build = 15,
-        BuildComplete = 16
+        BuildComplete = 16,
+        WorldDamageSpawnResource = 17
     }
 }

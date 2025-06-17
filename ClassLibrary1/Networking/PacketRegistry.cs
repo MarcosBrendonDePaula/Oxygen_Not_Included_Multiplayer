@@ -41,6 +41,7 @@ namespace ONI_MP.Networking
             Register(PacketType.PlayAnim, () => new PlayAnimPacket());
             Register(PacketType.Build, () => new BuildPacket());
             Register(PacketType.BuildComplete, () => new BuildCompletePacket());
+            Register(PacketType.WorldDamageSpawnResource, () => new WorldDamageSpawnResourcePacket());
         }
     }
 }

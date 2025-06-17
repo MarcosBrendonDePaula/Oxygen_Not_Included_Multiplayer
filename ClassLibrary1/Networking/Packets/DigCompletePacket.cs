@@ -48,7 +48,7 @@ public class DigCompletePacket : IPacket
         }
 
         // Spawn ore + FX from the dig
-        WorldDamage.Instance.OnDigComplete(Cell, Mass, Temperature, ElementIdx, DiseaseIdx, DiseaseCount);
+        //WorldDamage.Instance.OnDigComplete(Cell, Mass, Temperature, ElementIdx, DiseaseIdx, DiseaseCount);
         // Destroy cell via sim
         WorldDamage.Instance.DestroyCell(Cell);
         // Trigger on solid state changed

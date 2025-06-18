@@ -1,4 +1,5 @@
 ﻿using ONI_MP.DebugTools;
+using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using Steamworks;
 using System.Collections.Generic;
@@ -50,6 +51,9 @@ namespace ONI_MP.Networking.Packets.Tools.Clear
 
             void TryMarkClearable(GameObject target)
             {
+                if (!target.TryGetComponent<NetworkIdentity>(out _))
+                    return;
+
                 if (target.TryGetComponent(out Clearable clearable))
                 {
                     clearable.MarkForClear();
@@ -64,7 +68,8 @@ namespace ONI_MP.Networking.Packets.Tools.Clear
                         GameObject g2 = item.gameObject;
                         item = item.nextItem;
 
-                        if (g2 == null) continue;
+                        if (g2 == null || g2 == target) continue;
+                        if (!g2.TryGetComponent<NetworkIdentity>(out _)) continue;
 
                         if (g2.TryGetComponent(out Clearable subClearable))
                         {

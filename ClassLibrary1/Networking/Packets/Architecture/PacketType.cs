@@ -33,6 +33,7 @@ namespace ONI_MP.Networking.Packets.Architecture
         ToggleMinionEffect = 23,
         ToolEquip = 24,
         DuplicantCondition = 25,
-        MoveToLocation = 26     // Movement from the MoveTo tool
+        MoveToLocation = 26,     // Movement from the MoveTo tool
+        Prioritize = 27
     }
 }

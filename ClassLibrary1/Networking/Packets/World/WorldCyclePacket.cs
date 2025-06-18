@@ -30,8 +30,6 @@ namespace ONI_MP.Networking.Packets.World
             if (MultiplayerSession.IsHost)
                 return;
 
-            DebugConsole.Log($"[Multiplayer] Received cycle sync: Cycle {Cycle} @ {CycleTime:0.00}s");
-
             float totalTime = Cycle * 600f + CycleTime;
 
             if (GameClock.Instance != null)
@@ -39,7 +37,6 @@ namespace ONI_MP.Networking.Packets.World
                 GameClockPatch.allowAddTimeForSetTime = true;
                 GameClock.Instance.SetTime(totalTime);
                 GameClockPatch.allowAddTimeForSetTime = false;
-                DebugConsole.Log($"[Multiplayer] GameClock updated to {totalTime:0.00}s ({Cycle} + {CycleTime:0.00}s)");
             }
             else
             {

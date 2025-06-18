@@ -48,7 +48,6 @@ namespace ONI_MP.Patches.GamePatches
                     CycleTime = __instance.GetTimeSinceStartOfCycle()
                 }, SteamNetworkingSend.Unreliable);
 
-                DebugConsole.Log($"[Multiplayer] WorldCyclePacket sent @ {currentTime:0.00}s");
             }
         }
     }

@@ -24,18 +24,39 @@ namespace ONI_MP.Networking.Components
         protected override void OnSpawn()
         {
             base.OnSpawn();
+            RegisterIdentity();
+        }
 
+        public void RegisterIdentity()
+        {
             if (NetId == 0)
             {
                 NetId = NetEntityRegistry.Register(this);
-                DebugConsole.Log($"[NetworkIdentity] Registered new NetId {NetId} for {name}");
             }
             else
             {
                 NetEntityRegistry.RegisterExisting(this, NetId);
-                DebugConsole.Log($"[NetworkIdentity] Restored NetId {NetId} for {name}");
             }
         }
+
+        /// <summary>
+        /// This will be primarily used when the host spawns in an object and the client and host need to sync the netid
+        /// </summary>
+        /// <param name="netIdOverride"></param>
+        public void OverrideNetId(int netIdOverride)
+        {
+            // Unregister old NetId
+            NetEntityRegistry.Unregister(NetId);
+
+            // Override internal value
+            NetId = netIdOverride;
+
+            // Re-register with new NetId
+            NetEntityRegistry.RegisterOverride(this, netIdOverride);
+
+            DebugConsole.Log($"[NetworkIdentity] Overridden NetId. New NetId = {NetId} for {name}");
+        }
+
 
         protected override void OnCleanUp()
         {

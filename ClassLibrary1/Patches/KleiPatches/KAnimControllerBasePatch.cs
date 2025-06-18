@@ -27,7 +27,7 @@ namespace ONI_MP.Patches.KleiPatches
                 MultiplayerSession.IsHost &&
                 go.TryGetComponent<NetworkIdentity>(out var netIdentity))
             {
-                DebugConsole.Log($"[ONI_MP] Dupe '{go.name}' playing anim '{anim_name}' | Mode: {mode}, Speed: {speed}, Offset: {time_offset}");
+                //DebugConsole.Log($"[ONI_MP] Dupe '{go.name}' playing anim '{anim_name}' | Mode: {mode}, Speed: {speed}, Offset: {time_offset}");
 
                 var packet = new PlayAnimPacket
                 {
@@ -60,7 +60,7 @@ namespace ONI_MP.Patches.KleiPatches
                 go.TryGetComponent<NetworkIdentity>(out var netIdentity))
             {
                 string allAnims = string.Join(", ", anim_names.Select(a => a.ToString()));
-                DebugConsole.Log($"[ONI_MP] Dupe '{go.name}' playing anims [{allAnims}] | Mode: {mode}");
+                //DebugConsole.Log($"[ONI_MP] Dupe '{go.name}' playing anims [{allAnims}] | Mode: {mode}");
 
                 var packet = new PlayAnimPacket
                 {

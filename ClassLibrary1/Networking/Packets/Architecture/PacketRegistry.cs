@@ -9,6 +9,7 @@ using ONI_MP.Networking.Packets.DuplicantActions;
 using ONI_MP.Networking.Packets.Social;
 using ONI_MP.Networking.Packets.Tools.Build;
 using ONI_MP.Networking.Packets.Tools.Cancel;
+using ONI_MP.Networking.Packets.Tools.Clear;
 using ONI_MP.Networking.Packets.Tools.Deconstruct;
 using ONI_MP.Networking.Packets.Tools.Dig;
 using ONI_MP.Networking.Packets.Tools.Move;
@@ -42,8 +43,6 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.WorldData, () => new WorldDataPacket());
             Register(PacketType.WorldDataRequest, () => new WorldDataRequestPacket());
             Register(PacketType.WorldUpdate, () => new WorldUpdatePacket());
-            Register(PacketType.Instantiate, () => new InstantiatePacket());
-            Register(PacketType.Instantiations, () => new InstantiationsPacket());
             Register(PacketType.NavigatorPath, () => new NavigatorPathPacket());
             Register(PacketType.SaveFileRequest, () => new SaveFileRequestPacket());
             Register(PacketType.SaveFileChunk, () => new SaveFileChunkPacket());
@@ -63,6 +62,7 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.DuplicantCondition, () => new DuplicantConditionPacket());
             Register(PacketType.MoveToLocation, () => new MoveToLocationPacket());
             Register(PacketType.Prioritize, () => new PrioritizePacket());
+            Register(PacketType.Clear, () => new ClearPacket());
         }
     }
 }

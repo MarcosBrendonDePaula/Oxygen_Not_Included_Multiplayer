@@ -40,6 +40,21 @@ namespace ONI_MP.Networking
             }
         }
 
+        public static void RegisterOverride(NetworkIdentity entity, int netId)
+        {
+            if (entities.ContainsKey(netId))
+            {
+                DebugConsole.LogWarning($"[NetEntityRegistry] Overwriting existing entity for NetId {netId}");
+                entities[netId] = entity;
+            }
+            else
+            {
+                entities.Add(netId, entity);
+                DebugConsole.Log($"[NetEntityRegistry] Registered overridden NetId {netId} for {entity.name}");
+            }
+        }
+
+
 
         public static bool TryGet(int netId, out NetworkIdentity entity)
         {

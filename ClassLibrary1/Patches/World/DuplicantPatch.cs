@@ -86,7 +86,7 @@ public static class DuplicantToolSyncPatch
 
             toggler.Subscribe(toggler.eventSource, Hash.SDBMLower(enableEvent), _ =>
             {
-                DebugConsole.Log($"[ToolEquip] {enableEvent} -> Equip");
+                //DebugConsole.Log($"[ToolEquip] {enableEvent} -> Equip");
                 if (!MultiplayerSession.InSession || !MultiplayerSession.IsHost)
                     return;
 
@@ -103,7 +103,7 @@ public static class DuplicantToolSyncPatch
 
             toggler.Subscribe(toggler.eventSource, Hash.SDBMLower(disableEvent), _ =>
             {
-                DebugConsole.Log($"[ToolEquip] {disableEvent} -> Unequip");
+                //DebugConsole.Log($"[ToolEquip] {disableEvent} -> Unequip");
                 if (!MultiplayerSession.InSession || !MultiplayerSession.IsHost)
                     return;
 

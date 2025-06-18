@@ -156,7 +156,7 @@ namespace ONI_MP.Networking.Components
                 {
                     Health = health.hitPoints;
                     MaxHealth = health.maxHitPoints;
-                    DebugConsole.Log($"[Logger] {minion.name} - Health updated: {Health}/{MaxHealth}");
+                    //DebugConsole.Log($"[Logger] {minion.name} - Health updated: {Health}/{MaxHealth}");
                 };
 
                 Health = health.hitPoints;
@@ -177,7 +177,7 @@ namespace ONI_MP.Networking.Components
                 instance.OnDelta += delta =>
                 {
                     setter(instance.value);
-                    DebugConsole.Log($"[Logger] {minion.name} - {amount.Id} changed: {instance.value}");
+                    //DebugConsole.Log($"[Logger] {minion.name} - {amount.Id} changed: {instance.value}");
                 };
 
                 setter(instance.value); // set initial
@@ -203,7 +203,7 @@ namespace ONI_MP.Networking.Components
                         attrInstance.OnDirty += () =>
                         {
                             Morale = attrInstance.GetTotalValue();
-                            DebugConsole.Log($"[Logger] {minion.name} - Morale updated: {Morale}");
+                            //DebugConsole.Log($"[Logger] {minion.name} - Morale updated: {Morale}");
                         };
 
                         Morale = attrInstance.GetTotalValue();

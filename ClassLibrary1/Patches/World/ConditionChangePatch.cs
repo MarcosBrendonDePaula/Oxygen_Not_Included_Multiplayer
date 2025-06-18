@@ -16,7 +16,7 @@ namespace ONIMod.Logging
             var minion = __instance.GetComponent<MinionIdentity>();
             if (minion != null)
             {
-                DebugConsole.Log($"[Logger] {minion.name} - Health changed by {delta}, now: {__instance.hitPoints}/{__instance.maxHitPoints}");
+                //DebugConsole.Log($"[Logger] {minion.name} - Health changed by {delta}, now: {__instance.hitPoints}/{__instance.maxHitPoints}");
             }
         }
 
@@ -28,7 +28,7 @@ namespace ONIMod.Logging
             var minion = __instance.gameObject.GetComponent<MinionIdentity>();
             if (minion != null)
             {
-                DebugConsole.Log($"[Logger] {minion.name} - Attribute '{__instance.Id}' added modifier {modifier.Value} ({modifier.Description})");
+                //DebugConsole.Log($"[Logger] {minion.name} - Attribute '{__instance.Id}' added modifier {modifier.Value} ({modifier.Description})");
             }
         }
 
@@ -40,7 +40,7 @@ namespace ONIMod.Logging
             var minion = __instance.gameObject.GetComponent<MinionIdentity>();
             if (minion != null)
             {
-                DebugConsole.Log($"[Logger] {minion.name} - Attribute '{__instance.Id}' removed modifier {modifier.Value} ({modifier.Description})");
+                //DebugConsole.Log($"[Logger] {minion.name} - Attribute '{__instance.Id}' removed modifier {modifier.Value} ({modifier.Description})");
             }
         }
 
@@ -53,7 +53,7 @@ namespace ONIMod.Logging
             if (minion != null)
             {
                 string id = __instance.amount?.Id ?? "Unknown";
-                DebugConsole.Log($"[Logger] {minion.name} - Amount '{id}' set to {value}");
+                //DebugConsole.Log($"[Logger] {minion.name} - Amount '{id}' set to {value}");
             }
         }
     }

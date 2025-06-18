@@ -1,4 +1,5 @@
-﻿using ONI_MP.Networking.States;
+﻿using ONI_MP.Networking;
+using ONI_MP.Networking.States;
 using Steamworks;
 
 public class MultiplayerPlayer
@@ -18,7 +19,7 @@ public class MultiplayerPlayer
         SteamID = steamID;
         SteamName = SteamFriends.GetFriendPersonaName(steamID);
         AvatarImageId = SteamFriends.GetLargeFriendAvatar(steamID);
-        readyState = ClientReadyState.Unready;
+        readyState = (SteamID == MultiplayerSession.HostSteamID) ? ClientReadyState.Ready : ClientReadyState.Unready;
     }
 
     public override string ToString()

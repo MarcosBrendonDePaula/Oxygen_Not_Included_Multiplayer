@@ -68,7 +68,7 @@ namespace ONI_MP.Networking.Components
                 }
                 else
                 {
-                    DebugConsole.LogWarning("[ConditionTracker] Could not reflect maxHitPoints field.");
+                    //DebugConsole.LogWarning("[ConditionTracker] Could not reflect maxHitPoints field.");
                 }
 
                 Health = health;
@@ -125,12 +125,12 @@ namespace ONI_MP.Networking.Components
                     }
                     else
                     {
-                        DebugConsole.LogWarning("[ConditionTracker] Failed to reflect BaseValue on Attribute.");
+                        //DebugConsole.LogWarning("[ConditionTracker] Failed to reflect BaseValue on Attribute.");
                     }
                 }
                 else
                 {
-                    DebugConsole.LogWarning("[ConditionTracker] Failed to reflect attribute field on AttributeInstance.");
+                    //DebugConsole.LogWarning("[ConditionTracker] Failed to reflect attribute field on AttributeInstance.");
                 }
             }
         }

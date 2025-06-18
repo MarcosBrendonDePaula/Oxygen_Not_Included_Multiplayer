@@ -70,9 +70,7 @@ namespace ONI_MP.Networking.Packets.World
                 return;
 
             GameObject dropped = element.substance.SpawnResource(Position, dropMass, Temperature, DiseaseIndex, DiseaseCount);
-
-            NetworkIdentity identity = dropped.AddOrGet<NetworkIdentity>();
-            identity.RegisterIdentity(); // If I don't do this here the netId is 0
+            NetworkIdentity identity = dropped.GetComponent<NetworkIdentity>();
             identity.OverrideNetId(NetId);
             DebugConsole.Log("[WorldDamageSpawnResourcePacket] Synchronized Network ID");
 

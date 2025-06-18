@@ -31,8 +31,7 @@ namespace ONI_MP.Patches.World
             if (!(num <= 0f))
             {
                 GameObject gameObject = element.substance.SpawnResource(vector, num, temperature, disease_idx, disease_count);
-                NetworkIdentity networkIdentity = gameObject.AddOrGet<NetworkIdentity>();
-                networkIdentity.RegisterIdentity(); // If I don't do this here the netId is 0
+                NetworkIdentity networkIdentity = gameObject.GetComponent<NetworkIdentity>();
 
                 Pickupable component = gameObject.GetComponent<Pickupable>();
                 if (component != null && component.GetMyWorld() != null && component.GetMyWorld().worldInventory.IsReachable(component))

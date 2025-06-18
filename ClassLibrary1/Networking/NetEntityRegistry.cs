@@ -34,10 +34,10 @@ namespace ONI_MP.Networking
                 entities[netId] = entity;
                 DebugConsole.Log($"[NetEntityRegistry] Registered existing entity with net id: {netId}");
             }
-            else
-            {
-                DebugConsole.LogWarning($"[NetEntityRegistry] NetId {netId} already registered. Skipping duplicate registration.");
-            }
+            //else
+            //{
+            //    DebugConsole.LogWarning($"[NetEntityRegistry] NetId {netId} already registered. Skipping duplicate registration.");
+            //}
         }
 
         public static void RegisterOverride(NetworkIdentity entity, int netId)

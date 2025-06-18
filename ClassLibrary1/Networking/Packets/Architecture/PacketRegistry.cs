@@ -11,6 +11,7 @@ using ONI_MP.Networking.Packets.Tools.Build;
 using ONI_MP.Networking.Packets.Tools.Cancel;
 using ONI_MP.Networking.Packets.Tools.Deconstruct;
 using ONI_MP.Networking.Packets.Tools.Dig;
+using ONI_MP.Networking.Packets.Tools.Move;
 using ONI_MP.Networking.Packets.Tools.Wire;
 using ONI_MP.Networking.Packets.World;
 
@@ -59,6 +60,7 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.ToggleMinionEffect, () => new ToggleMinionEffectPacket());
             Register(PacketType.ToolEquip, () => new ToolEquipPacket());
             Register(PacketType.DuplicantCondition, () => new DuplicantConditionPacket());
+            Register(PacketType.MoveToLocation, () => new MoveToLocationPacket());
         }
     }
 }

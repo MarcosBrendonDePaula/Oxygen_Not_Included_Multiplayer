@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HarmonyLib;
 using ONI_MP.DebugTools;
@@ -215,7 +216,6 @@ namespace ONI_MP.Misc
 
             return null;
         }
-
 
         #region SaveLoadRoot Extensions
         private static readonly FieldInfo optionalComponentListField =

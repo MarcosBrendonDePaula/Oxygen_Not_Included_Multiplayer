@@ -75,7 +75,7 @@ public class PlayAnimPacket : IPacket
         if (MultiplayerSession.IsHost)
             return;
 
-        if (!NetEntityRegistry.TryGet(NetId, out var go) ||
+        if (!NetworkIdentityRegistry.TryGet(NetId, out var go) ||
             !go.TryGetComponent(out KAnimControllerBase controller))
             return;
 

@@ -39,7 +39,7 @@ namespace ONI_MP.Networking.Packets.Tools.Move
                 return;
             }
 
-            if (!NetEntityRegistry.TryGet(TargetNetId, out var go))
+            if (!NetworkIdentityRegistry.TryGet(TargetNetId, out var go))
             {
                 DebugConsole.LogWarning($"[MoveToLocationPacket] Unknown NetId: {TargetNetId}");
                 return;

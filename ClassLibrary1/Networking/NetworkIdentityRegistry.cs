@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace ONI_MP.Networking
 {
-    public static class NetEntityRegistry
+    public static class NetworkIdentityRegistry
     {
-        private static readonly Dictionary<int, NetworkIdentity> entities = new Dictionary<int, NetworkIdentity>();
+        private static readonly Dictionary<int, NetworkIdentity> identities = new Dictionary<int, NetworkIdentity>();
         private static readonly System.Random rng = new System.Random();
 
         public static int Register(NetworkIdentity entity)
@@ -16,22 +16,22 @@ namespace ONI_MP.Networking
             do
             {
                 id = rng.Next(100000, int.MaxValue); // Avoid very low IDs
-            } while (entities.ContainsKey(id));
+            } while (identities.ContainsKey(id));
 
-            entities[id] = entity;
+            identities[id] = entity;
             return id;
         }
 
         public static void Unregister(int netId)
         {
-            entities.Remove(netId);
+            identities.Remove(netId);
         }
 
         public static void RegisterExisting(NetworkIdentity entity, int netId)
         {
-            if (!entities.ContainsKey(netId))
+            if (!identities.ContainsKey(netId))
             {
-                entities[netId] = entity;
+                identities[netId] = entity;
                 DebugConsole.Log($"[NetEntityRegistry] Registered existing entity with net id: {netId}");
             }
             //else
@@ -42,14 +42,14 @@ namespace ONI_MP.Networking
 
         public static void RegisterOverride(NetworkIdentity entity, int netId)
         {
-            if (entities.ContainsKey(netId))
+            if (identities.ContainsKey(netId))
             {
                 DebugConsole.LogWarning($"[NetEntityRegistry] Overwriting existing entity for NetId {netId}");
-                entities[netId] = entity;
+                identities[netId] = entity;
             }
             else
             {
-                entities.Add(netId, entity);
+                identities.Add(netId, entity);
                 DebugConsole.Log($"[NetEntityRegistry] Registered overridden NetId {netId} for {entity.name}");
             }
         }
@@ -58,12 +58,12 @@ namespace ONI_MP.Networking
 
         public static bool TryGet(int netId, out NetworkIdentity entity)
         {
-            return entities.TryGetValue(netId, out entity);
+            return identities.TryGetValue(netId, out entity);
         }
 
         public static void Clear()
         {
-            entities.Clear();
+            identities.Clear();
         }
     }
 }

@@ -31,7 +31,7 @@ public class ToggleMinionEffectPacket : IPacket
 
     public void OnDispatched()
     {
-        if (!NetEntityRegistry.TryGet(NetId, out var go)) return;
+        if (!NetworkIdentityRegistry.TryGet(NetId, out var go)) return;
 
         var toggler = go.GetComponentsInChildren<KBatchedAnimEventToggler>()
             .FirstOrDefault(t => t.enableEvent == Event || t.disableEvent == Event);

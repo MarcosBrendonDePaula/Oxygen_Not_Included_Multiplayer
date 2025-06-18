@@ -160,7 +160,7 @@ namespace ONI_MP.Networking.Packets.Core
             entity = null;
             navigator = null;
 
-            if (!NetEntityRegistry.TryGet(NetId, out var foundEntity))
+            if (!NetworkIdentityRegistry.TryGet(NetId, out var foundEntity))
             {
                 DebugConsole.LogWarning($"[NavigatorPathPacket] Could not find entity with NetId {NetId}");
                 return false;

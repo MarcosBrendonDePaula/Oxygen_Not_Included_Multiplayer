@@ -40,7 +40,7 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 
         public void OnDispatched()
         {
-            if (!NetEntityRegistry.TryGet(TargetNetId, out var target))
+            if (!NetworkIdentityRegistry.TryGet(TargetNetId, out var target))
             {
                 DebugConsole.LogWarning($"[ToolEquipPacket] Unknown NetId: {TargetNetId}");
                 return;

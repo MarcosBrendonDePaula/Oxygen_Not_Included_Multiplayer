@@ -36,7 +36,8 @@ namespace ONI_MP.Patches.ToolPatches.Clear
                 item = item.nextItem;
 
                 if (target == null) continue;
-                if (target.GetComponent<MinionIdentity>() != null) continue;
+                if (target.GetComponent<MinionIdentity>() != null) 
+                    continue;
                 if (!target.TryGetComponent<Clearable>(out var clearable) || !clearable.isClearable)
                     continue;
                 if (!target.TryGetComponent<NetworkIdentity>(out _))
@@ -57,12 +58,10 @@ namespace ONI_MP.Patches.ToolPatches.Clear
                 if(MultiplayerSession.IsHost)
                 {
                     PacketSender.SendToAllClients(packet);
-                    DebugConsole.Log($"[ClearTool] Sent ClearPacket to clients for cell {cell}");
                 }
                 else
                 {
                     PacketSender.SendToHost(packet);
-                    DebugConsole.Log($"[ClearTool] Sent ClearPacket to host for cell {cell}");
                 }
             }
         }

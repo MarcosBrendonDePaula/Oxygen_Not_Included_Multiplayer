@@ -1,4 +1,5 @@
 ﻿using ONI_MP.DebugTools;
+using ONI_MP.Networking;
 using ONI_MP.Networking.Packets.Architecture;
 using System.IO;
 using UnityEngine;
@@ -36,6 +37,9 @@ public class DigCompletePacket : IPacket
 
     public void OnDispatched()
     {
+        if (MultiplayerSession.IsHost)
+            return;
+
         if (!Grid.IsValidCell(Cell))
             return;
 

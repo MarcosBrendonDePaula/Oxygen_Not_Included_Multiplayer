@@ -47,7 +47,7 @@ namespace ONI_MP.Patches.World
                     {
                         NetId = networkIdentity.NetId,
                         Position = pos,
-                        Mass = mass,
+                        Mass = mass * 0.5f,
                         Temperature = temperature,
                         ElementIndex = element_idx,
                         DiseaseIndex = disease_idx,

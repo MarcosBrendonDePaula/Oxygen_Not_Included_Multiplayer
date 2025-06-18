@@ -54,7 +54,7 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
             if (MultiplayerSession.IsHost)
                 return;
 
-            if (!NetEntityRegistry.TryGet(NetId, out var go))
+            if (!NetworkIdentityRegistry.TryGet(NetId, out var go))
                 return;
 
             var tracker = go.GetComponent<ConditionTracker>();

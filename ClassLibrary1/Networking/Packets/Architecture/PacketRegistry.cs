@@ -63,6 +63,9 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.MoveToLocation, () => new MoveToLocationPacket());
             Register(PacketType.Prioritize, () => new PrioritizePacket());
             Register(PacketType.Clear, () => new ClearPacket());
+            Register(PacketType.ClientReadyStatus, () => new ClientReadyStatusPacket());
+            Register(PacketType.ClientReadyStatusUpdate, () => new ClientReadyStatusUpdatePacket());
+            Register(PacketType.AllClientsReady, () => new AllClientsReadyPacket());
         }
     }
 }

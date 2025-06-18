@@ -34,6 +34,9 @@ namespace ONI_MP.Networking.Packets.Architecture
         DuplicantCondition = 24,
         MoveToLocation = 25,     // Movement from the MoveTo tool
         Prioritize = 26,
-        Clear = 27               // Sweeping etc
+        Clear = 27,               // Sweeping etc
+        ClientReadyStatus = 28,
+        AllClientsReady = 29,
+        ClientReadyStatusUpdate = 30
     }
 }

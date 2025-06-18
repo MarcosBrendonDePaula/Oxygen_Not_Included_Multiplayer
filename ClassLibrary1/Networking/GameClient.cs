@@ -7,6 +7,7 @@ using ONI_MP.Misc;
 using ONI_MP.Menus;
 using ONI_MP.Networking.States;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.Core;
 
 namespace ONI_MP.Networking
 {
@@ -192,6 +193,10 @@ namespace ONI_MP.Networking
             {
                 SetState(ClientState.InGame);
                 PacketHandler.readyToProcess = true;
+                PacketSender.SendToHost(new ClientReadyStatusPacket(
+                    SteamUser.GetSteamID(),
+                    ClientReadyState.Ready
+                ));
             }
             MultiplayerSession.InSession = true;
 

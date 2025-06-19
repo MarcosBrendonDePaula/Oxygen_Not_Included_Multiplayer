@@ -33,7 +33,7 @@ namespace ONI_MP.Patches.GamePatches
                     if(identity != null)
                     {
                         var packet = new EventTriggeredPacket(identity.NetId, hash, data);
-                        PacketSender.SendToAllClients(packet, SteamNetworkingSend.ReliableNoNagle);
+                        PacketSender.SendToAllClients(packet, SteamNetworkingSend.Unreliable);
                     }
                 }
             }

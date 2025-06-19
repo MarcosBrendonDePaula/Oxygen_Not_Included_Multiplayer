@@ -6,6 +6,7 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 > **Note:** This mod is in the very early pre-pre alpha stage
 
 Join the [Discord](https://discord.gg/jpxveK6mmY)
+
 Steam workshop: Not released yet.
 
 ---

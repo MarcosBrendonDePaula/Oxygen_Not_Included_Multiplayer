@@ -14,9 +14,9 @@ using static STRINGS.UI.OUTFITS;
 namespace ONI_MP.Patches.GamePatches
 {
     [HarmonyPatch(typeof(EventExtensions))]
-    public static class Patch_EventExtensions_Trigger
+    public static class EventExtensionsPatch
     {
-        // Patch the static method: public static void Trigger(this GameObject go, int hash, object data = null)
+        // This is a lil bit of a jank way of doing it. TODO Improve this.
         [HarmonyPrefix]
         [HarmonyPatch(nameof(EventExtensions.Trigger))]
         public static bool Prefix(GameObject go, int hash, object data)
@@ -33,7 +33,7 @@ namespace ONI_MP.Patches.GamePatches
                     if(identity != null)
                     {
                         var packet = new EventTriggeredPacket(identity.NetId, hash, data);
-                        PacketSender.SendToAllClients(packet);
+                        PacketSender.SendToAllClients(packet, SteamNetworkingSend.ReliableNoNagle);
                     }
                 }
             }

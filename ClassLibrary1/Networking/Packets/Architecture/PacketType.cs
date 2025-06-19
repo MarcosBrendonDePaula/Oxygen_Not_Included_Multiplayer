@@ -38,6 +38,8 @@ namespace ONI_MP.Networking.Packets.Architecture
         ClientReadyStatus = 28,
         AllClientsReady = 29,
         ClientReadyStatusUpdate = 30,
-        EventTriggered = 31
+        EventTriggered = 31,
+        HardSync = 32,
+        HardSyncComplete = 33
     }
 }

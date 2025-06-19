@@ -53,10 +53,11 @@ namespace ONI_MP.Networking.Packets.Core
 
             // Build message string for overlay
             string message = "Waiting for players to be ready!\n";
+            MultiplayerOverlay.Show(message);
             bool allReady = true;
-
             foreach (var p in MultiplayerSession.AllPlayers)
             {
+                MultiplayerOverlay.Show(message);
                 if (p.SteamID == MultiplayerSession.HostSteamID)
                     continue;
 
@@ -66,12 +67,14 @@ namespace ONI_MP.Networking.Packets.Core
                     allReady = false;
             }
 
-            // Broadcast updated overlay message to all clients
-            PacketSender.SendToAllClients(new ClientReadyStatusUpdatePacket(message));
 
             if (allReady)
             {
                 CoroutineRunner.RunOne(DelayAllReadyBroadcast());
+            } else
+            {
+                // Broadcast updated overlay message to all clients
+                PacketSender.SendToAllClients(new ClientReadyStatusUpdatePacket(message));
             }
         }
 

@@ -37,6 +37,7 @@ namespace ONI_MP.Networking.Packets.Core
         {
             MultiplayerOverlay.Show("All players are ready!\nPlease wait...");
             yield return new WaitForSeconds(1f);
+            SpeedControlScreen.Instance?.Unpause(false);
             MultiplayerOverlay.Close();
         }
     }

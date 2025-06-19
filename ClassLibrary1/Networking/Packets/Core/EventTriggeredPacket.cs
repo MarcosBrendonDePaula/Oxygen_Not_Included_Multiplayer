@@ -6,6 +6,7 @@ using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Misc;
+using ONI_MP.Patches.GamePatches;
 
 namespace ONI_MP.Networking.Packets.Events
 {
@@ -52,7 +53,7 @@ namespace ONI_MP.Networking.Packets.Events
         {
             if (!NetworkIdentityRegistry.TryGet(NetId, out var go))
             {
-                DebugConsole.LogWarning($"[Packets] Could not find entity with NetId {NetId} for event {EventHash}");
+                DebugConsole.LogWarning($"[EventTriggeredPacket] Could not find entity with NetId {NetId} for event {EventHash}");
                 return;
             }
 
@@ -67,7 +68,7 @@ namespace ONI_MP.Networking.Packets.Events
                 }
                 else
                 {
-                    DebugConsole.LogWarning($"[Packets] Failed to resolve type '{DataType}' for event {EventHash}");
+                    DebugConsole.LogWarning($"[EventTriggeredPacket] Failed to resolve type '{DataType}' for event {EventHash}");
                 }
             }
 

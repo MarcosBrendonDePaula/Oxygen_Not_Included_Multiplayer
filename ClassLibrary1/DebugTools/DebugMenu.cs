@@ -91,20 +91,10 @@ namespace ONI_MP.DebugTools
                 else
                 {
                     GUILayout.Label("Hosting multiplayer session.");
+                    if (GUILayout.Button("Test Hard sync"))
+                        GameServerHardSync.PerformHardSync();
                 }
 
-                GUILayout.Label($"Packets Sent: {SteamLobby.Stats.PacketsSent} ({SteamLobby.Stats.SentPerSecond}/sec)");
-                GUILayout.Label($"Packets Received: {SteamLobby.Stats.PacketsReceived} ({SteamLobby.Stats.ReceivedPerSecond}/sec)");
-                GUILayout.Label($"Total Bandwidth Sent: {Utils.FormatBytes(SteamLobby.Stats.BytesSent)}");
-                GUILayout.Label($"Total Bandwidth Received: {Utils.FormatBytes(SteamLobby.Stats.BytesReceived)}");
-                GUILayout.Label($"Bandwidth Sent/sec: {Utils.FormatBytes(SteamLobby.Stats.BytesSentSec)}");
-                GUILayout.Label($"Bandwidth Received/sec: {Utils.FormatBytes(SteamLobby.Stats.BytesReceivedSec)}");
-
-                if (GUILayout.Button("Reset Packet Counters"))
-                    SteamLobby.Stats.ResetPacketCounters();
-
-                if (GUILayout.Button("Test Save packet"))
-                    SaveFileRequestPacket.SendSaveFile(MultiplayerSession.HostSteamID);
 
                 GUILayout.Space(10);
                 DrawPlayerList();

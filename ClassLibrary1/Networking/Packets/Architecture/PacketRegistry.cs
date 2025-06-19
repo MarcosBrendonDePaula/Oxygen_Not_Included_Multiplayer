@@ -68,6 +68,8 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.ClientReadyStatusUpdate, () => new ClientReadyStatusUpdatePacket());
             Register(PacketType.AllClientsReady, () => new AllClientsReadyPacket());
             Register(PacketType.EventTriggered, () => new EventTriggeredPacket());
+            Register(PacketType.HardSync, () => new HardSyncPacket());
+            Register(PacketType.HardSyncComplete, () => new HardSyncCompletePacket());
         }
     }
 }

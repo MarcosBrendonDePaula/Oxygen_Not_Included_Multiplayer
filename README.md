@@ -6,6 +6,7 @@ A new mod that introduces multiplayer functionality to *Oxygen Not Included*, fe
 > **Note:** This mod is in the very early pre-pre alpha stage
 
 Join the [Discord](https://discord.gg/jpxveK6mmY)
+Steam workshop: Not released yet.
 
 ---
 
@@ -44,15 +45,34 @@ Join the [Discord](https://discord.gg/jpxveK6mmY)
     - Building tool
     - Cancel tool
     - Deconstruct tool
+    - Priority tool
+    - Sweep tool
     - Digging
-    - World Cycle (Controlled by the host)
+    - World Cycle
+      > (Controlled by the host)
     - Rough duplicant position and orientation synchronization
+      > They at least move smoothly. They only snap if they fall out of sync
     - Rough Duplicant animation synchronization
+      > Some animations don't play properly and get stuck on 1 frame like walking, running, climbing etc. Others seem fine
+    - Move To tool synchronization
+      > When you click a duplicant and use the "Move To Location" tool
+    - "Trigger" synchronization
+      > (its rough and not 100% but it lets duplicants pull out their dig tools, suck up tools etc)
+    - Hard Sync
+      > (At the start of every new cycle the server will perform a hard sync, which basically boots out all the clients and makes them redownload the map before automatically reconnecting them)
 
 ---
 
 ## Work in Progress
 - Tool synchronization (Building, Wire building, Pipe building, Mopping, Sweeping etc)
+  > There is a rough sync attempt with wires but its unfinished any of the smaller tools (like sweep) are not synced (mopping, attacking, ranching etc)
+- Storage sync
+  > This right now relies on hard sync
+- Gas, Temp, Fluid sync
+  > I think this will stay to hard sync and let the client interpret how they should flow
+
+## Known issues
+- Theres alot of issues right now. But once these are ironed out a release will be put out on the steam workshop which will later be linked here
 
 ---
 

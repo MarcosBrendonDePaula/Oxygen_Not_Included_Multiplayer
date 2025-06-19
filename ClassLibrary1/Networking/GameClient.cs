@@ -23,6 +23,8 @@ namespace ONI_MP.Networking
 
         private static CachedConnectionInfo? _cachedConnectionInfo = null;
 
+        public static bool IsHardSyncInProgress = false;
+
         private struct CachedConnectionInfo
         {
             public CSteamID HostSteamID;
@@ -153,7 +155,7 @@ namespace ONI_MP.Networking
                 }
                 catch (Exception ex)
                 {
-                    DebugConsole.LogError($"[GameClient] Failed to handle incoming packet: {ex}");
+                    DebugConsole.LogError($"[GameClient] Failed to handle incoming packet: {ex}", false); // I'm sick and tired of you crashing the game
                 }
 
                 SteamNetworkingMessage_t.Release(messages[i]);
@@ -193,6 +195,8 @@ namespace ONI_MP.Networking
             {
                 SetState(ClientState.InGame);
                 PacketHandler.readyToProcess = true;
+                if(IsHardSyncInProgress)
+                    IsHardSyncInProgress = false;
                 PacketSender.SendToHost(new ClientReadyStatusPacket(
                     SteamUser.GetSteamID(),
                     ClientReadyState.Ready

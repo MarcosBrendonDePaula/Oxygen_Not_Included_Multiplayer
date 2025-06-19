@@ -1,6 +1,10 @@
-﻿using System.IO;
+﻿using System.Collections;
+using System.IO;
+using ONI_MP.DebugTools;
 using ONI_MP.Menus;
+using ONI_MP.Misc;
 using ONI_MP.Networking.Packets.Architecture;
+using UnityEngine;
 
 namespace ONI_MP.Networking.Packets.Core
 {
@@ -23,9 +27,23 @@ namespace ONI_MP.Networking.Packets.Core
             if (MultiplayerSession.IsHost)
                 return;
 
-            SpeedControlScreen.Instance?.Pause(false);
-            MultiplayerOverlay.Show("Hard sync in progress!");
+            Sync();
+            //PauseScreen.TriggerQuitGame();
         }
 
+        public static void Sync()
+        {
+            GameClient.IsHardSyncInProgress = true;
+            MultiplayerOverlay.Show("Hard sync in progress!");
+
+            // This is incredibly stupid...
+            GameClient.CacheCurrentServer();
+            GameClient.Disconnect();
+
+            PauseScreen.TriggerQuitGame(); // Force exit to frontend
+
+            MultiplayerOverlay.Show("Hard sync in process!");
+            GameClient.ReconnectFromCache();
+        }
     }
 }

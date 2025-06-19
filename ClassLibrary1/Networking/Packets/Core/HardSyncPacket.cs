@@ -43,6 +43,7 @@ namespace ONI_MP.Networking.Packets.Core
             PauseScreen.TriggerQuitGame(); // Force exit to frontend
 
             MultiplayerOverlay.Show("Hard sync in process!");
+            NetworkIdentityRegistry.Clear();
             GameClient.ReconnectFromCache();
         }
     }

@@ -93,6 +93,8 @@ Steam workshop: Not released yet.
   > Synchronization is properly regained when a hard sync occures
 - When placing wires they don't look like they are connected properly for other players
   > When other players place them though they suddenly look connected to something and sometimes won't build?
+- Sometimes after a hard sync clients can't seem to process incoming packets.
+  > To fix this the client should just restart their game and rejoin
 
 ## Found an issue?
 Raise it on the issues page. Please at least try to include a video if you can. It makes replicating it so much easier

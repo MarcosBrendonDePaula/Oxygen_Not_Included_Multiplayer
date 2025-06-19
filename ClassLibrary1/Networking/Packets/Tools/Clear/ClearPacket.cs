@@ -51,13 +51,14 @@ namespace ONI_MP.Networking.Packets.Tools.Clear
 
             void TryMarkClearable(GameObject target)
             {
+                // We can only mark networked objects as they need to be networked to be removed from the world for everyone
                 if (!target.TryGetComponent<NetworkIdentity>(out _))
                     return;
 
                 if (target.TryGetComponent(out Clearable clearable))
                 {
                     clearable.MarkForClear();
-                    DebugConsole.Log($"[ClearPacket] Marked {target.name} at cell for sweeping");
+                    DebugConsole.Log($"[ClearPacket] Marked {target.name} at cell for clearing");
                 }
 
                 if (target.TryGetComponent(out Pickupable pickup))

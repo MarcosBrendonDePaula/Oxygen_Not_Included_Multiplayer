@@ -37,6 +37,7 @@ namespace ONI_MP.Networking.Packets.Architecture
         Clear = 27,               // Sweeping etc
         ClientReadyStatus = 28,
         AllClientsReady = 29,
-        ClientReadyStatusUpdate = 30
+        ClientReadyStatusUpdate = 30,
+        EventTriggered = 31
     }
 }

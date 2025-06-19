@@ -63,8 +63,7 @@ public static class DuplicantToolSyncPatch
         var identity = go.GetComponent<NetworkIdentity>();
         if (identity == null) return;
 
-        DebugConsole.Log("[MinionConfig] Just before toggler");
-
+        /*
         foreach (var toggler in go.GetComponentsInChildren<KBatchedAnimEventToggler>(true))
         {
             if (toggler == null || toggler.entries == null || toggler.entries.Count == 0)
@@ -113,7 +112,7 @@ public static class DuplicantToolSyncPatch
                     Equip = false
                 });
             });
-        }
+        }*/
     }
 }
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ONI_MP.Networking.Packets;
 using ONI_MP.Networking.Packets.Core;
 using ONI_MP.Networking.Packets.DuplicantActions;
+using ONI_MP.Networking.Packets.Events;
 using ONI_MP.Networking.Packets.Social;
 using ONI_MP.Networking.Packets.Tools.Build;
 using ONI_MP.Networking.Packets.Tools.Cancel;
@@ -66,6 +67,7 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.ClientReadyStatus, () => new ClientReadyStatusPacket());
             Register(PacketType.ClientReadyStatusUpdate, () => new ClientReadyStatusUpdatePacket());
             Register(PacketType.AllClientsReady, () => new AllClientsReadyPacket());
+            Register(PacketType.EventTriggered, () => new EventTriggeredPacket());
         }
     }
 }

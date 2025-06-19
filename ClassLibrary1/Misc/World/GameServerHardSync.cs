@@ -123,7 +123,12 @@ namespace ONI_MP.Networking
             yield return new WaitForSeconds(1f);
 
             SaveFileRequestPacket.SendSaveFile(clientID);
-            yield return new WaitForSeconds(8f);
+
+            int fileSize = SaveHelper.GetWorldSave().Length;
+            int chunkSize = SaveHelper.SAVEFILE_CHUNKSIZE_KB * 1024;
+            int chunkCount = Mathf.CeilToInt(fileSize / (float)chunkSize);
+            float estimatedTransferDuration = chunkCount * SaveFileRequestPacket.SAVE_DATA_SEND_DELAY;
+            yield return new WaitForSeconds(estimatedTransferDuration);
 
             DebugConsole.Log($"[HardSync] Individual sync completed for {clientID}");
         }

@@ -57,6 +57,9 @@ namespace ONI_MP.Networking
                 return;
             }
 
+            var packet = new HardSyncPacket();
+            PacketSender.SendToAllClients(packet);
+
             DebugConsole.Log($"[HardSync] Starting hard sync for {hardSyncQueue.Count} client(s)...");
             CoroutineRunner.RunOne(HardSyncCoroutine());
         }
@@ -64,6 +67,7 @@ namespace ONI_MP.Networking
         private static IEnumerator HardSyncCoroutine()
         {
             hardSyncInProgress = true;
+            yield return new WaitForSeconds(1f);
 
             while (hardSyncQueue.Count > 0)
             {
@@ -75,18 +79,9 @@ namespace ONI_MP.Networking
                     continue;
                 }
 
-                // Step 1: Notify the client
-                PacketSender.SendToPlayer(clientID, new HardSyncPacket());
-                DebugConsole.Log($"[HardSync] Sent HardSyncPacket to {clientID}");
-
-                // Step 2: Allow brief delay for UI prep
-                yield return new WaitForSeconds(1f);
-
-                // Step 3: Send save file
                 DebugConsole.Log($"[HardSync] Sending save file to {clientID}");
                 SaveFileRequestPacket.SendSaveFile(clientID);
 
-                // Step 4: Wait for estimated transfer to finish
                 int fileSize = SaveHelper.GetWorldSave().Length;
                 int chunkSize = SaveHelper.SAVEFILE_CHUNKSIZE_KB * 1024;
                 int chunkCount = Mathf.CeilToInt(fileSize / (float)chunkSize);

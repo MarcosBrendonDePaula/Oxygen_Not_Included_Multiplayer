@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using UnityEngine;
@@ -51,17 +52,32 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 
         public void OnDispatched()
         {
+            // Disabled for now
+            return;
+
             if (MultiplayerSession.IsHost)
                 return;
 
-            if (!NetworkIdentityRegistry.TryGet(NetId, out var go))
+            if (!NetworkIdentityRegistry.TryGet(NetId, out var targetObject))
+            {
+                DebugConsole.LogWarning($"[DuplicantConditionPacket] NetId {NetId} not found in registry.");
                 return;
+            }
 
-            var tracker = go.GetComponent<ConditionTracker>();
+            var gameObject = targetObject.gameObject;
+            if (gameObject == null)
+            {
+                DebugConsole.LogWarning($"[DuplicantConditionPacket] NetId {NetId} resolved to non-GameObject.");
+                return;
+            }
+
+            var tracker = gameObject.GetComponent<ConditionTracker>();
             if (tracker == null)
+            {
+                DebugConsole.LogWarning($"[DuplicantConditionPacket] GameObject '{gameObject.name}' missing ConditionTracker.");
                 return;
+            }
 
-            // Use real apply methods
             tracker.ApplyHealth(Health, MaxHealth);
             tracker.ApplyAmounts(Calories, Stress, Breath, Bladder, Stamina, BodyTemperature);
             tracker.ApplyAttributes(Morale);

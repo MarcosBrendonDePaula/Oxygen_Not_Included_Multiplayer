@@ -1,4 +1,5 @@
-﻿using ONI_MP.Networking.Packets.Architecture;
+﻿using ONI_MP.DebugTools;
+using ONI_MP.Networking.Packets.Architecture;
 using System.IO;
 using UnityEngine;
 
@@ -34,7 +35,7 @@ namespace ONI_MP.Networking.Packets.Tools.Deconstruct
                 var deconstructable = go.GetComponent<Deconstructable>();
                 if (deconstructable != null && !deconstructable.HasBeenDestroyed)
                 {
-                    Debug.Log($"[DeconstructCompletePacket] Forcing deconstruct at cell {Cell} on client.");
+                    DebugConsole.Log($"[DeconstructCompletePacket] Forcing deconstruct at cell {Cell} on client.");
                     deconstructable.ForceDestroyAndGetMaterials();
                 }
             }

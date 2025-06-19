@@ -1,4 +1,5 @@
-﻿using ONI_MP.Networking.Packets.Architecture;
+﻿using ONI_MP.DebugTools;
+using ONI_MP.Networking.Packets.Architecture;
 using Steamworks;
 using System.Collections.Generic;
 using System.IO;
@@ -70,7 +71,7 @@ namespace ONI_MP.Networking.Packets.Tools.Wire
 
             if (def == null)
             {
-                Debug.LogError("[WireBuildPacket] Could not find BuildingDef for 'WireRefined'");
+                DebugConsole.LogError("[WireBuildPacket] Could not find BuildingDef for 'WireRefined'");
                 return;
             }
 

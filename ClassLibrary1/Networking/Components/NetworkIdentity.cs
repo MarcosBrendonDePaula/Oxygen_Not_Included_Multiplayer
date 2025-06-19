@@ -2,6 +2,7 @@
 using UnityEngine;
 using ONI_MP.DebugTools;
 using System.IO;
+using ONI_MP.Misc;
 
 namespace ONI_MP.Networking.Components
 {
@@ -13,34 +14,55 @@ namespace ONI_MP.Networking.Components
 
         public void Serialize(BinaryWriter writer)
         {
-            DebugConsole.Log($"[NetworkIdentity] SERIALIZING: NetId = {NetId} on {name}");
+            DebugConsole.Log($"[NetworkIdentity] SERIALIZING: NetId = {NetId} on {gameObject.name}");
         }
 
         public void Deserialize(IReader reader)
         {
-            DebugConsole.Log($"[NetworkIdentity] DESERIALIZED: NetId = {NetId} on {name}");
+            DebugConsole.Log($"[NetworkIdentity] DESERIALIZED: NetId = {NetId} on {gameObject.name}");
         }
 
         protected override void OnSpawn()
         {
             base.OnSpawn();
+            RegisterIdentity();
+        }
 
+        public void RegisterIdentity()
+        {
             if (NetId == 0)
             {
-                NetId = NetEntityRegistry.Register(this);
-                DebugConsole.Log($"[NetworkIdentity] Registered new NetId {NetId} for {name}");
+                NetId = NetworkIdentityRegistry.Register(this);
             }
             else
             {
-                NetEntityRegistry.RegisterExisting(this, NetId);
-                DebugConsole.Log($"[NetworkIdentity] Restored NetId {NetId} for {name}");
+                NetworkIdentityRegistry.RegisterExisting(this, NetId);
             }
         }
 
+        /// <summary>
+        /// This will be primarily used when the host spawns in an object and the client and host need to sync the netid
+        /// </summary>
+        /// <param name="netIdOverride"></param>
+        public void OverrideNetId(int netIdOverride)
+        {
+            // Unregister old NetId
+            NetworkIdentityRegistry.Unregister(NetId);
+
+            // Override internal value
+            NetId = netIdOverride;
+
+            // Re-register with new NetId
+            NetworkIdentityRegistry.RegisterOverride(this, netIdOverride);
+
+            DebugConsole.Log($"[NetworkIdentity] Overridden NetId. New NetId = {NetId} for {gameObject.name}");
+        }
+
+
         protected override void OnCleanUp()
         {
-            NetEntityRegistry.Unregister(NetId);
-            DebugConsole.Log($"[NetworkIdentity] Unregistered NetId {NetId} for {name}");
+            NetworkIdentityRegistry.Unregister(NetId);
+            DebugConsole.Log($"[NetworkIdentity] Unregistered NetId {NetId} for {gameObject.name}");
             base.OnCleanUp();
         }
     }

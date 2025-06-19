@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using ONI_MP.DebugTools;
+using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using UnityEngine;
 
@@ -8,6 +10,7 @@ namespace ONI_MP.Networking.Packets.World
     {
         public PacketType Type => PacketType.WorldDamageSpawnResource;
 
+        public int NetId;
         public Vector3 Position;
         public float Mass;
         public float Temperature;
@@ -17,8 +20,9 @@ namespace ONI_MP.Networking.Packets.World
 
         public WorldDamageSpawnResourcePacket() { }
 
-        public WorldDamageSpawnResourcePacket(Vector3 pos, float mass, float temp, ushort elementIdx, byte diseaseIdx, int diseaseCount)
+        public WorldDamageSpawnResourcePacket(int netId, Vector3 pos, float mass, float temp, ushort elementIdx, byte diseaseIdx, int diseaseCount)
         {
+            NetId = netId;
             Position = pos;
             Mass = mass;
             Temperature = temp;
@@ -29,6 +33,7 @@ namespace ONI_MP.Networking.Packets.World
 
         public void Serialize(BinaryWriter writer)
         {
+            writer.Write(NetId);
             writer.Write(Position.x);
             writer.Write(Position.y);
             writer.Write(Position.z);
@@ -41,6 +46,7 @@ namespace ONI_MP.Networking.Packets.World
 
         public void Deserialize(BinaryReader reader)
         {
+            NetId = reader.ReadInt32();
             Position = new Vector3(
                 reader.ReadSingle(),
                 reader.ReadSingle(),
@@ -64,6 +70,9 @@ namespace ONI_MP.Networking.Packets.World
                 return;
 
             GameObject dropped = element.substance.SpawnResource(Position, dropMass, Temperature, DiseaseIndex, DiseaseCount);
+            NetworkIdentity identity = dropped.GetComponent<NetworkIdentity>();
+            identity.OverrideNetId(NetId);
+            DebugConsole.Log("[WorldDamageSpawnResourcePacket] Synchronized Network ID");
 
             Pickupable pickup = dropped.GetComponent<Pickupable>();
             if (pickup != null && pickup.GetMyWorld()?.worldInventory.IsReachable(pickup) == true)
@@ -82,7 +91,7 @@ namespace ONI_MP.Networking.Packets.World
 
             if (method == null)
             {
-                Debug.LogWarning("[Multiplayer] Could not find PlaySoundForSubstance via reflection.");
+                DebugConsole.LogWarning("[Multiplayer] Could not find PlaySoundForSubstance via reflection.");
                 return;
             }
 
@@ -90,7 +99,7 @@ namespace ONI_MP.Networking.Packets.World
 
             if (worldDamage == null)
             {
-                Debug.LogWarning("[Multiplayer] WorldDamage.Instance is null.");
+                DebugConsole.LogWarning("[Multiplayer] WorldDamage.Instance is null.");
                 return;
             }
 

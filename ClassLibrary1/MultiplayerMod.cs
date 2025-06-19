@@ -28,7 +28,7 @@ namespace ONI_MP
             go.AddComponent<UIVisibilityController>();
             go.AddComponent<MainThreadExecutor>();
             SetupListeners();
-            Debug.Log("[ONI_MP] Loaded Oxygen Not Included Multiplayer Mod.");
+            DebugConsole.Log("[ONI_MP] Loaded Oxygen Not Included Multiplayer Mod.");
         }
 
         private void SetupListeners()

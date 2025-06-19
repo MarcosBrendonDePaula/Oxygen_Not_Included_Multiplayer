@@ -7,6 +7,7 @@ using ONI_MP.Misc;
 using ONI_MP.Menus;
 using ONI_MP.Networking.States;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.Core;
 
 namespace ONI_MP.Networking
 {
@@ -21,6 +22,8 @@ namespace ONI_MP.Networking
         private static bool _pollingPaused = false;
 
         private static CachedConnectionInfo? _cachedConnectionInfo = null;
+
+        public static bool IsHardSyncInProgress = false;
 
         private struct CachedConnectionInfo
         {
@@ -152,7 +155,7 @@ namespace ONI_MP.Networking
                 }
                 catch (Exception ex)
                 {
-                    DebugConsole.LogError($"[GameClient] Failed to handle incoming packet: {ex}");
+                    DebugConsole.LogError($"[GameClient] Failed to handle incoming packet: {ex}", false); // I'm sick and tired of you crashing the game
                 }
 
                 SteamNetworkingMessage_t.Release(messages[i]);
@@ -192,6 +195,12 @@ namespace ONI_MP.Networking
             {
                 SetState(ClientState.InGame);
                 PacketHandler.readyToProcess = true;
+                if(IsHardSyncInProgress)
+                    IsHardSyncInProgress = false;
+                PacketSender.SendToHost(new ClientReadyStatusPacket(
+                    SteamUser.GetSteamID(),
+                    ClientReadyState.Ready
+                ));
             }
             MultiplayerSession.InSession = true;
 

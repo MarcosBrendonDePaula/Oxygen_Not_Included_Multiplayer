@@ -80,9 +80,9 @@ namespace ONI_MP.Networking.Packets.Tools.Build
             if (MultiplayerSession.IsHost)
             {
                 var exclude = new HashSet<CSteamID> {
-            SenderId,
-            MultiplayerSession.LocalSteamID
-        };
+                    SenderId,
+                    MultiplayerSession.LocalSteamID
+                };
                 PacketSender.SendToAllExcluding(this, exclude);
                 DebugConsole.Log($"[BuildPacket] Host rebroadcasted build for {PrefabID} at {Cell}");
             }

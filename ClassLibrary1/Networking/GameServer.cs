@@ -176,9 +176,9 @@ namespace ONI_MP.Networking
             player.Connection = conn;
 
             DebugConsole.Log($"[GameServer] Connection to {clientId} fully established!");
-            DebugConsole.Log($"[GameServer] Sending new client the world data!");
             SaveFileRequestPacket.SendSaveFile(clientId);
         }
+
 
         private static void OnClientClosed(HSteamNetConnection conn, CSteamID clientId)
         {

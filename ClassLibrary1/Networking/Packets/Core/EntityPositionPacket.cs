@@ -36,7 +36,7 @@ public class EntityPositionPacket : IPacket
     {
         if (MultiplayerSession.IsHost) return;
 
-        if (NetEntityRegistry.TryGet(NetId, out var entity))
+        if (NetworkIdentityRegistry.TryGet(NetId, out var entity))
         {
             var anim = entity.GetComponent<KBatchedAnimController>();
             if (anim == null)

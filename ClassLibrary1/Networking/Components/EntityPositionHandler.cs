@@ -69,8 +69,7 @@ namespace ONI_MP.Networking.Components
                     FacingLeft = facingLeft
                 };
 
-                PacketSender.SendToAll(packet, sendType: SteamNetworkingSend.Unreliable);
-                DebugConsole.Log($"[EntityPositionSender] Sent position packet for entity {networkedEntity.NetId}, FacingLeft: {facingLeft}");
+                PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
             }
         }
     }

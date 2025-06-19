@@ -28,7 +28,8 @@ namespace ONI_MP.Patches.Navigation
             // Only the host can inform clients where to go
             if (MultiplayerSession.IsHost)
             {
-                SendNavigationPacket(__instance, identity);
+                // We no longer need to sync the navigator
+                //SendNavigationPacket(__instance, identity);
                 //DebugNavigationPath(__instance);
                 return true;
             }

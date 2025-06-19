@@ -41,7 +41,7 @@ public class ChoreAssignmentPacket : IPacket
         // Disabled for now
         return;
 
-        if (!NetEntityRegistry.TryGet(NetId, out var entity))
+        if (!NetworkIdentityRegistry.TryGet(NetId, out var entity))
         {
             DebugConsole.LogWarning($"[ChoreAssignment] Could not find entity with NetId {NetId}");
             return;

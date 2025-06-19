@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using UnityEngine;
 
@@ -9,12 +10,12 @@ namespace ONI_MP.Patches.World
     {
         public static bool Prefix(bool playsound)
         {
-            Debug.Log("[ONI_MP] Intercepted TogglePause");
+            DebugConsole.Log("[ONI_MP] Intercepted TogglePause");
 
             // Block pausing when in a multiplayer session
             if (MultiplayerSession.InSession)
             {
-                Debug.Log("[ONI_MP] Pause prevented during multiplayer session.");
+                DebugConsole.Log("[ONI_MP] Pause prevented during multiplayer session.");
                 return true;
             }
 

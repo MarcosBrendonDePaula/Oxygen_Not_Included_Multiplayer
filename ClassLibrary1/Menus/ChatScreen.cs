@@ -169,7 +169,7 @@ namespace ONI_MP.UI
         {
             if (messageContainer == null)
             {
-                Debug.LogWarning("[Chatbox] Tried to add a message but messageContainer was null!");
+                DebugConsole.LogWarning("[Chatbox] Tried to add a message but messageContainer was null!");
                 return;
             }
 

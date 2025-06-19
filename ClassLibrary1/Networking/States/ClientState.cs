@@ -1,4 +1,6 @@
-﻿namespace ONI_MP.Networking.States
+﻿using System;
+
+namespace ONI_MP.Networking.States
 {
     public enum ClientState
     {
@@ -10,6 +12,7 @@
         InGame
     }
 
+    [Flags]
     public enum ClientReadyState
     {
         Ready,

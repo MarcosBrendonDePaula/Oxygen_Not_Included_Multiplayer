@@ -1,4 +1,5 @@
 ﻿using System;
+using ONI_MP.DebugTools;
 using UnityEngine;
 using UnityEngine.UI;
 using static KButtonMenu;
@@ -12,7 +13,7 @@ namespace ONI_MP.Patches.MainMenuScreen
             var sourceButton = menu.Button_ResumeGame;
             if (sourceButton == null)
             {
-                Debug.LogError("Button_ResumeGame is null");
+                DebugConsole.LogError("Button_ResumeGame is null");
                 return;
             }
 
@@ -32,7 +33,7 @@ namespace ONI_MP.Patches.MainMenuScreen
 
             newButton.onClick += action;
 
-            Debug.Log($"Button '{text}' added to main menu.");
+            DebugConsole.Log($"Button '{text}' added to main menu.");
         }
 
     }

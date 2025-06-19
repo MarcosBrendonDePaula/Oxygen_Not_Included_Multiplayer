@@ -47,7 +47,7 @@ namespace ONI_MP.Networking.Packets.World
                 byte[] data = SaveHelper.GetWorldSave();
                 string fileName = name + ".sav";
 
-                const int ChunkSize = 256 * 1024; // Split into 256kb chunks
+                int ChunkSize = SaveHelper.SAVEFILE_CHUNKSIZE_KB * 1024; // Split into xkb chunks
                 var chunkPackets = new List<SaveFileChunkPacket>();
 
                 for (int offset = 0; offset < data.Length; offset += ChunkSize)
@@ -84,7 +84,7 @@ namespace ONI_MP.Networking.Packets.World
                 PacketSender.SendToPlayer(steamID, chunkPacket);
                 yield return new WaitForSeconds(SAVE_DATA_SEND_DELAY);
             }
-            DebugConsole.Log($"[SaveFileRequest] All chunks sent to {steamID}.");
+            DebugConsole.Log($"[SaveFileRequest] All {chunkPackets.Count} chunks sent to {steamID}.");
         }
 
     }

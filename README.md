@@ -62,7 +62,7 @@ Steam workshop: Not released yet.
     - Hard Sync
       > (At the start of every new cycle the server will perform a hard sync, which basically boots out all the clients and makes them redownload the map before automatically reconnecting them)
 
-   - Synchronized UI Elements
+- Synchronized UI Elements
      - World Cycle
 
 ---
@@ -100,10 +100,13 @@ Raise it on the issues page. Please at least try to include a video if you can. 
 
 ## What's Planned
 
-- World state synchronization  
+- World state synchronization
+- Player cursors
+  > To see where other players are looking etc
 - Seamless mid-game hosting (start and stop multiplayer at any point during gameplay)  
 - Menu and UI synchronization  
-- Additional features to be announced  
+- Additional features to be announced
+- More item synchronization (storage, research, skill points etc)
 
 ---
 

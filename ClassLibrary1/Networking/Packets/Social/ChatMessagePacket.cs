@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.UI;
@@ -28,14 +29,14 @@ namespace ONI_MP.Networking.Packets.Social
 
         public void OnDispatched()
         {
-            // Ignore if this packet came from the local player
-            if (SenderId == MultiplayerSession.LocalSteamID)
-                return;
-
+            // Executed by host
             var senderName = SteamFriends.GetFriendPersonaName(SenderId);
 
             // Add message to chat
             ChatScreen.QueueMessage($"<color=#00FFFF>{senderName}:</color> {Message}");
+
+            // Broadcast the chat to all other clients
+            PacketSender.SendToAllExcluding(this, new HashSet<CSteamID> { SenderId, MultiplayerSession.LocalSteamID });
         }
     }
 }

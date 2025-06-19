@@ -385,7 +385,13 @@ namespace ONI_MP.UI
                     Message = text
                 };
 
-                PacketSender.SendToAll(packet);
+                if (!MultiplayerSession.IsHost)
+                {
+                    PacketSender.SendToHost(packet);
+                } else
+                {
+                    PacketSender.SendToAllClients(packet);
+                }
             }
 
             inputField.DeactivateInputField();

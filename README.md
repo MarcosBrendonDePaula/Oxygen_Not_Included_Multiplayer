@@ -48,6 +48,7 @@ Steam workshop: Not released yet.
     - Deconstruct tool
     - Priority tool
     - Sweep tool
+    - Mop tool
     - Digging
     - World Cycle
       > (Controlled by the host)

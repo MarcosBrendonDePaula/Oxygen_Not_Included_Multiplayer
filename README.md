@@ -62,6 +62,9 @@ Steam workshop: Not released yet.
     - Hard Sync
       > (At the start of every new cycle the server will perform a hard sync, which basically boots out all the clients and makes them redownload the map before automatically reconnecting them)
 
+   - Synchronized UI Elements
+     - World Cycle
+
 ---
 
 ## Work in Progress
@@ -74,6 +77,24 @@ Steam workshop: Not released yet.
 
 ## Known issues
 - Theres alot of issues right now. But once these are ironed out a release will be put out on the steam workshop which will later be linked here
+
+- Crash when connecting to a host that has alot of things going on.
+  > Like duplicants actively digging etc (This happens sometimes)
+- The loading screens disappear when connecting to a host / hard syncing etc
+- Inviting from the pause menu does not invite the player
+  >(Thanks steam x_x)
+- Clients seem to get double the resource drops
+  > Not sure why considering they get passed the hosts values
+- Clients can sometimes trigger their own tasks which causes them to fall out of sync
+  > Synchronization is properly regained when a hard sync occures
+- Clients can have ceiling collapses when the host doesn't and vise versa
+- When sweeping the clients can fall out of sync
+  > Synchronization is properly regained when a hard sync occures
+- When placing wires they don't look like they are connected properly for other players
+  > When other players place them though they suddenly look connected to something and sometimes won't build?
+
+## Found an issue?
+Raise it on the issues page. Please at least try to include a video if you can. It makes replicating it so much easier
 
 ---
 

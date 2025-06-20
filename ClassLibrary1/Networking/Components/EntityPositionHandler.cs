@@ -51,6 +51,8 @@ namespace ONI_MP.Networking.Components
             if (timer < SendInterval)
                 return;
 
+            timer = 0f;
+
             float currentTime = Time.unscaledTime;
             float deltaTime = Mathf.Max(currentTime - lastUpdateTime, 1e-6f);
             Vector3 currentPosition = transform.position;
@@ -87,6 +89,8 @@ namespace ONI_MP.Networking.Components
             timer += Time.unscaledDeltaTime;
             if (timer < SendInterval)
                 return;
+
+            timer = 0f;
 
             Vector3 currentPosition = transform.position;
             float deltaX = currentPosition.x - lastSentPosition.x;

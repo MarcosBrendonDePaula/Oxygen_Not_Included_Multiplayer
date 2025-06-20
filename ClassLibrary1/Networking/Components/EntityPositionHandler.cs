@@ -16,6 +16,10 @@ namespace ONI_MP.Networking.Components
         private NetworkIdentity networkedEntity;
         private bool facingLeft;
 
+        private Vector3 lastVelocity;
+        private float lastUpdateTime;
+        private const float velocityThreshold = 0.05f;
+
         protected override void OnSpawn()
         {
             base.OnSpawn();
@@ -43,34 +47,33 @@ namespace ONI_MP.Networking.Components
 
         private void SendPositionPacket()
         {
-            timer += Time.unscaledDeltaTime;
-            if (timer < SendInterval)
+            float currentTime = Time.unscaledTime;
+            float deltaTime = Mathf.Max(currentTime - lastUpdateTime, 1e-6f);
+            Vector3 currentPosition = transform.position;
+            Vector3 velocity = (currentPosition - lastSentPosition) / deltaTime;
+
+            bool shouldSendDeltaUpdate =
+                Vector3.Distance(currentPosition, lastSentPosition) > 0.01f ||
+                Vector3.Distance(velocity, lastVelocity) > velocityThreshold;
+
+            if (!shouldSendDeltaUpdate)
                 return;
 
-            timer = 0f;
+            lastUpdateTime = currentTime;
+            lastVelocity = velocity;
+            lastSentPosition = currentPosition;
 
-            Vector3 currentPosition = transform.position;
-            float deltaX = currentPosition.x - lastSentPosition.x;
+            if (Mathf.Abs(currentPosition.x - lastSentPosition.x) > 0.001f)
+                facingLeft = currentPosition.x < lastSentPosition.x;
 
-            if (Vector3.Distance(currentPosition, lastSentPosition) > 0.01f)
+            var packet = new EntityPositionPacket
             {
-                // Determine facing direction by horizontal movement
-                if (Mathf.Abs(deltaX) > 0.001f)
-                {
-                    facingLeft = deltaX < 0;
-                }
+                NetId = networkedEntity.NetId,
+                Position = currentPosition,
+                FacingLeft = facingLeft
+            };
 
-                lastSentPosition = currentPosition;
-
-                var packet = new EntityPositionPacket
-                {
-                    NetId = networkedEntity.NetId,
-                    Position = currentPosition,
-                    FacingLeft = facingLeft
-                };
-
-                PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
-            }
+            PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
         }
     }
 }

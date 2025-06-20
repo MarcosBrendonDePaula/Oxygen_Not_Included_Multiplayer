@@ -42,11 +42,15 @@ namespace ONI_MP.Networking.Components
             if (!MultiplayerSession.InSession || MultiplayerSession.IsClient)
                 return;
 
-            SendPositionPacket();
+            SendPositionPacketRev2();
         }
 
-        private void SendPositionPacket()
+        private void SendPositionPacketRev2()
         {
+            timer += Time.unscaledDeltaTime;
+            if (timer < SendInterval)
+                return;
+
             float currentTime = Time.unscaledTime;
             float deltaTime = Mathf.Max(currentTime - lastUpdateTime, 1e-6f);
             Vector3 currentPosition = transform.position;
@@ -74,6 +78,67 @@ namespace ONI_MP.Networking.Components
             };
 
             PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
+        }
+
+
+        // Test function to see how the game handles every interval. Conclusion. Not very well
+        private void SendPositionPacketEveryInterval()
+        {
+            timer += Time.unscaledDeltaTime;
+            if (timer < SendInterval)
+                return;
+
+            Vector3 currentPosition = transform.position;
+            float deltaX = currentPosition.x - lastSentPosition.x;
+
+            if (Mathf.Abs(deltaX) > 0.001f)
+            {
+                facingLeft = deltaX < 0;
+            }
+
+            lastSentPosition = currentPosition;
+
+            var packet = new EntityPositionPacket
+            {
+                NetId = networkedEntity.NetId,
+                Position = currentPosition,
+                FacingLeft = facingLeft
+            };
+
+            PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
+        }
+
+        // The old original SendPosition function. It was ok but had some jittiness to it
+        private void SendPositionPacketRev1()
+        {
+            timer += Time.unscaledDeltaTime;
+            if (timer < SendInterval)
+                return;
+
+            timer = 0f;
+
+            Vector3 currentPosition = transform.position;
+            float deltaX = currentPosition.x - lastSentPosition.x;
+
+            if (Vector3.Distance(currentPosition, lastSentPosition) > 0.01f)
+            {
+                // Determine facing direction by horizontal movement
+                if (Mathf.Abs(deltaX) > 0.001f)
+                {
+                    facingLeft = deltaX < 0;
+                }
+
+                lastSentPosition = currentPosition;
+
+                var packet = new EntityPositionPacket
+                {
+                    NetId = networkedEntity.NetId,
+                    Position = currentPosition,
+                    FacingLeft = facingLeft
+                };
+
+                PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
+            }
         }
     }
 }

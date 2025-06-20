@@ -42,7 +42,11 @@ namespace ONI_MP.Networking
         UnreliableNoNagle = Unreliable | NoNagle,
 
         /// <summary>
-        /// If the message cannot be sent very soon (because the connection is still doing some initial handshaking, route negotiations, etc), then just drop it. This is only applicable for unreliable messages. Using this flag on reliable messages is invalid.
+        /// If the message cannot be sent very soon (because the connection is still doing some initial handshaking, route negotiations, etc), then just drop it. 
+        /// <para />
+        /// This is only applicable for unreliable messages. 
+        /// <para/>
+        /// Using this flag on reliable messages is invalid.
         /// </summary>
         NoDelay = 4,
 
@@ -66,9 +70,9 @@ namespace ONI_MP.Networking
         UnreliableNoDelay = Unreliable | NoDelay | NoNagle,
 
         /// <summary>
-        /// Reliable message send. Can send up to k_cbMaxSteamNetworkingSocketsMessageSizeSend bytes in a single message. Does fragmentation/re-assembly of messages under the hood, as well as a sliding window for efficient sends of large chunks of data.
+        /// Reliable message send. Can send up to 512 * 1024 bytes in a single message. Does fragmentation/re-assembly of messages under the hood, as well as a sliding window for efficient sends of large chunks of data.
         /// <para/>
-        /// The Nagle algorithm is used. See notes on k_ESteamNetworkingSendType_Unreliable for more details. See k_ESteamNetworkingSendType_ReliableNoNagle, ISteamNetworkingSockets::FlushMessagesOnConnection, ISteamNetworkingMessages::FlushMessagesToUser
+        /// The Nagle algorithm is used.
         /// <para/>
         /// Migration note: This is NOT the same as k_EP2PSendReliable, it's more like k_EP2PSendReliableWithBuffering
         /// </summary>

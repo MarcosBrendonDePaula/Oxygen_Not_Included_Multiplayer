@@ -14,12 +14,12 @@ namespace ONI_MP.Networking.Components
 
         public void Serialize(BinaryWriter writer)
         {
-            DebugConsole.Log($"[NetworkIdentity] SERIALIZING: NetId = {NetId} on {gameObject.name}");
+            //DebugConsole.Log($"[NetworkIdentity] SERIALIZING: NetId = {NetId} on {gameObject.name}");
         }
 
         public void Deserialize(IReader reader)
         {
-            DebugConsole.Log($"[NetworkIdentity] DESERIALIZED: NetId = {NetId} on {gameObject.name}");
+            //DebugConsole.Log($"[NetworkIdentity] DESERIALIZED: NetId = {NetId} on {gameObject.name}");
         }
 
         protected override void OnSpawn()

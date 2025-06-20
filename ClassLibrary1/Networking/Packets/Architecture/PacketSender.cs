@@ -106,7 +106,6 @@ namespace ONI_MP.Networking.Packets.Architecture
             SendToAll(packet, MultiplayerSession.HostSteamID, sendType);
         }
 
-        /// Renamed multiple-exclude method to avoid conflict
         public static void SendToAllExcluding(IPacket packet, HashSet<CSteamID> excludedIds, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
         {
             foreach (var player in MultiplayerSession.ConnectedPlayers.Values)

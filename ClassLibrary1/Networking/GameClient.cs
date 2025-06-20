@@ -147,8 +147,6 @@ namespace ONI_MP.Networking
                 byte[] data = new byte[msg.m_cbSize];
                 Marshal.Copy(msg.m_pData, data, 0, msg.m_cbSize);
 
-                SteamLobby.Stats.IncrementReceivedPackets(msg.m_cbSize);
-
                 try
                 {
                     PacketHandler.HandleIncoming(data);

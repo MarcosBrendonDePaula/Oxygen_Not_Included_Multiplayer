@@ -36,8 +36,6 @@ namespace ONI_MP.Networking.Components
             if (!MultiplayerSession.InSession)
                 return;
 
-            SteamLobby.Stats.UpdatePacketRates(Time.deltaTime);
-
             if (MultiplayerSession.IsHost)
             {
                 GameServer.Update();

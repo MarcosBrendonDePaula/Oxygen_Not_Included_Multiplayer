@@ -49,8 +49,6 @@ namespace ONI_MP.Networking.Packets.Architecture
                 else
                 {
                     //DebugConsole.Log($"[Sockets] Sent {packet.Type} to conn {conn} ({Utils.FormatBytes(bytes.Length)})");
-                    SteamLobby.Stats.AddBytesSent(bytes.Length);
-                    SteamLobby.Stats.IncrementSentPackets();
                 }
             }
             finally

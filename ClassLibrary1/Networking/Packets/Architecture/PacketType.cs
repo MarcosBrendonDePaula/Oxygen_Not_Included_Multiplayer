@@ -41,6 +41,7 @@ namespace ONI_MP.Networking.Packets.Architecture
         EventTriggered = 31,
         HardSync = 32,
         HardSyncComplete = 33, // Not in use atm
-        Disinfect = 34
+        Disinfect = 34,
+        SpeedChange = 35
     }
 }

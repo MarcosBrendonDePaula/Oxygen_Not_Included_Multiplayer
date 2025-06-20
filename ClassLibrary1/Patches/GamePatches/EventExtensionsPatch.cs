@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HarmonyLib;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
@@ -21,7 +22,8 @@ namespace ONI_MP.Patches.GamePatches
         [HarmonyPatch(nameof(EventExtensions.Trigger))]
         public static bool Prefix(GameObject go, int hash, object data)
         {
-            Debug.Log($"[MP] Trigger intercepted: {go.name} -> {hash}, Data: {data}");
+            var t = nameof(App);
+            DebugConsole.Log($"[MP] Trigger intercepted: {go.name} -> {hash}, Data: {data}");
 
             KObject kObject = KObjectManager.Instance.Get(go);
             if (kObject != null && kObject.hasEventSystem)

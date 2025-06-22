@@ -27,6 +27,13 @@ namespace ONI_MP.Networking
         private static event System.Action _onLobbyCreatedSuccess = null;
         private static event Action<CSteamID> _onLobbyJoined = null;
 
+        private static event Action<CSteamID> _OnLobbyMembersRefreshed;
+        public static event Action<CSteamID> OnLobbyMembersRefreshed
+        {
+            add => _OnLobbyMembersRefreshed += value;
+            remove => _OnLobbyMembersRefreshed -= value;
+        }
+
         public static void Initialize()
         {
             if (!SteamManager.Initialized) return;
@@ -200,7 +207,16 @@ namespace ONI_MP.Networking
         private static void RefreshLobbyMembers()
         {
             LobbyMembers.Clear();
-            LobbyMembers.AddRange(GetAllLobbyMembers());
+
+            if (!InLobby) return;
+
+            int memberCount = SteamMatchmaking.GetNumLobbyMembers(CurrentLobby);
+            for (int i = 0; i < memberCount; i++)
+            {
+                CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(CurrentLobby, i);
+                LobbyMembers.Add(member);
+                _OnLobbyMembersRefreshed?.Invoke(member);
+            }
         }
 
     }

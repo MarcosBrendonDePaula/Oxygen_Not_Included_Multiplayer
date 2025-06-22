@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ONI_MP.DebugTools;
 using ONI_MP.Misc;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.Core;
@@ -17,7 +18,6 @@ namespace ONI_MP.Networking.Components
         public static float SendInterval = 0.1f;
 
         private float timeSinceLastSend = 0f;
-        private Camera mainCamera;
 
         private void Awake()
         {
@@ -33,7 +33,7 @@ namespace ONI_MP.Networking.Components
 
         private void Start()
         {
-            mainCamera = GameScreenManager.Instance.GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
+            
         }
 
         private void Update()
@@ -72,9 +72,15 @@ namespace ONI_MP.Networking.Components
 
         private Vector3 GetCursorWorldPosition()
         {
+            Camera camera = GameScreenManager.Instance.GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
+            if(camera == null)
+            {
+                return Vector3.zero;
+            }
+
             Vector3 screenPos = Input.mousePosition;
             screenPos.z = 0f;
-            return mainCamera.ScreenToWorldPoint(screenPos);
+            return camera.ScreenToWorldPoint(screenPos);
         }
     }
 }

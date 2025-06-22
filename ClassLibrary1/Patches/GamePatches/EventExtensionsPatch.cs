@@ -22,8 +22,7 @@ namespace ONI_MP.Patches.GamePatches
         [HarmonyPatch(nameof(EventExtensions.Trigger))]
         public static bool Prefix(GameObject go, int hash, object data)
         {
-            var t = nameof(App);
-            DebugConsole.Log($"[MP] Trigger intercepted: {go.name} -> {hash}, Data: {data}");
+            //DebugConsole.Log($"[MP] Trigger intercepted: {go.name} -> {hash}, Data: {data}");
 
             KObject kObject = KObjectManager.Instance.Get(go);
             if (kObject != null && kObject.hasEventSystem)

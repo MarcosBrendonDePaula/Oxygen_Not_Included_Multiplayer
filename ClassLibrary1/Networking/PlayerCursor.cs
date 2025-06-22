@@ -26,7 +26,15 @@ namespace ONI_MP.Networking
         protected override void OnSpawn()
         {
             base.OnSpawn();
+        }
 
+        public void AssignPlayer(CSteamID steamId)
+        {
+            this.assignedPlayer = steamId;
+        }
+
+        public void Init()
+        {
             camera = GameScreenManager.Instance.GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
 
             var cursorTexture = Assets.GetTexture("cursor_arrow");

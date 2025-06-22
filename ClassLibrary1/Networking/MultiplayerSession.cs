@@ -50,7 +50,7 @@ namespace ONI_MP.Networking
 
         public static void CreateNewPlayerCursor(CSteamID steamID)
         {
-            if (MultiplayerSession.PlayerCursors.ContainsKey(steamID))
+            if (PlayerCursors.ContainsKey(steamID))
                 return;
 
             var canvasGO = GameScreenManager.Instance.ssCameraCanvas;
@@ -66,10 +66,8 @@ namespace ONI_MP.Networking
 
             var playerCursor = cursorGO.AddComponent<PlayerCursor>();
 
-            // Assign SteamID (via reflection or method)
-            typeof(PlayerCursor)
-                .GetField("assignedPlayer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.SetValue(playerCursor, steamID);
+            playerCursor.AssignPlayer(steamID);
+            playerCursor.Init();
 
             PlayerCursors[steamID] = playerCursor;
             DebugConsole.Log($"[MultiplayerSession] Created new cursor for {SteamFriends.GetFriendPersonaName(steamID)}");
@@ -77,9 +75,13 @@ namespace ONI_MP.Networking
 
         public static void CreateConnectedPlayerCursors()
         {
-            foreach (var player in ConnectedPlayers.Values)
+            var members = SteamLobby.GetAllLobbyMembers();
+            foreach (var playerId in members)
             {
-                CreateNewPlayerCursor(player.SteamID);
+                if (playerId == LocalSteamID)
+                    continue;
+
+                CreateNewPlayerCursor(playerId);
             }
         }
 

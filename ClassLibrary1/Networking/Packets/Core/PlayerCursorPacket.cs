@@ -54,11 +54,12 @@ namespace ONI_MP.Networking.Packets.Core
             // Forward to others if host
             if (MultiplayerSession.IsHost)
             {
-                PacketSender.SendToAllExcluding(this, new HashSet<CSteamID>
+                HashSet<CSteamID> excluding = new HashSet<CSteamID>
                 {
                     SteamID,
                     MultiplayerSession.LocalSteamID
-                });
+                };
+                PacketSender.SendToAllExcluding(this, excluding);
             }
         }
 

@@ -45,6 +45,7 @@ namespace ONI_MP.Networking
             gameObject.SetLayerRecursively(LayerMask.NameToLayer("UI"));
 
             playerName = SteamFriends.GetFriendPersonaName(assignedPlayer);
+            cursorText.text = playerName;
             canvas.overrideSorting = true;
             canvas.sortingOrder = 100;
         }

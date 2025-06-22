@@ -207,6 +207,10 @@ namespace ONI_MP.Networking
         private static void RefreshLobbyMembers()
         {
             LobbyMembers.Clear();
+            if(Utils.IsInGame())
+            {
+                MultiplayerSession.RemoveAllPlayerCursors();
+            }
 
             if (!InLobby) return;
 
@@ -216,6 +220,11 @@ namespace ONI_MP.Networking
                 CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(CurrentLobby, i);
                 LobbyMembers.Add(member);
                 _OnLobbyMembersRefreshed?.Invoke(member);
+            }
+
+            if (Utils.IsInGame())
+            {
+                MultiplayerSession.CreateConnectedPlayerCursors();
             }
         }
 

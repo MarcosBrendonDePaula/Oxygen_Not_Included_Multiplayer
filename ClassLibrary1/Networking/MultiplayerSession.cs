@@ -1,8 +1,10 @@
-﻿using ONI_MP.DebugTools;
+﻿using HarmonyLib;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets;
 using ONI_MP.UI;
 using Steamworks;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace ONI_MP.Networking
 {
@@ -22,7 +24,7 @@ namespace ONI_MP.Networking
 
         public static bool IsClient => InSession && !IsHost;
 
-        public static bool BlockPacketProcessing = false;
+        public static readonly Dictionary<CSteamID, PlayerCursor> PlayerCursors = new Dictionary<CSteamID, PlayerCursor>();
 
         public static void Clear()
         {
@@ -45,5 +47,85 @@ namespace ONI_MP.Networking
         public static MultiplayerPlayer LocalPlayer => GetPlayer(LocalSteamID);
 
         public static IEnumerable<MultiplayerPlayer> AllPlayers => ConnectedPlayers.Values;
+
+        public static void CreateNewPlayerCursor(CSteamID steamID)
+        {
+            if (MultiplayerSession.PlayerCursors.ContainsKey(steamID))
+                return;
+
+            var canvasGO = GameScreenManager.Instance.ssCameraCanvas;
+            if (canvasGO == null)
+            {
+                DebugConsole.LogError("[MultiplayerSession] ssCameraCanvas is null, cannot create cursor.");
+                return;
+            }
+
+            var cursorGO = new GameObject($"Cursor_{steamID}");
+            cursorGO.transform.SetParent(canvasGO.transform, false);
+            cursorGO.layer = LayerMask.NameToLayer("UI");
+
+            var playerCursor = cursorGO.AddComponent<PlayerCursor>();
+
+            // Assign SteamID (via reflection or method)
+            typeof(PlayerCursor)
+                .GetField("assignedPlayer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.SetValue(playerCursor, steamID);
+
+            PlayerCursors[steamID] = playerCursor;
+            DebugConsole.Log($"[MultiplayerSession] Created new cursor for {SteamFriends.GetFriendPersonaName(steamID)}");
+        }
+
+        public static void CreateConnectedPlayerCursors()
+        {
+            foreach (var player in ConnectedPlayers.Values)
+            {
+                CreateNewPlayerCursor(player.SteamID);
+            }
+        }
+
+        public static void RemovePlayerCursor(CSteamID steamID)
+        {
+            if (!PlayerCursors.TryGetValue(steamID, out var cursor))
+                return;
+
+            if (cursor != null && cursor.gameObject != null)
+            {
+                cursor.StopAllCoroutines();
+                Object.Destroy(cursor.gameObject);
+            }
+
+            PlayerCursors.Remove(steamID);
+            DebugConsole.Log($"[MultiplayerSession] Removed player cursor for {SteamFriends.GetFriendPersonaName(steamID)}");
+        }
+
+        public static void RemoveAllPlayerCursors()
+        {
+            foreach (var kvp in PlayerCursors)
+            {
+                var cursor = kvp.Value;
+                if (cursor != null && cursor.gameObject != null)
+                {
+                    cursor.StopAllCoroutines();
+                    Object.Destroy(cursor.gameObject);
+                }
+            }
+
+            PlayerCursors.Clear();
+            DebugConsole.Log("[MultiplayerSession] Removed all player cursors.");
+        }
+
+        public static bool TryGetCursorObject(CSteamID steamID, out GameObject cursorGO)
+        {
+            if (PlayerCursors.TryGetValue(steamID, out var cursor) && cursor != null)
+            {
+                cursorGO = cursor.gameObject;
+                return true;
+            }
+
+            cursorGO = null;
+            return false;
+        }
+
+
     }
 }

@@ -73,6 +73,7 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.HardSyncComplete, () => new HardSyncCompletePacket());
             Register(PacketType.Disinfect, () => new DisinfectPacket());
             Register(PacketType.SpeedChange, () => new SpeedChangePacket());
+            Register(PacketType.PlayerCursor, () => new PlayerCursorPacket());
         }
     }
 }

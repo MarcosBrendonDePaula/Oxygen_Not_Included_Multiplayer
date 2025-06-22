@@ -81,6 +81,8 @@ namespace ONI_MP.Misc
 
         public static TMP_FontAsset GetDefaultTMPFont()
         {
+            return Localization.FontAsset;
+            /*
             var font = Resources.FindObjectsOfTypeAll<TMP_FontAsset>()
                 .FirstOrDefault(f => f.name == "NotoSans-Regular");
 
@@ -100,6 +102,7 @@ namespace ONI_MP.Misc
             }
 
             return font;
+            */
         }
 
         public static List<ChunkData> CollectChunks(int startX, int startY, int chunkSize, int numChunksX, int numChunksY)

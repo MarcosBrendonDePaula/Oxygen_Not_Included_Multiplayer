@@ -204,6 +204,7 @@ namespace ONI_MP.Networking
                     SteamUser.GetSteamID(),
                     ClientReadyState.Ready
                 ));
+                MultiplayerSession.CreateConnectedPlayerCursors();
             }
             MultiplayerSession.InSession = true;
 

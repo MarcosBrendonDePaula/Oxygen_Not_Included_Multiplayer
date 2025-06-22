@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ONI_MP.DebugTools;
 using ONI_MP.Misc;
 using ONI_MP.Networking.Packets;
@@ -16,6 +17,8 @@ namespace ONI_MP.Networking
         private static Callback<LobbyEnter_t> _lobbyEntered;
         private static Callback<LobbyChatUpdate_t> _lobbyChatUpdate;
 
+        public static readonly List<CSteamID> LobbyMembers = new List<CSteamID>();
+
         public static CSteamID CurrentLobby { get; private set; } = CSteamID.Nil;
         public static bool InLobby => CurrentLobby.IsValid();
 
@@ -23,6 +26,13 @@ namespace ONI_MP.Networking
 
         private static event System.Action _onLobbyCreatedSuccess = null;
         private static event Action<CSteamID> _onLobbyJoined = null;
+
+        private static event Action<CSteamID> _OnLobbyMembersRefreshed;
+        public static event Action<CSteamID> OnLobbyMembersRefreshed
+        {
+            add => _OnLobbyMembersRefreshed += value;
+            remove => _OnLobbyMembersRefreshed -= value;
+        }
 
         public static void Initialize()
         {
@@ -117,6 +127,7 @@ namespace ONI_MP.Networking
 
             SteamRichPresence.SetLobbyInfo(CurrentLobby, "Multiplayer – In Lobby");
             _onLobbyJoined?.Invoke(CurrentLobby);
+            RefreshLobbyMembers();
 
             if (!MultiplayerSession.IsHost && MultiplayerSession.HostSteamID.IsValid())
             {
@@ -155,6 +166,7 @@ namespace ONI_MP.Networking
 
                 MultiplayerSession.ConnectedPlayers.Remove(user);
 
+                RefreshLobbyMembers();
                 DebugConsole.Log($"[SteamLobby] {name} left the lobby.");
                 ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{name}</b> left the game.");
             }
@@ -175,6 +187,47 @@ namespace ONI_MP.Networking
             DebugConsole.Log($"[SteamLobby] Attempting to join lobby: {lobbyId}");
             SteamMatchmaking.JoinLobby(lobbyId);
         }
+
+        public static List<CSteamID> GetAllLobbyMembers()
+        {
+            List<CSteamID> members = new List<CSteamID>();
+
+            if (!InLobby) return members;
+
+            int memberCount = SteamMatchmaking.GetNumLobbyMembers(CurrentLobby);
+            for (int i = 0; i < memberCount; i++)
+            {
+                CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(CurrentLobby, i);
+                members.Add(member);
+            }
+
+            return members;
+        }
+
+        private static void RefreshLobbyMembers()
+        {
+            LobbyMembers.Clear();
+            if(Utils.IsInGame())
+            {
+                MultiplayerSession.RemoveAllPlayerCursors();
+            }
+
+            if (!InLobby) return;
+
+            int memberCount = SteamMatchmaking.GetNumLobbyMembers(CurrentLobby);
+            for (int i = 0; i < memberCount; i++)
+            {
+                CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(CurrentLobby, i);
+                LobbyMembers.Add(member);
+                _OnLobbyMembersRefreshed?.Invoke(member);
+            }
+
+            if (Utils.IsInGame())
+            {
+                MultiplayerSession.CreateConnectedPlayerCursors();
+            }
+        }
+
     }
 }
 

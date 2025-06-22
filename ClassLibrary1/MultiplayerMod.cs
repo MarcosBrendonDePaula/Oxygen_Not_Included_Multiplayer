@@ -27,6 +27,7 @@ namespace ONI_MP
             go.AddComponent<SteamNetworkingComponent>();
             go.AddComponent<UIVisibilityController>();
             go.AddComponent<MainThreadExecutor>();
+            go.AddComponent<CursorManager>();
             SetupListeners();
             DebugConsole.Log("[ONI_MP] Loaded Oxygen Not Included Multiplayer Mod.");
         }

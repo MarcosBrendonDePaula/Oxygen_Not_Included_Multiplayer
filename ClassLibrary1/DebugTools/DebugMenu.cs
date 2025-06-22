@@ -4,6 +4,8 @@ using UnityEngine;
 using ONI_MP.Networking.Components;
 using KMod;
 using ONI_MP.Networking.Packets.World;
+using Steamworks;
+using System;
 
 namespace ONI_MP.DebugTools
 {
@@ -80,28 +82,33 @@ namespace ONI_MP.DebugTools
 
             GUILayout.Space(10);
 
-            if (MultiplayerSession.InSession)
+            try
             {
-                if (!MultiplayerSession.IsHost)
+                if (MultiplayerSession.InSession)
                 {
-                    int? ping = GameClient.GetPingToHost();
-                    string pingDisplay = ping >= 0 ? $"{ping} ms" : "Pending...";
-                    GUILayout.Label($"Ping to Host: {pingDisplay}");
+                    if (!MultiplayerSession.IsHost)
+                    {
+                        int? ping = GameClient.GetPingToHost();
+                        string pingDisplay = ping >= 0 ? $"{ping} ms" : "Pending...";
+                        GUILayout.Label($"Ping to Host: {pingDisplay}");
+                    }
+                    else
+                    {
+                        GUILayout.Label("Hosting multiplayer session.");
+                        if (GUILayout.Button("Test Hard sync"))
+                            GameServerHardSync.PerformHardSync();
+                    }
+
+                    GUILayout.Space(10);
+                    //DrawPlayerList();
                 }
                 else
                 {
-                    GUILayout.Label("Hosting multiplayer session.");
-                    if (GUILayout.Button("Test Hard sync"))
-                        GameServerHardSync.PerformHardSync();
+                    GUILayout.Label("Not in a multiplayer session.");
                 }
-
-
-                GUILayout.Space(10);
-                DrawPlayerList();
-            }
-            else
+            } catch(Exception e)
             {
-                GUILayout.Label("Not in a multiplayer session.");
+
             }
 
             GUILayout.Space(20);
@@ -114,19 +121,22 @@ namespace ONI_MP.DebugTools
         {
             GUILayout.Label("Players in Lobby:", UnityEngine.GUI.skin.label);
 
-            if (MultiplayerSession.ConnectedPlayers.Count == 0)
+            var players = SteamLobby.GetAllLobbyMembers();
+            if (players.Count == 0)
             {
                 GUILayout.Label("<none>", UnityEngine.GUI.skin.label);
-                return;
             }
-
-            foreach (var kvp in MultiplayerSession.ConnectedPlayers)
+            else
             {
-                var player = kvp.Value;
-                string prefix = (MultiplayerSession.HostSteamID == player.SteamID) ? "[HOST] " : "";
-                GUILayout.Label($"{prefix}{player.SteamName} ({player.SteamID})", UnityEngine.GUI.skin.label);
+                foreach (CSteamID playerId in players)
+                {
+                    var playerName = SteamFriends.GetFriendPersonaName(playerId);
+                    string prefix = (MultiplayerSession.HostSteamID == playerId) ? "[HOST] " : "";
+                    GUILayout.Label($"{prefix}{playerName} ({playerId})", UnityEngine.GUI.skin.label);
+                }
             }
         }
+
 
     }
 }

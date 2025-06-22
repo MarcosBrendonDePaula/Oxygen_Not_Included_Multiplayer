@@ -42,6 +42,7 @@ namespace ONI_MP.Networking.Packets.Architecture
         HardSync = 32,
         HardSyncComplete = 33, // Not in use atm
         Disinfect = 34,
-        SpeedChange = 35
+        SpeedChange = 35,
+        PlayerCursor = 36
     }
 }

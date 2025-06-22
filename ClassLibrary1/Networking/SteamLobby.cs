@@ -47,7 +47,7 @@ namespace ONI_MP.Networking
             DebugConsole.Log("[SteamLobby] Callbacks registered.");
         }
 
-        public static void CreateLobby(int maxPlayers = 4, ELobbyType lobbyType = ELobbyType.k_ELobbyTypePublic, System.Action onSuccess = null)
+        public static void CreateLobby(ELobbyType lobbyType = ELobbyType.k_ELobbyTypePublic, System.Action onSuccess = null)
         {
             if (!SteamManager.Initialized) return;
             if (InLobby)
@@ -56,9 +56,9 @@ namespace ONI_MP.Networking
                 return;
             }
             DebugConsole.Log("[SteamLobby] Creating new lobby...");
-            MaxLobbySize = maxPlayers;
+            MaxLobbySize = Configuration.GetHostProperty<int>("MaxLobbySize");
             _onLobbyCreatedSuccess = onSuccess;
-            SteamMatchmaking.CreateLobby(lobbyType, maxPlayers);
+            SteamMatchmaking.CreateLobby(lobbyType, MaxLobbySize);
         }
 
         public static void LeaveLobby()

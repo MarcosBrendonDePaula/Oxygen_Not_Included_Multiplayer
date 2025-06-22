@@ -36,7 +36,15 @@ namespace ONI_MP.Networking.Components
 
         private void Start()
         {
-            color = UnityEngine.Random.ColorHSV(0f, 1f, 0.6f, 1f, 0.8f, 1f);
+            bool useRandom = Configuration.GetClientProperty<bool>("UseRandomColor");
+            if(useRandom)
+                color = UnityEngine.Random.ColorHSV(0f, 1f, 0.6f, 1f, 0.8f, 1f);
+            else
+            {
+                ColorRGB color_rgb = Configuration.GetClientProperty<ColorRGB>("Color");
+                color = color_rgb.ToColor();
+
+            }
         }
 
         private void Update()

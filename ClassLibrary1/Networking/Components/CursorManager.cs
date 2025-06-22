@@ -8,6 +8,7 @@ using ONI_MP.Misc;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.Core;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ONI_MP.Networking.Components
 {
@@ -19,7 +20,7 @@ namespace ONI_MP.Networking.Components
 
         private float timeSinceLastSend = 0f;
 
-        private Color color;
+        public Color color;
 
         private void Awake()
         {

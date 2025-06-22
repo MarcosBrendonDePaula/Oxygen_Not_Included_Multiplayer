@@ -35,6 +35,8 @@ namespace ONI_MP.Networking
 
         public void Init()
         {
+            var t = nameof(GameInputManager);
+
             camera = GameScreenManager.Instance.GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
 
             var cursorTexture = Assets.GetTexture("cursor_arrow");

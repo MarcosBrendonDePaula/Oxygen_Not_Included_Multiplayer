@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using ONI_MP.DebugTools;
+using ONI_MP.Misc;
 using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using Steamworks;
@@ -40,14 +41,13 @@ namespace ONI_MP.Networking.Packets.Core
                     cursorComponent.StopCoroutine("InterpolateCursorPosition");
                     cursorComponent.StartCoroutine(InterpolateCursorPosition(cursorComponent.transform, Position));
                 }
-                else
-                {
-                    DebugConsole.LogWarning($"[PlayerCursorPacket] GameObject exists but missing PlayerCursor for SteamID {SteamID}");
-                }
             }
             else
             {
-                DebugConsole.LogWarning($"[PlayerCursorPacket] No cursor object found for SteamID {SteamID}");
+                if (Utils.IsInGame())
+                {
+                    MultiplayerSession.CreateNewPlayerCursor(SteamID); // Create a cursor if one doesn't exist.
+                }
             }
 
 

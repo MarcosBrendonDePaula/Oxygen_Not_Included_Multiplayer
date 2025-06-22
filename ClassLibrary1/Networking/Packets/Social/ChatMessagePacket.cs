@@ -12,30 +12,49 @@ namespace ONI_MP.Networking.Packets.Social
     {
         public CSteamID SenderId;
         public string Message;
+        public Color PlayerColor;
 
         public PacketType Type => PacketType.ChatMessage;
+
+        public ChatMessagePacket()
+        {
+        }
+
+        public ChatMessagePacket(string message)
+        {
+            SenderId = MultiplayerSession.LocalSteamID;
+            Message = message;
+            PlayerColor = Configuration.Instance.Client.Color.ToColor();
+        }
 
         public void Serialize(BinaryWriter writer)
         {
             writer.Write(SenderId.m_SteamID);
             writer.Write(Message);
+            writer.Write(PlayerColor.r);
+            writer.Write(PlayerColor.g);
+            writer.Write(PlayerColor.b);
+            writer.Write(PlayerColor.a);
         }
 
         public void Deserialize(BinaryReader reader)
         {
             SenderId = new CSteamID(reader.ReadUInt64());
             Message = reader.ReadString();
+            float r = reader.ReadSingle();
+            float g = reader.ReadSingle();
+            float b = reader.ReadSingle();
+            float a = reader.ReadSingle();
+            PlayerColor = new Color(r, g, b, a);
         }
 
         public void OnDispatched()
         {
-            // Executed by host
             var senderName = SteamFriends.GetFriendPersonaName(SenderId);
+            string colorHex = ColorUtility.ToHtmlStringRGB(PlayerColor);
+            ChatScreen.QueueMessage($"<color=#{colorHex}>{senderName}:</color> {Message}");
 
-            // Add message to chat
-            ChatScreen.QueueMessage($"<color=#00FFFF>{senderName}:</color> {Message}");
-
-            // Broadcast the chat to all other clients
+            // Broadcast the chat to all other clients except sender and host
             PacketSender.SendToAllExcluding(this, new HashSet<CSteamID> { SenderId, MultiplayerSession.LocalSteamID });
         }
     }

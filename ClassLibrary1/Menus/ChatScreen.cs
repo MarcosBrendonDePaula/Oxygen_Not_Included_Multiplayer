@@ -376,13 +376,15 @@ namespace ONI_MP.UI
             {
                 string senderName = SteamFriends.GetPersonaName();
 
-                QueueMessage($"<color=green>{senderName}:</color> {text}");
+                string colorHex = ColorUtility.ToHtmlStringRGB(CursorManager.Instance.color);
+                QueueMessage($"<color=#{colorHex}>{senderName}:</color> {text}");
                 inputField.text = "";
 
                 var packet = new ChatMessagePacket
                 {
                     SenderId = MultiplayerSession.LocalSteamID,
-                    Message = text
+                    Message = text,
+                    PlayerColor = CursorManager.Instance.color
                 };
 
                 if (!MultiplayerSession.IsHost)

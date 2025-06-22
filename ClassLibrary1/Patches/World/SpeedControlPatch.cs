@@ -12,10 +12,9 @@ namespace ONI_MP.Patches
     {
         [HarmonyPatch("SetSpeed")]
         [HarmonyPostfix]
-        public static bool SetSpeed_Postfix(int Speed)
+        public static void SetSpeed_Postfix(int Speed)
         {
-            return true;
-
+            /*
             var packet = new SpeedChangePacket((SpeedChangePacket.SpeedState)Speed);
 
             if (MultiplayerSession.IsHost)
@@ -25,15 +24,14 @@ namespace ONI_MP.Patches
             {
                 PacketSender.SendToHost(packet);
             }
-            DebugConsole.Log($"[SpeedControl] Sent SpeedChangePacket: {packet.Speed}");
+            DebugConsole.Log($"[SpeedControl] Sent SpeedChangePacket: {packet.Speed}");*/
         }
 
         [HarmonyPatch("TogglePause")]
         [HarmonyPostfix]
-        public static bool TogglePause_Postfix(SpeedControlScreen __instance)
+        public static void TogglePause_Postfix(SpeedControlScreen __instance)
         {
-            return true;
-
+            /*
             var speedState = __instance.IsPaused
                 ? SpeedChangePacket.SpeedState.Paused
                 : (SpeedChangePacket.SpeedState)__instance.GetSpeed();
@@ -47,7 +45,7 @@ namespace ONI_MP.Patches
             {
                 PacketSender.SendToHost(packet);
             }
-            DebugConsole.Log($"[SpeedControl] Sent SpeedChangePacket (pause toggle): {packet.Speed}");
+            DebugConsole.Log($"[SpeedControl] Sent SpeedChangePacket (pause toggle): {packet.Speed}");*/
         }
     }
 }

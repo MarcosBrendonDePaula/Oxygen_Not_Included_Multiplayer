@@ -19,6 +19,8 @@ namespace ONI_MP.Networking.Components
 
         private float timeSinceLastSend = 0f;
 
+        private Color color;
+
         private void Awake()
         {
             if (Instance != null)
@@ -33,7 +35,7 @@ namespace ONI_MP.Networking.Components
 
         private void Start()
         {
-            
+            color = UnityEngine.Random.ColorHSV(0f, 1f, 0.6f, 1f, 0.8f, 1f);
         }
 
         private void Update()
@@ -58,7 +60,8 @@ namespace ONI_MP.Networking.Components
             var packet = new PlayerCursorPacket
             {
                 SteamID = MultiplayerSession.LocalSteamID,
-                Position = cursorWorldPos
+                Position = cursorWorldPos,
+                Color = color
             };
 
             if(MultiplayerSession.IsHost)

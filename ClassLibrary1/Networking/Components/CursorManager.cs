@@ -72,15 +72,18 @@ namespace ONI_MP.Networking.Components
 
         private Vector3 GetCursorWorldPosition()
         {
-            Camera camera = GameScreenManager.Instance.GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
-            if(camera == null)
-            {
-                return Vector3.zero;
-            }
+            var camera = GameScreenManager.Instance
+                .GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
+            if (camera == null) return Vector3.zero;
+
+            var canvas = GameScreenManager.Instance.ssCameraCanvas ?.GetComponent<Canvas>();
+            var planeZ = canvas != null && canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.planeDistance : 10f; // default fallback
 
             Vector3 screenPos = Input.mousePosition;
-            screenPos.z = 0f;
+            screenPos.z = planeZ; // match the UI plane
+
             return camera.ScreenToWorldPoint(screenPos);
         }
+
     }
 }

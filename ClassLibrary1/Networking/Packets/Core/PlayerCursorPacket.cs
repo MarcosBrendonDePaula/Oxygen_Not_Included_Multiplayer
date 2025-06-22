@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking.Components;
@@ -61,9 +62,9 @@ namespace ONI_MP.Networking.Packets.Core
             }
         }
 
-        private System.Collections.IEnumerator InterpolateCursorPosition(Transform target, Vector3 targetPos)
+        private IEnumerator InterpolateCursorPosition(Transform target, Vector3 targetPos)
         {
-            Vector3 startPos = target.position;
+            Vector3 start = target.position;
             float duration = CursorManager.SendInterval;
             float elapsed = 0f;
 
@@ -71,11 +72,12 @@ namespace ONI_MP.Networking.Packets.Core
             {
                 elapsed += Time.unscaledDeltaTime;
                 float t = elapsed / duration;
-                target.position = Vector3.Lerp(startPos, targetPos, t);
+                target.position = Vector3.Lerp(start, targetPos, t);
                 yield return null;
             }
 
             target.position = targetPos;
         }
+
     }
 }

@@ -14,6 +14,7 @@ namespace ONI_MP.Networking.Packets.Core
     {
         public CSteamID SteamID;
         public Vector3 Position;
+        public Color Color;
 
         public PacketType Type => PacketType.PlayerCursor;
 
@@ -23,12 +24,24 @@ namespace ONI_MP.Networking.Packets.Core
             writer.Write(Position.x);
             writer.Write(Position.y);
             writer.Write(Position.z);
+            writer.Write(Color.r);
+            writer.Write(Color.g);
+            writer.Write(Color.b);
+            writer.Write(Color.a);
         }
 
         public void Deserialize(BinaryReader reader)
         {
             SteamID = new CSteamID(reader.ReadUInt64());
-            Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            float x = reader.ReadSingle();
+            float y = reader.ReadSingle();
+            float z = reader.ReadSingle();
+            Position = new Vector3(x, y, z);
+            float r = reader.ReadSingle();
+            float g = reader.ReadSingle();
+            float b = reader.ReadSingle();
+            float a = reader.ReadSingle();
+            Color = new Color(r, g, b, a);
         }
 
         public void OnDispatched()
@@ -38,6 +51,7 @@ namespace ONI_MP.Networking.Packets.Core
                 var cursorComponent = cursorGO.GetComponent<PlayerCursor>();
                 if (cursorComponent != null)
                 {
+                    cursorComponent.SetColor(Color);
                     cursorComponent.StopCoroutine("InterpolateCursorPosition");
                     cursorComponent.StartCoroutine(InterpolateCursorPosition(cursorComponent.transform, Position));
                 }

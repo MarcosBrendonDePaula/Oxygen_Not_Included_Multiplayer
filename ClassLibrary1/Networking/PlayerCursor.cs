@@ -48,6 +48,7 @@ namespace ONI_MP.Networking
             cursorText.text = playerName;
             canvas.overrideSorting = true;
             canvas.sortingOrder = 100;
+            SetColor(Color.white); // Default to white
         }
 
         private Image CreateCursorImage(GameObject parent, Texture2D cursorTexture)
@@ -84,6 +85,14 @@ namespace ONI_MP.Networking
             textComponent.enableWordWrapping = false;
 
             return textComponent;
+        }
+
+        public void SetColor(Color col)
+        {
+            if (cursorImage != null)
+                cursorImage.color = col;
+            if (cursorText != null)
+                cursorText.color = col;
         }
     }
 }

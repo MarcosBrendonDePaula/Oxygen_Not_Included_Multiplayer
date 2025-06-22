@@ -192,9 +192,10 @@ namespace ONI_MP.Networking
 
         private static void OnConnected()
         {
-            MultiplayerOverlay.Close();
+            //MultiplayerOverlay.Close();
             SetState(ClientState.Connected);
 
+            // We've reconnected in game
             if(Utils.IsInGame())
             {
                 SetState(ClientState.InGame);

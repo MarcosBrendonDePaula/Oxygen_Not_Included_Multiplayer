@@ -71,7 +71,7 @@ namespace ONI_MP.Networking
 
             DebugConsole.Log("[GameServer] Listen socket and poll group created (CLIENT API).");
             MultiplayerSession.InSession = true;
-            MultiplayerOverlay.Close();
+            //MultiplayerOverlay.Close();
 
             SetState(ServerState.Started);
         }

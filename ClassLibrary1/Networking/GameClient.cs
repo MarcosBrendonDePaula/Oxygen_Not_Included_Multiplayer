@@ -232,10 +232,10 @@ namespace ONI_MP.Networking
             DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
             MultiplayerSession.InSession = false;
             SetState(ClientState.Disconnected);
-            //if(!userTriggeredDisconnect && remote == MultiplayerSession.LocalSteamID)
-            //{
-            //    CoroutineRunner.RunOne(ShowMessageAndReturnToTitle());
-            //}
+            if(!userTriggeredDisconnect && remote == MultiplayerSession.HostSteamID)
+            {
+                CoroutineRunner.RunOne(ShowMessageAndReturnToTitle());
+            }
             userTriggeredDisconnect = false;
             Connection = null;
         }

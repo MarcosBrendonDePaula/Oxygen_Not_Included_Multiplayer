@@ -12,8 +12,10 @@ namespace ONI_MP.Patches
     {
         [HarmonyPatch("SetSpeed")]
         [HarmonyPostfix]
-        public static void SetSpeed_Postfix(int Speed)
+        public static bool SetSpeed_Postfix(int Speed)
         {
+            return true;
+
             var packet = new SpeedChangePacket((SpeedChangePacket.SpeedState)Speed);
 
             if (MultiplayerSession.IsHost)
@@ -28,8 +30,10 @@ namespace ONI_MP.Patches
 
         [HarmonyPatch("TogglePause")]
         [HarmonyPostfix]
-        public static void TogglePause_Postfix(SpeedControlScreen __instance)
+        public static bool TogglePause_Postfix(SpeedControlScreen __instance)
         {
+            return true;
+
             var speedState = __instance.IsPaused
                 ? SpeedChangePacket.SpeedState.Paused
                 : (SpeedChangePacket.SpeedState)__instance.GetSpeed();

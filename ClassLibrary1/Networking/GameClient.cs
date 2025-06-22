@@ -143,7 +143,7 @@ namespace ONI_MP.Networking
 
         private static void ProcessIncomingMessages(HSteamNetConnection conn)
         {
-            int maxMessagesPerConnectionPoll = Configuration.GetClientProperty<int>("MaxMessagesPerConnectionPoll");
+            int maxMessagesPerConnectionPoll = Configuration.GetClientProperty<int>("MaxMessagesPerPoll");
             IntPtr[] messages = new IntPtr[maxMessagesPerConnectionPoll];
             int msgCount = SteamNetworkingSockets.ReceiveMessagesOnConnection(conn, messages, maxMessagesPerConnectionPoll);
 

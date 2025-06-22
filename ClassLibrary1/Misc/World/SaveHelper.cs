@@ -1,4 +1,5 @@
-﻿using ONI_MP.DebugTools;
+﻿using ONI_MP;
+using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Misc;
 using ONI_MP.Misc.World;
@@ -17,7 +18,11 @@ using UnityEngine.SceneManagement;
 public static class SaveHelper
 {
 
-    public static int SAVEFILE_CHUNKSIZE_KB = 256;
+    public static int SAVEFILE_CHUNKSIZE_KB {
+        get {
+            return Configuration.GetHostProperty<int>("SaveFileTransferChunkKB");
+        }
+    }
     public static void RequestWorldLoad(WorldSave world)
     {
         SteamNetworkingComponent.scheduler.Run(() => LoadWorldSave(Path.GetFileNameWithoutExtension(world.Name), world.Data));

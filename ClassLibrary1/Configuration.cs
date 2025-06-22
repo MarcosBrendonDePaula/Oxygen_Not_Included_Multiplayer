@@ -75,11 +75,12 @@ namespace ONI_MP
     {
         public int MaxLobbySize { get; set; } = 4;
         public int MaxMessagesPerPoll { get; set; } = 128;
+        public int SaveFileTransferChunkKB { get; set; } = 256;
     }
 
     class ClientSettings
     {
-        public int MaxMessagesPerConnectionPoll { get; set; } = 16;
+        public int MaxMessagesPerPoll { get; set; } = 16;
         public bool UseRandomColor { get; set; } = true;
         public ColorRGB Color { get; set; } = new ColorRGB(255, 255, 255);
     }

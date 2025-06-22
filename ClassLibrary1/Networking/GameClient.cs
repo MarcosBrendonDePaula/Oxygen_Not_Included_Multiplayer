@@ -10,6 +10,7 @@ using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.Core;
 using System.Collections;
 using UnityEngine;
+using ONI_MP.Patches.ToolPatches;
 
 namespace ONI_MP.Networking
 {
@@ -207,6 +208,7 @@ namespace ONI_MP.Networking
                     ClientReadyState.Ready
                 ));
                 MultiplayerSession.CreateConnectedPlayerCursors();
+                SelectToolPatch.UpdateColor();
             }
             MultiplayerSession.InSession = true;
 

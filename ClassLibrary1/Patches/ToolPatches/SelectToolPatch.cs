@@ -16,7 +16,7 @@ namespace ONI_MP.Patches.ToolPatches
             UpdateColor();
         }
 
-        private static void UpdateColor()
+        public static void UpdateColor()
         {
             Texture2D cursor = Assets.GetTexture("cursor_arrow") as Texture2D;
             if (cursor == null)

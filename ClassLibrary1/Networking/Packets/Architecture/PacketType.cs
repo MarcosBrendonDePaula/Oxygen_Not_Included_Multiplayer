@@ -10,11 +10,11 @@ namespace ONI_MP.Networking.Packets.Architecture
     {
         ChatMessage = 1,
         EntityPosition = 2,
-        ChoreAssignment = 3,
+        ChoreAssignment = 3,    // Not in use atm
         WorldData = 4,          // Keeping for now, might find a use
         WorldDataRequest = 5,   // Keeping for now, might find a use
-        WorldUpdate = 6,        // Batched world updates
-        Instantiations = 7,     // Batched instantiations
+        WorldUpdate = 6,        // Batched world updates -  Not in use atm
+        Instantiations = 7,     // Batched instantiations - Not in use atm
         NavigatorPath = 8,
         SaveFileRequest = 9,
         SaveFileChunk = 10,
@@ -34,12 +34,14 @@ namespace ONI_MP.Networking.Packets.Architecture
         DuplicantCondition = 24,
         MoveToLocation = 25,     // Movement from the MoveTo tool
         Prioritize = 26,
-        Clear = 27,               // Sweeping etc
+        Clear = 27,               // Sweeping, Mopping etc
         ClientReadyStatus = 28,
         AllClientsReady = 29,
         ClientReadyStatusUpdate = 30,
         EventTriggered = 31,
         HardSync = 32,
-        HardSyncComplete = 33
+        HardSyncComplete = 33, // Not in use atm
+        Disinfect = 34,
+        SpeedChange = 35
     }
 }

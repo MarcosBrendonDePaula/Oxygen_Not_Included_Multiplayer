@@ -24,8 +24,6 @@ namespace ONI_MP.Networking
         private static event System.Action _onLobbyCreatedSuccess = null;
         private static event Action<CSteamID> _onLobbyJoined = null;
 
-        public static BandwidthStats Stats { get; } = new BandwidthStats();
-
         public static void Initialize()
         {
             if (!SteamManager.Initialized) return;

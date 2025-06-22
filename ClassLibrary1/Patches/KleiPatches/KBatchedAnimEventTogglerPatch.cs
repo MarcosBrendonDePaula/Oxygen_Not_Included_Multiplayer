@@ -1,10 +1,11 @@
 ﻿using HarmonyLib;
 using ONI_MP.DebugTools;
+using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
 using UnityEngine;
 
 [HarmonyPatch]
-public static class KBatchedAnimEventToggler_NetworkPatch
+public static class KBatchedAnimEventTogglerPatch
 {
     [HarmonyPatch(typeof(KBatchedAnimEventToggler), "Enable")]
     [HarmonyPrefix]
@@ -23,6 +24,9 @@ public static class KBatchedAnimEventToggler_NetworkPatch
     private static void TrySendEffectPacket(KBatchedAnimEventToggler toggler, bool enable)
     {
         if (!toggler.isActiveAndEnabled || toggler.eventSource == null)
+            return;
+
+        if (!MultiplayerSession.IsHost)
             return;
 
         var identity = toggler.GetComponentInParent<NetworkIdentity>();

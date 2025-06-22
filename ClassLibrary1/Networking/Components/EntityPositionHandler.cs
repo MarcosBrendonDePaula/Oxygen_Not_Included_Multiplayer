@@ -16,6 +16,10 @@ namespace ONI_MP.Networking.Components
         private NetworkIdentity networkedEntity;
         private bool facingLeft;
 
+        private Vector3 lastVelocity;
+        private float lastUpdateTime;
+        private const float velocityThreshold = 0.05f;
+
         protected override void OnSpawn()
         {
             base.OnSpawn();

@@ -13,6 +13,7 @@ using ONI_MP.Networking.Packets.Tools.Cancel;
 using ONI_MP.Networking.Packets.Tools.Clear;
 using ONI_MP.Networking.Packets.Tools.Deconstruct;
 using ONI_MP.Networking.Packets.Tools.Dig;
+using ONI_MP.Networking.Packets.Tools.Disinfect;
 using ONI_MP.Networking.Packets.Tools.Move;
 using ONI_MP.Networking.Packets.Tools.Prioritize;
 using ONI_MP.Networking.Packets.Tools.Wire;
@@ -70,6 +71,8 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.EventTriggered, () => new EventTriggeredPacket());
             Register(PacketType.HardSync, () => new HardSyncPacket());
             Register(PacketType.HardSyncComplete, () => new HardSyncCompletePacket());
+            Register(PacketType.Disinfect, () => new DisinfectPacket());
+            Register(PacketType.SpeedChange, () => new SpeedChangePacket());
         }
     }
 }

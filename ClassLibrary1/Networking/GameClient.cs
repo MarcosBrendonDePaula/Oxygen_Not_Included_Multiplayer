@@ -8,6 +8,8 @@ using ONI_MP.Menus;
 using ONI_MP.Networking.States;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.Core;
+using System.Collections;
+using UnityEngine;
 
 namespace ONI_MP.Networking
 {
@@ -24,6 +26,8 @@ namespace ONI_MP.Networking
         private static CachedConnectionInfo? _cachedConnectionInfo = null;
 
         public static bool IsHardSyncInProgress = false;
+
+        private static bool userTriggeredDisconnect = false;
 
         private struct CachedConnectionInfo
         {
@@ -74,6 +78,7 @@ namespace ONI_MP.Networking
         {
             if (Connection.HasValue)
             {
+                userTriggeredDisconnect = true;
                 DebugConsole.Log("[GameClient] Disconnecting from host...");
 
                 bool result = SteamNetworkingSockets.CloseConnection(
@@ -146,8 +151,6 @@ namespace ONI_MP.Networking
                 var msg = Marshal.PtrToStructure<SteamNetworkingMessage_t>(messages[i]);
                 byte[] data = new byte[msg.m_cbSize];
                 Marshal.Copy(msg.m_pData, data, 0, msg.m_cbSize);
-
-                SteamLobby.Stats.IncrementReceivedPackets(msg.m_cbSize);
 
                 try
                 {
@@ -226,7 +229,23 @@ namespace ONI_MP.Networking
             DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
             MultiplayerSession.InSession = false;
             SetState(ClientState.Disconnected);
+            //if(!userTriggeredDisconnect && remote == MultiplayerSession.LocalSteamID)
+            //{
+            //    CoroutineRunner.RunOne(ShowMessageAndReturnToTitle());
+            //}
+            userTriggeredDisconnect = false;
             Connection = null;
+        }
+
+        private static IEnumerator ShowMessageAndReturnToTitle()
+        {
+            MultiplayerOverlay.Show("Connection to the host was lost!");
+            yield return new WaitForSeconds(3f);
+            PauseScreen.TriggerQuitGame(); // Force exit to frontend
+
+            MultiplayerOverlay.Close();
+            NetworkIdentityRegistry.Clear();
+            SteamLobby.LeaveLobby();
         }
 
         public static int? GetPingToHost()

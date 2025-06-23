@@ -15,11 +15,6 @@ namespace ONI_MP.Networking.Components
 
         private NetworkIdentity networkedEntity;
         private bool facingLeft;
-
-        private Vector3 lastVelocity;
-        private float lastUpdateTime;
-        private const float velocityThreshold = 0.05f;
-
         protected override void OnSpawn()
         {
             base.OnSpawn();
@@ -58,10 +53,17 @@ namespace ONI_MP.Networking.Components
 
             if (Vector3.Distance(currentPosition, lastSentPosition) > 0.01f)
             {
-                // Determine facing direction by horizontal movement
-                if (Mathf.Abs(deltaX) > 0.001f)
+                Vector2 direction = new Vector2(deltaX, 0f);
+                if (direction.sqrMagnitude > 0.01f) // only check if there's meaningful movement
                 {
-                    facingLeft = deltaX < 0;
+                    Vector2 right = Vector2.right;
+                    float dot = Vector2.Dot(direction.normalized, right);
+
+                    bool newFacingLeft = dot < 0;
+                    if (newFacingLeft != facingLeft)
+                    {
+                        facingLeft = newFacingLeft;
+                    }
                 }
 
                 lastSentPosition = currentPosition;

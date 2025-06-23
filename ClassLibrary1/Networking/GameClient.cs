@@ -10,6 +10,7 @@ using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.Core;
 using System.Collections;
 using UnityEngine;
+using ONI_MP.Patches.ToolPatches;
 
 namespace ONI_MP.Networking
 {
@@ -143,8 +144,9 @@ namespace ONI_MP.Networking
 
         private static void ProcessIncomingMessages(HSteamNetConnection conn)
         {
-            IntPtr[] messages = new IntPtr[16];
-            int msgCount = SteamNetworkingSockets.ReceiveMessagesOnConnection(conn, messages, messages.Length);
+            int maxMessagesPerConnectionPoll = Configuration.GetClientProperty<int>("MaxMessagesPerPoll");
+            IntPtr[] messages = new IntPtr[maxMessagesPerConnectionPoll];
+            int msgCount = SteamNetworkingSockets.ReceiveMessagesOnConnection(conn, messages, maxMessagesPerConnectionPoll);
 
             for (int i = 0; i < msgCount; i++)
             {
@@ -191,9 +193,10 @@ namespace ONI_MP.Networking
 
         private static void OnConnected()
         {
-            MultiplayerOverlay.Close();
+            //MultiplayerOverlay.Close();
             SetState(ClientState.Connected);
 
+            // We've reconnected in game
             if(Utils.IsInGame())
             {
                 SetState(ClientState.InGame);
@@ -205,6 +208,7 @@ namespace ONI_MP.Networking
                     ClientReadyState.Ready
                 ));
                 MultiplayerSession.CreateConnectedPlayerCursors();
+                SelectToolPatch.UpdateColor();
             }
             MultiplayerSession.InSession = true;
 
@@ -230,10 +234,10 @@ namespace ONI_MP.Networking
             DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
             MultiplayerSession.InSession = false;
             SetState(ClientState.Disconnected);
-            //if(!userTriggeredDisconnect && remote == MultiplayerSession.LocalSteamID)
-            //{
-            //    CoroutineRunner.RunOne(ShowMessageAndReturnToTitle());
-            //}
+            if(!userTriggeredDisconnect && remote == MultiplayerSession.HostSteamID)
+            {
+                CoroutineRunner.RunOne(ShowMessageAndReturnToTitle());
+            }
             userTriggeredDisconnect = false;
             Connection = null;
         }

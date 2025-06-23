@@ -4,6 +4,7 @@ using ONI_MP.DebugTools;
 using ONI_MP.Misc;
 using ONI_MP.Networking.Packets;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Patches.ToolPatches;
 using ONI_MP.UI;
 using Steamworks;
 using UnityEngine.Events;
@@ -47,7 +48,7 @@ namespace ONI_MP.Networking
             DebugConsole.Log("[SteamLobby] Callbacks registered.");
         }
 
-        public static void CreateLobby(int maxPlayers = 4, ELobbyType lobbyType = ELobbyType.k_ELobbyTypePublic, System.Action onSuccess = null)
+        public static void CreateLobby(ELobbyType lobbyType = ELobbyType.k_ELobbyTypePublic, System.Action onSuccess = null)
         {
             if (!SteamManager.Initialized) return;
             if (InLobby)
@@ -56,9 +57,9 @@ namespace ONI_MP.Networking
                 return;
             }
             DebugConsole.Log("[SteamLobby] Creating new lobby...");
-            MaxLobbySize = maxPlayers;
+            MaxLobbySize = Configuration.GetHostProperty<int>("MaxLobbySize");
             _onLobbyCreatedSuccess = onSuccess;
-            SteamMatchmaking.CreateLobby(lobbyType, maxPlayers);
+            SteamMatchmaking.CreateLobby(lobbyType, MaxLobbySize);
         }
 
         public static void LeaveLobby()
@@ -98,6 +99,7 @@ namespace ONI_MP.Networking
                 SteamRichPresence.SetLobbyInfo(CurrentLobby, "Multiplayer – Hosting Lobby");
                 _onLobbyCreatedSuccess?.Invoke();
                 _onLobbyCreatedSuccess = null;
+                SelectToolPatch.UpdateColor();
             }
             else
             {

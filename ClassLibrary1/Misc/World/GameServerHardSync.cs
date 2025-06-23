@@ -32,6 +32,12 @@ namespace ONI_MP.Networking
             var packet = new HardSyncPacket();
             PacketSender.SendToAllClients(packet);
 
+            // Hide other player cursors as they are in hard sync and it'll reappear when they start sending packets again
+            foreach(PlayerCursor cursor in MultiplayerSession.PlayerCursors.Values)
+            {
+                cursor.SetVisibility(false);
+            }
+
             DebugConsole.Log($"[HardSync] Starting hard sync for {numberOfClientsAtTimeOfSync} client(s)...");
             CoroutineRunner.RunOne(HardSyncCoroutine());
         }

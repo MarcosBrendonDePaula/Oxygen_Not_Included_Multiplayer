@@ -71,7 +71,7 @@ namespace ONI_MP.Networking
 
             DebugConsole.Log("[GameServer] Listen socket and poll group created (CLIENT API).");
             MultiplayerSession.InSession = true;
-            MultiplayerOverlay.Close();
+            //MultiplayerOverlay.Close();
 
             SetState(ServerState.Started);
         }
@@ -201,8 +201,9 @@ namespace ONI_MP.Networking
 
         private static void ReceiveMessages()
         {
-            var messages = new IntPtr[128];
-            int msgCount = SteamNetworkingSockets.ReceiveMessagesOnPollGroup(PollGroup, messages, 128);
+            int maxMessagesPerPoll = Configuration.GetHostProperty<int>("MaxMessagesPerPoll");
+            var messages = new IntPtr[maxMessagesPerPoll];
+            int msgCount = SteamNetworkingSockets.ReceiveMessagesOnPollGroup(PollGroup, messages, maxMessagesPerPoll);
 
             for (int i = 0; i < msgCount; i++)
             {

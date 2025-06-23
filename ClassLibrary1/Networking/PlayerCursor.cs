@@ -65,11 +65,7 @@ namespace ONI_MP.Networking
             canvas.overrideSorting = true;
             canvas.sortingOrder = 100;
             SetColor(Color.white);
-            SetVisibility(false);
-            // Hide cursor action icon on init
-            var color = cursorActionImage.color;
-            color.a = 0f;
-            cursorActionImage.color = color;
+            SetVisibility(false);            
         }
 
 
@@ -185,6 +181,14 @@ namespace ONI_MP.Networking
                 var color = cursorText.color;
                 color.a = visible ? 1f : 0f;
                 cursorText.color = color;
+            }
+
+            if(!visible)
+            {
+                // Hide the cursor icon image too
+                var color = cursorActionImage.color;
+                color.a = 0f;
+                cursorActionImage.color = color;
             }
         }
 

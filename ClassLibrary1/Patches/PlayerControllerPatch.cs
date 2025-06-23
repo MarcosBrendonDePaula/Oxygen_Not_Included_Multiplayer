@@ -37,8 +37,27 @@ namespace ONI_MP.Patches
                     CursorManager.Instance.cursorState = CursorState.DECONSTRUCT;
                     break;
                 case "PrioritizeTool":
-                    CursorManager.Instance.cursorState = CursorState.PRIORITIZE;
+                {
+                    var priorityTool = PlayerController.Instance?.ActiveTool as PrioritizeTool;
+                    if (priorityTool != null)
+                    {
+                        var priority = ToolMenu.Instance.PriorityScreen.GetLastSelectedPriority();
+
+                        if (priority.priority_value >= 5)
+                        {
+                            CursorManager.Instance.cursorState = CursorState.PRIORITIZE;
+                        }
+                        else
+                        {
+                            CursorManager.Instance.cursorState = CursorState.DEPRIORITIZE;
+                        }
+                    }
+                    else
+                    {
+                        CursorManager.Instance.cursorState = CursorState.PRIORITIZE; // Fallback to prioritize
+                    }
                     break;
+                }
                 case "ClearTool":
                     CursorManager.Instance.cursorState = CursorState.SWEEP;
                     break;

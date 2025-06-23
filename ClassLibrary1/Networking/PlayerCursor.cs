@@ -202,11 +202,12 @@ namespace ONI_MP.Networking
             {
                 case CursorState.NONE: return string.Empty;
                 case CursorState.SELECT: return string.Empty;
-                case CursorState.BUILD: return "brush";
+                case CursorState.BUILD: return "icon_errand_build";
                 case CursorState.DIG: return "icon_action_dig";
                 case CursorState.CANCEL: return "icon_action_cancel";
                 case CursorState.DECONSTRUCT: return "icon_action_deconstruct";
                 case CursorState.PRIORITIZE: return "icon_action_prioritize";
+                case CursorState.DEPRIORITIZE: return "icon_action_deprioritize";
                 case CursorState.SWEEP: return "icon_action_store";
                 case CursorState.MOP: return "icon_action_mop";
                 case CursorState.HARVEST: return "icon_action_harvest";
@@ -217,6 +218,7 @@ namespace ONI_MP.Networking
                 case CursorState.EMPTY_PIPE: return "icon_action_empty_pipes";
                 case CursorState.CLEAR_FLOOR: return "icon_action_store";
                 case CursorState.MOVE_TO: return "icon_action_moveto";
+                case CursorState.DISCONNECT: return "icon_action_disconnect";
                 default: return $"[{state.ToString()}]";
             }
         }

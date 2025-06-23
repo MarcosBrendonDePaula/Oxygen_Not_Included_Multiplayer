@@ -10,7 +10,8 @@ namespace ONI_MP.Networking.States
         DIG,           // Dig terrain
         CANCEL,        // Cancel tasks
         DECONSTRUCT,   // Deconstruct buildings
-        PRIORITIZE,    // Set priority levels
+        PRIORITIZE,    // Set priority levels >= 5
+        DEPRIORITIZE,  // Set priority levels < 5
         SWEEP,         // Mark items to be swept
         MOP,           // Mop up liquids
         HARVEST,       // Harvest crops

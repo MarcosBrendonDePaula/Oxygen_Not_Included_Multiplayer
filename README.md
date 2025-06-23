@@ -62,9 +62,14 @@ Steam workshop: Not released yet.
       > (its rough and not 100% but it lets duplicants pull out their dig tools, suck up tools etc)
     - Hard Sync
       > (At the start of every new cycle the server will perform a hard sync, which basically boots out all the clients and makes them redownload the map before automatically reconnecting them)
+    - Player cursors
+      > See where other players are pointing, the tool they are using and they are color coded.
 
 - Synchronized UI Elements
      - World Cycle
+
+- Configuration file
+   > Change lobby size, polling rates and player color (the color other players see you as)
 
 ---
 

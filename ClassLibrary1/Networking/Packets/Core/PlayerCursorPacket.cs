@@ -5,6 +5,7 @@ using ONI_MP.DebugTools;
 using ONI_MP.Misc;
 using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.States;
 using Steamworks;
 using UnityEngine;
 
@@ -15,6 +16,7 @@ namespace ONI_MP.Networking.Packets.Core
         public CSteamID SteamID;
         public Vector3 Position;
         public Color Color;
+        public CursorState CursorState;
 
         public PacketType Type => PacketType.PlayerCursor;
 
@@ -28,6 +30,7 @@ namespace ONI_MP.Networking.Packets.Core
             writer.Write(Color.g);
             writer.Write(Color.b);
             writer.Write(Color.a);
+            writer.Write((int) CursorState);
         }
 
         public void Deserialize(BinaryReader reader)
@@ -42,6 +45,7 @@ namespace ONI_MP.Networking.Packets.Core
             float b = reader.ReadSingle();
             float a = reader.ReadSingle();
             Color = new Color(r, g, b, a);
+            CursorState = (CursorState)reader.ReadInt32();
         }
 
         public void OnDispatched()
@@ -51,6 +55,7 @@ namespace ONI_MP.Networking.Packets.Core
                 var cursorComponent = cursorGO.GetComponent<PlayerCursor>();
                 if (cursorComponent != null)
                 {
+                    cursorComponent.SetState(CursorState);
                     cursorComponent.SetColor(Color);
                     cursorComponent.SetVisibility(true);
                     cursorComponent.StopCoroutine("InterpolateCursorPosition");

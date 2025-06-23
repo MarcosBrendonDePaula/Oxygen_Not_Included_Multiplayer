@@ -7,6 +7,7 @@ using ONI_MP.DebugTools;
 using ONI_MP.Misc;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.Core;
+using ONI_MP.Networking.States;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -21,6 +22,8 @@ namespace ONI_MP.Networking.Components
         private float timeSinceLastSend = 0f;
 
         public Color color;
+
+        public CursorState cursorState = CursorState.NONE;
 
         private void Awake()
         {
@@ -70,7 +73,8 @@ namespace ONI_MP.Networking.Components
             {
                 SteamID = MultiplayerSession.LocalSteamID,
                 Position = cursorWorldPos,
-                Color = color
+                Color = color,
+                CursorState = cursorState
             };
 
             if(MultiplayerSession.IsHost)

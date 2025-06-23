@@ -52,6 +52,7 @@ namespace ONI_MP.Networking.Packets.Core
                 if (cursorComponent != null)
                 {
                     cursorComponent.SetColor(Color);
+                    cursorComponent.SetVisibility(true);
                     cursorComponent.StopCoroutine("InterpolateCursorPosition");
                     cursorComponent.StartCoroutine(InterpolateCursorPosition(cursorComponent.transform, Position));
                 }

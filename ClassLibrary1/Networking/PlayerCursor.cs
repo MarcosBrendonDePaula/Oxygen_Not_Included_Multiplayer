@@ -35,8 +35,6 @@ namespace ONI_MP.Networking
 
         public void Init()
         {
-            var t = nameof(GameInputManager);
-
             camera = GameScreenManager.Instance.GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
 
             var cursorTexture = Assets.GetTexture("cursor_arrow");
@@ -51,6 +49,7 @@ namespace ONI_MP.Networking
             canvas.overrideSorting = true;
             canvas.sortingOrder = 100;
             SetColor(Color.white); // Default to white
+            SetVisibility(false); // Hide by default
         }
 
         private Image CreateCursorImage(GameObject parent, Texture2D cursorTexture)
@@ -96,5 +95,24 @@ namespace ONI_MP.Networking
             if (cursorText != null)
                 cursorText.color = col;
         }
+
+        // Using the color make it fully transparent instead of deactivating the object
+        public void SetVisibility(bool visible)
+        {
+            if (cursorImage != null)
+            {
+                var color = cursorImage.color;
+                color.a = visible ? 1f : 0f;
+                cursorImage.color = color;
+            }
+
+            if (cursorText != null)
+            {
+                var color = cursorText.color;
+                color.a = visible ? 1f : 0f;
+                cursorText.color = color;
+            }
+        }
+
     }
 }

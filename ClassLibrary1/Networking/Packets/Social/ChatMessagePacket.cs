@@ -24,7 +24,7 @@ namespace ONI_MP.Networking.Packets.Social
         {
             SenderId = MultiplayerSession.LocalSteamID;
             Message = message;
-            PlayerColor = Configuration.Instance.Client.Color.ToColor();
+            PlayerColor = Configuration.Instance.Client.PlayerColor.ToColor();
         }
 
         public void Serialize(BinaryWriter writer)

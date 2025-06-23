@@ -27,6 +27,12 @@ namespace ONI_MP.Networking.Packets.Core
             if (MultiplayerSession.IsHost)
                 return;
 
+            // Hide all the player cursors on the client as they'll reappear as packets are recieved
+            foreach (PlayerCursor cursor in MultiplayerSession.PlayerCursors.Values)
+            {
+                cursor.SetVisibility(false);
+            }
+
             Sync();
             //PauseScreen.TriggerQuitGame();
         }

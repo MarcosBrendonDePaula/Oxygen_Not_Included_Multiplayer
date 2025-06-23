@@ -8,7 +8,6 @@ public class MultiplayerPlayer
     public string SteamName { get; private set; }
     public bool IsLocal => SteamID == SteamUser.GetSteamID();
 
-    public int Ping { get; set; } = -1;
     public int AvatarImageId { get; private set; } = -1;
     public HSteamNetConnection? Connection { get; set; } = null;
     public bool IsConnected => Connection != null;

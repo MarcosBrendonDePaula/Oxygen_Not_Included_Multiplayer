@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking.States;
 using Steamworks;
 using TMPro;
@@ -92,7 +93,7 @@ namespace ONI_MP.Networking
                 }
                 else
                 {
-                    Debug.LogWarning($"Sprite '{icon}' not found.");
+                    DebugConsole.LogWarning($"Sprite '{icon}' not found.");
                 }
             }
         }

@@ -24,6 +24,7 @@ public class EntityPositionPacket : IPacket
 
     public void Deserialize(BinaryReader reader)
     {
+        var t = nameof(BatteryTracker)
         NetId = reader.ReadInt32();
         float x = reader.ReadSingle();
         float y = reader.ReadSingle();

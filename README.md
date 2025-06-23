@@ -109,8 +109,6 @@ Raise it on the issues page. Please at least try to include a video if you can. 
 ## What's Planned
 
 - World state synchronization
-- Player cursors
-  > To see where other players are looking etc
 - Seamless mid-game hosting (start and stop multiplayer at any point during gameplay)  
 - Menu and UI synchronization  
 - Additional features to be announced

@@ -138,8 +138,6 @@ namespace ONI_MP.Networking
             return imageComponent;
         }
 
-
-
         private TextMeshProUGUI CreateCursorText(GameObject parent, Vector3 offset)
         {
             var textGameObject = new GameObject(name) { transform = { parent = parent.transform } };

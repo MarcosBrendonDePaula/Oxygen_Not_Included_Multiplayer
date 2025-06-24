@@ -8,6 +8,8 @@ namespace ONI_MP.Networking.States
         Stopped,
         Preparing,
         Starting,
-        Started
+        Started,
+        WaitingForModSync,  // Aguardando resposta de compatibilidade de mods dos clientes
+        ModSyncComplete     // Todos os clientes confirmaram compatibilidade
     }
 }

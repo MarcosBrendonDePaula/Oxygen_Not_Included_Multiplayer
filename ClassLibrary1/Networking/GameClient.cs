@@ -129,12 +129,15 @@ namespace ONI_MP.Networking
             switch (State)
             {
                 case ClientState.Connected:
+                case ClientState.SyncingMods:      // Added: Process packets during mod sync
+                case ClientState.LoadingWorld:    // Added: Process packets during world loading
                 case ClientState.InGame:
                     if (Connection.HasValue)
                         ProcessIncomingMessages(Connection.Value);
                     break;
                 case ClientState.Connecting:
                 case ClientState.Disconnected:
+                case ClientState.SyncModsFailed:
                 case ClientState.Error:
                 default:
                     break;
@@ -194,20 +197,6 @@ namespace ONI_MP.Networking
             MultiplayerOverlay.Close();
             SetState(ClientState.Connected);
 
-            if(Utils.IsInGame())
-            {
-                SetState(ClientState.InGame);
-                PacketHandler.readyToProcess = true;
-                if(IsHardSyncInProgress)
-                    IsHardSyncInProgress = false;
-                PacketSender.SendToHost(new ClientReadyStatusPacket(
-                    SteamUser.GetSteamID(),
-                    ClientReadyState.Ready
-                ));
-                MultiplayerSession.CreateConnectedPlayerCursors();
-            }
-            MultiplayerSession.InSession = true;
-
             var hostId = MultiplayerSession.HostSteamID;
             if (!MultiplayerSession.ConnectedPlayers.ContainsKey(hostId))
             {
@@ -219,9 +208,52 @@ namespace ONI_MP.Networking
             MultiplayerSession.ConnectedPlayers[hostId].Connection = Connection;
 
             DebugConsole.Log("[GameClient] Connection to host established!");
+            
+            // Set state to syncing mods - we'll wait for the mod list from server
+            SetState(ClientState.SyncingMods);
+            MultiplayerSession.InSession = true;
+            
             if (Utils.IsInMenu())
             {
-                MultiplayerOverlay.Show($"Waiting for {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+                MultiplayerOverlay.Show($"Checking mod compatibility with {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+            }
+        }
+
+        public static void OnModSyncCompleted(bool compatible)
+        {
+            if (compatible)
+            {
+                DebugConsole.Log("[GameClient] Mod sync completed successfully.");
+                
+                if(Utils.IsInGame())
+                {
+                    SetState(ClientState.InGame);
+                    PacketHandler.readyToProcess = true;
+                    if(IsHardSyncInProgress)
+                        IsHardSyncInProgress = false;
+                    PacketSender.SendToHost(new ClientReadyStatusPacket(
+                        SteamUser.GetSteamID(),
+                        ClientReadyState.Ready
+                    ));
+                    MultiplayerSession.CreateConnectedPlayerCursors();
+                }
+                else
+                {
+                    SetState(ClientState.LoadingWorld);
+                    if (Utils.IsInMenu())
+                    {
+                        MultiplayerOverlay.Show($"Waiting for world data from {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+                    }
+                }
+            }
+            else
+            {
+                DebugConsole.LogWarning("[GameClient] Mod sync failed - incompatible mods detected.");
+                SetState(ClientState.SyncModsFailed);
+                if (Utils.IsInMenu())
+                {
+                    MultiplayerOverlay.Show("Mod compatibility issues detected. Please check the dialog for details.");
+                }
             }
         }
 

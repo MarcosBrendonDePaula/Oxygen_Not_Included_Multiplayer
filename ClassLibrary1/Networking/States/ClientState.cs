@@ -8,6 +8,8 @@ namespace ONI_MP.Networking.States
         Disconnected,
         Connecting,
         Connected,
+        SyncingMods,    // Estado enquanto sincroniza mods
+        SyncModsFailed, // (Opcional) Caso falhe na sincronização
         LoadingWorld,
         InGame
     }

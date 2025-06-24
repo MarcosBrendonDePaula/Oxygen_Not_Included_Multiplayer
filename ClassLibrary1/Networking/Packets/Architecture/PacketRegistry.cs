@@ -74,6 +74,8 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.Disinfect, () => new DisinfectPacket());
             Register(PacketType.SpeedChange, () => new SpeedChangePacket());
             Register(PacketType.PlayerCursor, () => new PlayerCursorPacket());
+            Register(PacketType.ModListSync, () => new ModListSyncPacket());
+            Register(PacketType.ModCompatibilityStatus, () => new ModCompatibilityStatusPacket());
         }
     }
 }

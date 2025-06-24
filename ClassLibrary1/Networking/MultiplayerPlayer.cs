@@ -14,6 +14,9 @@ public class MultiplayerPlayer
     public bool IsConnected => Connection != null;
 
     public ClientReadyState readyState { get; set; } = ClientReadyState.Unready;
+    public bool ModSyncCompleted { get; set; } = false;
+    public bool ModSyncCompatible { get; set; } = false;
+    
     public MultiplayerPlayer(CSteamID steamID)
     {
         SteamID = steamID;

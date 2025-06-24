@@ -8,6 +8,7 @@ using UnityEngine;
 using ONI_MP.Networking.States;
 using ONI_MP.Networking.Packets.World;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets;
 
 namespace ONI_MP.Networking
 {
@@ -176,7 +177,65 @@ namespace ONI_MP.Networking
             player.Connection = conn;
 
             DebugConsole.Log($"[GameServer] Connection to {clientId} fully established!");
-            SaveFileRequestPacket.SendSaveFile(clientId);
+            
+            // Send mod list first for compatibility check
+            ModListSyncPacket.SendModList(clientId);
+            
+            // Set server state to waiting for mod sync
+            SetState(ServerState.WaitingForModSync);
+        }
+
+        public static void OnModCompatibilityReceived(CSteamID clientId, ModCompatibilityStatusPacket.CompatibilityStatus status)
+        {
+            if (MultiplayerSession.ConnectedPlayers.TryGetValue(clientId, out var player))
+            {
+                player.ModSyncCompleted = true;
+                player.ModSyncCompatible = (status == ModCompatibilityStatusPacket.CompatibilityStatus.Compatible);
+                
+                DebugConsole.Log($"[GameServer] Mod compatibility received from {clientId}: {status}");
+                
+                // Check if all clients have completed mod sync
+                bool allClientsReady = true;
+                bool allClientsCompatible = true;
+                
+                foreach (var connectedPlayer in MultiplayerSession.ConnectedPlayers.Values)
+                {
+                    if (connectedPlayer.IsConnected && !connectedPlayer.IsLocal)
+                    {
+                        if (!connectedPlayer.ModSyncCompleted)
+                        {
+                            allClientsReady = false;
+                            break;
+                        }
+                        if (!connectedPlayer.ModSyncCompatible)
+                        {
+                            allClientsCompatible = false;
+                        }
+                    }
+                }
+                
+                if (allClientsReady)
+                {
+                    if (allClientsCompatible)
+                    {
+                        SetState(ServerState.ModSyncComplete);
+                        DebugConsole.Log("[GameServer] All clients are mod compatible. Starting save file sync...");
+                        
+                        // Now send save file to all compatible clients
+                        foreach (var compatiblePlayer in MultiplayerSession.ConnectedPlayers.Values)
+                        {
+                            if (compatiblePlayer.IsConnected && !compatiblePlayer.IsLocal && compatiblePlayer.ModSyncCompatible)
+                            {
+                                SaveFileRequestPacket.SendSaveFile(compatiblePlayer.SteamID);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        DebugConsole.LogWarning("[GameServer] Some clients have mod compatibility issues. Save sync delayed.");
+                    }
+                }
+            }
         }
 
 

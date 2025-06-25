@@ -23,6 +23,21 @@ namespace ONI_MP.Networking.Components
                     GameClient.ReconnectFromCache();
                     MultiplayerOverlay.Close();
                 }
+                
+                // Detect when returning to main menu while in multiplayer session
+                if (Utils.IsInMenu() && MultiplayerSession.InSession)
+                {
+                    DebugConsole.Log("[SteamNetworking] Detected return to main menu while in multiplayer session. Cleaning up...");
+                    if (MultiplayerSession.IsHost)
+                    {
+                        DebugConsole.Log("[SteamNetworking] Host returning to menu - shutting down server...");
+                    }
+                    else if (MultiplayerSession.IsClient)
+                    {
+                        DebugConsole.Log("[SteamNetworking] Client returning to menu - disconnecting...");
+                    }
+                    SteamLobby.LeaveLobby();
+                }
             };
         }
 

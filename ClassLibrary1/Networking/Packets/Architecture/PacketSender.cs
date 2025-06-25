@@ -106,14 +106,27 @@ namespace ONI_MP.Networking.Packets.Architecture
 
         public static void SendToAllExcluding(IPacket packet, HashSet<CSteamID> excludedIds, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
         {
+            int sentCount = 0;
             foreach (var player in MultiplayerSession.ConnectedPlayers.Values)
             {
                 if (excludedIds != null && excludedIds.Contains(player.SteamID))
+                {
+                    DebugConsole.Log($"[PacketSender] Excluding {player.SteamID} from {packet.Type} broadcast");
                     continue;
+                }
 
                 if (player.Connection != null)
+                {
                     SendToConnection(player.Connection.Value, packet, sendType);
+                    sentCount++;
+                    DebugConsole.Log($"[PacketSender] Sent {packet.Type} to {player.SteamID}");
+                }
+                else
+                {
+                    DebugConsole.LogWarning($"[PacketSender] No connection for {player.SteamID}, skipping {packet.Type}");
+                }
             }
+            DebugConsole.Log($"[PacketSender] Broadcast {packet.Type} to {sentCount} clients");
         }
 
 

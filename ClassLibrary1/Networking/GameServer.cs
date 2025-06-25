@@ -171,20 +171,43 @@ namespace ONI_MP.Networking
         private static void OnClientConnected(HSteamNetConnection conn, CSteamID clientId)
         {
             MultiplayerPlayer player;
-            if (!MultiplayerSession.ConnectedPlayers.TryGetValue(clientId, out player))
+            bool isNewPlayer = !MultiplayerSession.ConnectedPlayers.TryGetValue(clientId, out player);
+            
+            if (isNewPlayer)
             {
                 player = new MultiplayerPlayer(clientId);
                 MultiplayerSession.ConnectedPlayers[clientId] = player;
+                DebugConsole.Log($"[GameServer] New client {clientId} connected!");
             }
+            else
+            {
+                DebugConsole.Log($"[GameServer] Client {clientId} reconnected!");
+            }
+            
             player.Connection = conn;
 
             DebugConsole.Log($"[GameServer] Connection to {clientId} fully established!");
             
-            // Send mod list first for compatibility check
-            ModListSyncPacket.SendModList(clientId);
-            
-            // Set server state to waiting for mod sync
-            SetState(ServerState.WaitingForModSync);
+            // Only do mod sync for new players or players who haven't completed mod sync
+            if (isNewPlayer || !player.ModSyncCompleted)
+            {
+                DebugConsole.Log($"[GameServer] Starting mod sync for {clientId}");
+                ModListSyncPacket.SendModList(clientId);
+                SetState(ServerState.WaitingForModSync);
+            }
+            else if (player.ModSyncCompatible)
+            {
+                DebugConsole.Log($"[GameServer] Client {clientId} already validated. Skipping mod sync and save file transfer.");
+                // Client already validated and has the save file, keep current server state
+                // No need to send save file again - they're just reconnecting after loading
+            }
+            else
+            {
+                DebugConsole.LogWarning($"[GameServer] Client {clientId} reconnected but was previously incompatible.");
+                // Send mod list again in case they fixed compatibility issues
+                ModListSyncPacket.SendModList(clientId);
+                SetState(ServerState.WaitingForModSync);
+            }
         }
 
         public static void OnModCompatibilityReceived(CSteamID clientId, ModCompatibilityStatusPacket.CompatibilityStatus status)

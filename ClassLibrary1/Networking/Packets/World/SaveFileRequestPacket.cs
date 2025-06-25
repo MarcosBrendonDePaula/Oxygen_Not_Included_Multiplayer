@@ -41,6 +41,13 @@ namespace ONI_MP.Networking.Packets.World
             if (!MultiplayerSession.IsHost)
                 return;
 
+            // Check if we already sent the save file to this client
+            if (MultiplayerSession.ConnectedPlayers.TryGetValue(requester, out var player) && player.SaveFileSent)
+            {
+                DebugConsole.Log($"[SaveFileRequest] Save file already sent to {requester}. Skipping.");
+                return;
+            }
+
             try
             {
                 string name = SaveHelper.WorldName;
@@ -69,6 +76,12 @@ namespace ONI_MP.Networking.Packets.World
 
                 CoroutineRunner.RunOne(SendChunksThrottled(chunkPackets, requester));
                 DebugConsole.Log($"[SaveFileRequest] Sent '{fileName}' in {Math.Ceiling(data.Length / (float)ChunkSize)} chunks to {requester}");
+                
+                // Mark that we sent the save file to this client
+                if (MultiplayerSession.ConnectedPlayers.TryGetValue(requester, out var playerToMark))
+                {
+                    playerToMark.SaveFileSent = true;
+                }
 
             }
             catch (Exception ex)

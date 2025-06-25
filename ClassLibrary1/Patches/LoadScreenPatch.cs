@@ -34,12 +34,8 @@ namespace ONI_MP.Patches
         {
             DebugConsole.Log($"Loaded {filename}");
             
-            // If we have a cached server connection, reconnect after loading
-            if (GameClient.State == ClientState.LoadingWorld)
-            {
-                DebugConsole.Log("[LoadScreenPatch] Attempting to reconnect to cached server after world load...");
-                GameClient.ReconnectFromCache();
-            }
+            // Reconnection is now handled by SteamNetworkingComponent.OnPostSceneLoaded
+            // to avoid duplicate reconnection attempts
         }
     }
 }

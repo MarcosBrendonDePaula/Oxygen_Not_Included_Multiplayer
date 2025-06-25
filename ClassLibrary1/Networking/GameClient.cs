@@ -205,13 +205,37 @@ namespace ONI_MP.Networking
 
             DebugConsole.Log("[GameClient] Connection to host established!");
             
-            // Set state to syncing mods - we'll wait for the mod list from server
-            SetState(ClientState.SyncingMods);
-            MultiplayerSession.InSession = true;
-            
-            if (Utils.IsInMenu())
+            // Check if we're reconnecting after loading a world (already in game)
+            if (Utils.IsInGame())
             {
-                MultiplayerOverlay.Show($"Checking mod compatibility with {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+                DebugConsole.Log("[GameClient] Reconnected while in game. Setting state to InGame.");
+                SetState(ClientState.InGame);
+                MultiplayerSession.InSession = true;
+                
+                // Re-enable packet processing after reconnection
+                PacketHandler.readyToProcess = true;
+                DebugConsole.Log("[GameClient] Re-enabled packet processing after reconnection.");
+                
+                // Send ready status immediately since we're already in the game
+                PacketSender.SendToHost(new ClientReadyStatusPacket(
+                    SteamUser.GetSteamID(),
+                    ClientReadyState.Ready
+                ));
+                
+                MultiplayerSession.CreateConnectedPlayerCursors();
+                if (IsHardSyncInProgress)
+                    IsHardSyncInProgress = false;
+            }
+            else
+            {
+                // Set state to syncing mods - we'll wait for the mod list from server
+                SetState(ClientState.SyncingMods);
+                MultiplayerSession.InSession = true;
+                
+                if (Utils.IsInMenu())
+                {
+                    MultiplayerOverlay.Show($"Checking mod compatibility with {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+                }
             }
         }
 
@@ -227,6 +251,11 @@ namespace ONI_MP.Networking
                     SetState(ClientState.InGame);
                     if (IsHardSyncInProgress)
                         IsHardSyncInProgress = false;
+                    
+                    // Ensure packet processing is enabled when entering game
+                    PacketHandler.readyToProcess = true;
+                    DebugConsole.Log("[GameClient] Enabled packet processing after mod sync completion.");
+                    
                     PacketSender.SendToHost(new ClientReadyStatusPacket(
                         SteamUser.GetSteamID(),
                         ClientReadyState.Ready

@@ -16,6 +16,7 @@ public class MultiplayerPlayer
     public ClientReadyState readyState { get; set; } = ClientReadyState.Unready;
     public bool ModSyncCompleted { get; set; } = false;
     public bool ModSyncCompatible { get; set; } = false;
+    public bool SaveFileSent { get; set; } = false;
     
     public MultiplayerPlayer(CSteamID steamID)
     {

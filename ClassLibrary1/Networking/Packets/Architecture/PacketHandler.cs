@@ -13,18 +13,26 @@ namespace ONI_MP.Networking.Packets.Architecture
         {
             if(!readyToProcess)
             {
+                DebugConsole.LogWarning("[PacketHandler] Packet received but processing is disabled. Discarding packet.");
                 return;
             }
 
-            using (var ms = new MemoryStream(data))
+            try
             {
-                using (var reader = new BinaryReader(ms))
+                using (var ms = new MemoryStream(data))
                 {
-                    PacketType type = (PacketType)reader.ReadByte();
-                    var packet = PacketRegistry.Create(type);
-                    packet.Deserialize(reader);
-                    Dispatch(packet);
+                    using (var reader = new BinaryReader(ms))
+                    {
+                        PacketType type = (PacketType)reader.ReadByte();
+                        var packet = PacketRegistry.Create(type);
+                        packet.Deserialize(reader);
+                        Dispatch(packet);
+                    }
                 }
+            }
+            catch (System.Exception ex)
+            {
+                DebugConsole.LogError($"[PacketHandler] Error processing incoming packet: {ex}");
             }
         }
 

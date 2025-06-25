@@ -51,8 +51,9 @@ namespace ONI_MP.Menus
             // Add title
             AddTitle(dialog.transform, "Mod Compatibility Issue");
 
-            // Add description
-            AddDescription(dialog.transform, $"The server requires {missingMods.Count} mod(s) that you don't have or need to update:");
+            // Add description with more detailed information
+            string statusMessage = GetCompatibilityMessage(missingMods);
+            AddDescription(dialog.transform, statusMessage);
 
             // Add scrollable mod list
             AddModList(dialog.transform, missingMods);
@@ -145,21 +146,46 @@ namespace ONI_MP.Menus
             float yPos = 50;
             foreach (var mod in missingMods)
             {
-                GameObject modItem = new GameObject($"Mod_{mod.Id}", typeof(RectTransform), typeof(Text));
+                // Create mod item container
+                GameObject modItem = new GameObject($"Mod_{mod.Id}", typeof(RectTransform));
                 modItem.transform.SetParent(scrollArea.transform, worldPositionStays: false);
 
                 var itemRt = modItem.GetComponent<RectTransform>();
-                itemRt.sizeDelta = new Vector2(440, 25);
+                itemRt.sizeDelta = new Vector2(440, 40);
                 itemRt.anchoredPosition = new Vector2(0, yPos);
 
-                var itemText = modItem.GetComponent<Text>();
-                itemText.text = $"• {mod.Id} (v{mod.Version})";
-                itemText.fontSize = 12;
-                itemText.color = Color.yellow;
-                itemText.alignment = TextAnchor.MiddleLeft;
-                itemText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                // Add mod name (main text)
+                GameObject nameText = new GameObject("ModName", typeof(RectTransform), typeof(Text));
+                nameText.transform.SetParent(modItem.transform, worldPositionStays: false);
 
-                yPos -= 30;
+                var nameRt = nameText.GetComponent<RectTransform>();
+                nameRt.sizeDelta = new Vector2(440, 20);
+                nameRt.anchoredPosition = new Vector2(0, 5);
+
+                var nameTextComp = nameText.GetComponent<Text>();
+                nameTextComp.text = $"• {mod.Name ?? mod.Id}";
+                nameTextComp.fontSize = 13;
+                nameTextComp.color = Color.white;
+                nameTextComp.alignment = TextAnchor.MiddleLeft;
+                nameTextComp.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                nameTextComp.fontStyle = FontStyle.Bold;
+
+                // Add mod details (ID and version)
+                GameObject detailText = new GameObject("ModDetails", typeof(RectTransform), typeof(Text));
+                detailText.transform.SetParent(modItem.transform, worldPositionStays: false);
+
+                var detailRt = detailText.GetComponent<RectTransform>();
+                detailRt.sizeDelta = new Vector2(440, 15);
+                detailRt.anchoredPosition = new Vector2(20, -10);
+
+                var detailTextComp = detailText.GetComponent<Text>();
+                detailTextComp.text = $"ID: {mod.Id} | Version: {mod.Version}";
+                detailTextComp.fontSize = 10;
+                detailTextComp.color = Color.gray;
+                detailTextComp.alignment = TextAnchor.MiddleLeft;
+                detailTextComp.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+
+                yPos -= 45;
             }
         }
 
@@ -194,6 +220,24 @@ namespace ONI_MP.Menus
             btnText.color = Color.white;
             btnText.alignment = TextAnchor.MiddleCenter;
             btnText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        }
+
+        private static string GetCompatibilityMessage(List<ModCompatibilityStatusPacket.MissingModInfo> missingMods)
+        {
+            if (missingMods == null || missingMods.Count == 0)
+                return "No mod compatibility issues detected.";
+
+            int totalMods = missingMods.Count;
+            
+            if (totalMods == 1)
+            {
+                return $"The server requires 1 mod that you don't have or need to update:";
+            }
+            else
+            {
+                return $"The server requires {totalMods} mods that you don't have or need to update:\n" +
+                       $"Please install or update the missing mods to join this server.";
+            }
         }
 
         private static void Close()

@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
+using ONI_MP.Networking.States;
 using System.Reflection;
 
 namespace ONI_MP.Patches
@@ -32,6 +33,13 @@ namespace ONI_MP.Patches
         public static void Postfix_DoLoad(string filename)
         {
             DebugConsole.Log($"Loaded {filename}");
+            
+            // If we have a cached server connection, reconnect after loading
+            if (GameClient.State == ClientState.LoadingWorld)
+            {
+                DebugConsole.Log("[LoadScreenPatch] Attempting to reconnect to cached server after world load...");
+                GameClient.ReconnectFromCache();
+            }
         }
     }
 }

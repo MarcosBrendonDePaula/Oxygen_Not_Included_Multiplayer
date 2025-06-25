@@ -130,7 +130,6 @@ namespace ONI_MP.Networking
             {
                 case ClientState.Connected:
                 case ClientState.SyncingMods:      // Added: Process packets during mod sync
-                case ClientState.LoadingWorld:    // Added: Process packets during world loading
                 case ClientState.InGame:
                     if (Connection.HasValue)
                         ProcessIncomingMessages(Connection.Value);
@@ -194,9 +193,6 @@ namespace ONI_MP.Networking
 
         private static void OnConnected()
         {
-            MultiplayerOverlay.Close();
-            SetState(ClientState.Connected);
-
             var hostId = MultiplayerSession.HostSteamID;
             if (!MultiplayerSession.ConnectedPlayers.ContainsKey(hostId))
             {
@@ -223,13 +219,13 @@ namespace ONI_MP.Networking
         {
             if (compatible)
             {
+                SetState(ClientState.Connected);
                 DebugConsole.Log("[GameClient] Mod sync completed successfully.");
                 
-                if(Utils.IsInGame())
+                if (Utils.IsInGame())
                 {
                     SetState(ClientState.InGame);
-                    PacketHandler.readyToProcess = true;
-                    if(IsHardSyncInProgress)
+                    if (IsHardSyncInProgress)
                         IsHardSyncInProgress = false;
                     PacketSender.SendToHost(new ClientReadyStatusPacket(
                         SteamUser.GetSteamID(),
@@ -237,13 +233,10 @@ namespace ONI_MP.Networking
                     ));
                     MultiplayerSession.CreateConnectedPlayerCursors();
                 }
-                else
+                MultiplayerSession.InSession = true;
+                if (Utils.IsInMenu())
                 {
-                    SetState(ClientState.LoadingWorld);
-                    if (Utils.IsInMenu())
-                    {
-                        MultiplayerOverlay.Show($"Waiting for world data from {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
-                    }
+                    MultiplayerOverlay.Show($"Waiting for world data from {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
                 }
             }
             else

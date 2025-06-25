@@ -13,12 +13,14 @@ namespace ONI_MP.Networking.Packets
         public class ModInfo
         {
             public string Id { get; set; }
+            public string Name { get; set; }
             public string Version { get; set; }
             public bool IsRequired { get; set; }
 
-            public ModInfo(string id, string version, bool isRequired)
+            public ModInfo(string id, string name, string version, bool isRequired)
             {
                 Id = id;
+                Name = name;
                 Version = version;
                 IsRequired = isRequired;
             }
@@ -26,6 +28,7 @@ namespace ONI_MP.Networking.Packets
             public void Serialize(BinaryWriter writer)
             {
                 writer.Write(Id);
+                writer.Write(Name ?? "");
                 writer.Write(Version);
                 writer.Write(IsRequired);
             }
@@ -33,6 +36,7 @@ namespace ONI_MP.Networking.Packets
             public static ModInfo Deserialize(BinaryReader reader)
             {
                 return new ModInfo(
+                    reader.ReadString(),
                     reader.ReadString(),
                     reader.ReadString(),
                     reader.ReadBoolean()
@@ -87,6 +91,7 @@ namespace ONI_MP.Networking.Packets
             {
                 modInfos.Add(new ModInfo(
                     mod.label.id,
+                    mod.label.title ?? mod.label.id, // Use title as name, fallback to ID
                     mod.label.version.ToString(),
                     true // For now all mods are required, we can make this configurable later
                 ));

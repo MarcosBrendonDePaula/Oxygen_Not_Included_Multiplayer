@@ -24,4 +24,8 @@
 	<Reference Include="ImGui.NET" HintPath="$(ManagedPath)\ImGui.NET.dll" Private="false" />
 	<Reference Include="Newtonsoft.Json.dll" HintPath="$(ManagedPath)\Newtonsoft.Json.dll" Private="false" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\oni_together_logo.png" />
+  </ItemGroup>
 </Project>

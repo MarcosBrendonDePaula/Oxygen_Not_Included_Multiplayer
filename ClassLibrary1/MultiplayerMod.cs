@@ -5,6 +5,7 @@ using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
 using ONI_MP.Components;
+using System.Reflection;
 
 namespace ONI_MP
 {
@@ -29,7 +30,12 @@ namespace ONI_MP
             go.AddComponent<MainThreadExecutor>();
             go.AddComponent<CursorManager>();
             SetupListeners();
-            DebugConsole.Log("[ONI_MP] Loaded Oxygen Not Included Multiplayer Mod.");
+            DebugConsole.Log("[ONI_MP] Loaded Oxygen Not Included Together Multiplayer Mod.");
+
+            //foreach (var res in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            //{
+            //    DebugConsole.Log("Resource: " + res);
+            //}
         }
 
         private void SetupListeners()

@@ -6,6 +6,7 @@ using Steamworks;
 using System;
 using System.Reflection;
 using System.Linq;
+using ONI_MP.Misc;
 
 [HarmonyPatch(typeof(MainMenu), "OnPrefabInit")]
 internal static class MainMenuPatch
@@ -44,6 +45,7 @@ internal static class MainMenuPatch
         );
         makeButton.Invoke(__instance, new object[] { joinInfo });
 
+        UpdateLogo();
         UpdatePlacements(__instance);
     }
 
@@ -83,5 +85,43 @@ internal static class MainMenuPatch
                 joinBtn.transform.SetSiblingIndex(loadGameIdx + 2);
             }
         }
+    }
+
+    private static void UpdateLogo()
+    {
+        // Attempt to find and replace the logo
+        GameObject logoObj = GameObject.Find("Logo");
+        //logoObj.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
+        if (logoObj != null)
+        {
+            var image = logoObj.GetComponent<UnityEngine.UI.Image>();
+            if (image != null)
+            {
+                Texture2D tex = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.oni_together_logo.png");
+                if (tex != null)
+                {
+                    Sprite newSprite = Sprite.Create(
+                        tex,
+                        new Rect(0, 0, tex.width, tex.height),
+                        new Vector2(0.5f, 0.5f)
+                    );
+                    image.sprite = newSprite;
+                    Debug.Log("[ONI_MP] Replaced main menu logo with custom logo.");
+                }
+                else
+                {
+                    Debug.LogWarning("[ONI_MP] Failed to load embedded logo texture.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[ONI_MP] Logo GameObject found, but no Image component attached.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[ONI_MP] Could not find logo GameObject.");
+        }
+
     }
 }

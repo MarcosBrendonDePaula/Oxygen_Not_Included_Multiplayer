@@ -8,10 +8,13 @@ using System.Reflection;
 using System.Linq;
 using ONI_MP.Misc;
 using UnityEngine.UI;
+using System.Collections;
 
 [HarmonyPatch(typeof(MainMenu), "OnPrefabInit")]
 internal static class MainMenuPatch
 {
+    private static GameObject staticBgGO;
+
     private static void Postfix(MainMenu __instance)
     {
         int normalFontSize = 20;
@@ -139,43 +142,68 @@ internal static class MainMenuPatch
             return;
         }
 
-        // Step 2: Load the embedded static background
-        Texture2D bgTex = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.background-static.png");
-        if (bgTex == null)
+        // Step 2: Load both static background textures
+        Texture2D tex1 = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.background-static.png");
+        Texture2D tex2 = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.background-static2.png");
+
+        if (tex1 == null || tex2 == null)
         {
-            Debug.LogError("[ONI_MP] Failed to load static background texture.");
+            Debug.LogError("[ONI_MP] Failed to load one or both static background textures.");
             return;
         }
 
-        Sprite bgSprite = Sprite.Create(
-            bgTex,
-            new Rect(0, 0, bgTex.width, bgTex.height),
-            new Vector2(0.5f, 0.5f),
-            bgTex.width
-        );
+        Sprite sprite1 = Sprite.Create(tex1, new Rect(0, 0, tex1.width, tex1.height), new Vector2(0.5f, 0.5f), tex1.width);
+        Sprite sprite2 = Sprite.Create(tex2, new Rect(0, 0, tex2.width, tex2.height), new Vector2(0.5f, 0.5f), tex2.width);
 
-        // Step 3: Create the UI Image GameObject
-        GameObject bgGO = new GameObject("ONI_MP_StaticBackground", typeof(UnityEngine.UI.Image));
-        bgGO.transform.SetParent(border, false);
+        // Step 3: Create Image GameObject if it doesn't exist
+        if (staticBgGO == null)
+        {
+            staticBgGO = new GameObject("ONI_MP_StaticBackground", typeof(UnityEngine.UI.Image));
+            staticBgGO.transform.SetParent(border, false);
 
-        var image = bgGO.GetComponent<UnityEngine.UI.Image>();
-        image.sprite = bgSprite;
+            var rect = staticBgGO.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            staticBgGO.transform.SetAsLastSibling();
+        }
+
+        var image = staticBgGO.GetComponent<UnityEngine.UI.Image>();
         image.preserveAspect = true;
 
-        var rect = image.GetComponent<RectTransform>();
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = Vector2.zero;
-        rect.offsetMax = Vector2.zero;
+        // Step 4: Start background rotation
+        menu.StartCoroutine(RotateBackground(image, sprite1, sprite2));
+        Debug.Log("[ONI_MP] Rotating static background inserted.");
+    }
 
-        // Step 4: Place it as the last sibling (on top of other children under mainmenu_border)
-        bgGO.transform.SetAsLastSibling();
+    private static IEnumerator RotateBackground(UnityEngine.UI.Image image, Sprite sprite1, Sprite sprite2)
+    {
+        bool showFirst = true;
+        while (true)
+        {
+            image.sprite = showFirst ? sprite1 : sprite2;
+            if(showFirst)
+            {
+                // Play portal sound
+            }
+            showFirst = !showFirst;
 
-        Debug.Log("[ONI_MP] Static background inserted as last sibling of mainmenu_border.");
+            float waitTime = UnityEngine.Random.Range(5f, 10f);
+            yield return new WaitForSeconds(waitTime);
+        }
     }
 
     private static void UpdatePromos()
     {
+        GameObject uiGroup = GameObject.Find("UI Group");
+        if (uiGroup == null)
+        {
+            Debug.LogWarning("[ONI_MP] UI Group not found.");
+            return;
+        }
+
         GameObject topLeftColumns = GameObject.Find("TopLeftColumns");
         if (topLeftColumns == null)
         {
@@ -183,26 +211,16 @@ internal static class MainMenuPatch
             return;
         }
 
-        // Create container object under canvas root
-        GameObject rootCanvas = GameObject.Find("Canvas");
-        if (rootCanvas == null)
-        {
-            Debug.LogError("[ONI_MP] Root Canvas not found.");
-            return;
-        }
-
         GameObject promoContainer = new GameObject("ONI_MP_PromoContainer", typeof(RectTransform));
-        promoContainer.transform.SetParent(rootCanvas.transform, false);
+        promoContainer.transform.SetParent(uiGroup.transform, false);
 
-        // Manually place bottom-left
         RectTransform promoRect = promoContainer.GetComponent<RectTransform>();
         promoRect.anchorMin = new Vector2(0f, 0f);
         promoRect.anchorMax = new Vector2(0f, 0f);
         promoRect.pivot = new Vector2(0f, 0f);
-        promoRect.anchoredPosition = new Vector2(30f, 30f); // bottom-left corner + margin
-        promoRect.sizeDelta = new Vector2(1000f, 215f);     // wide enough for 3x banners
+        promoRect.anchoredPosition = new Vector2(30f, 30f);
+        promoRect.sizeDelta = new Vector2(1000f, 215f);
 
-        // Remove layout system — manual positioning
         string[] motdNames = { "MOTDBox_A", "MOTDBox_B", "MOTDBox_C" };
         float bannerWidth = 300f;
         float bannerHeight = 215f;
@@ -227,8 +245,6 @@ internal static class MainMenuPatch
                 Debug.LogWarning($"[ONI_MP] Could not find {motdNames[i]} under MOTD.");
             }
         }
-
-        Debug.Log("[ONI_MP] Promo banners manually positioned at bottom-left.");
     }
 
     private static void UpdateDLC()

@@ -1,3 +1,4 @@
+![Logo](https://i.imgur.com/GCIbhpn.png)
 # ONI Together: An Oxygen Not Included Multiplayer Mod (WIP)
 
 > **Note:** This is a work-in-progress project. Not to be confused with [onimp/oni_multiplayer](https://github.com/onimp/oni_multiplayer).

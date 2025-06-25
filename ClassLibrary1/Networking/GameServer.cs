@@ -188,6 +188,30 @@ namespace ONI_MP.Networking
 
             DebugConsole.Log($"[GameServer] Connection to {clientId} fully established!");
             
+            // Check if this is a hard sync reconnection
+            bool isHardSyncReconnection = GameClient.IsHardSyncInProgress;
+            
+            // During hard sync, never do mod validation - game is already running
+            if (isHardSyncReconnection)
+            {
+                DebugConsole.Log($"[GameServer] Hard sync reconnection for {clientId} - skipping all mod validation");
+                
+                // Mark client as ready for game packets immediately
+                player.ModSyncCompleted = true;
+                player.ModSyncCompatible = true;
+                player.readyState = ClientReadyState.Ready;
+                
+                // Ensure server is in correct state to handle game packets
+                if (State != ServerState.ModSyncComplete)
+                {
+                    SetState(ServerState.ModSyncComplete);
+                    DebugConsole.Log("[GameServer] Set server state to ModSyncComplete for hard sync");
+                }
+                
+                DebugConsole.Log($"[GameServer] Client {clientId} marked as ready after hard sync reconnection");
+                return;
+            }
+            
             // Only do mod sync for new players or players who haven't completed mod sync
             if (isNewPlayer || !player.ModSyncCompleted)
             {

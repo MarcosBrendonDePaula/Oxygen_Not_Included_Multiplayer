@@ -27,7 +27,6 @@ namespace ONI_MP.Networking
 
         public static bool IsHardSyncInProgress = false;
 
-        private static bool userTriggeredDisconnect = false;
 
         private struct CachedConnectionInfo
         {
@@ -78,7 +77,6 @@ namespace ONI_MP.Networking
         {
             if (Connection.HasValue)
             {
-                userTriggeredDisconnect = true;
                 DebugConsole.Log("[GameClient] Disconnecting from host...");
 
                 bool result = SteamNetworkingSockets.CloseConnection(
@@ -222,19 +220,55 @@ namespace ONI_MP.Networking
                     ClientReadyState.Ready
                 ));
                 
-                MultiplayerSession.CreateConnectedPlayerCursors();
+                if (Utils.IsInGame())
+                {
+                    MultiplayerSession.CreateConnectedPlayerCursors();
+                }
                 if (IsHardSyncInProgress)
                     IsHardSyncInProgress = false;
             }
             else
             {
-                // Set state to syncing mods - we'll wait for the mod list from server
-                SetState(ClientState.SyncingMods);
-                MultiplayerSession.InSession = true;
-                
-                if (Utils.IsInMenu())
+                // During hard sync, skip mod validation entirely - game is already running with validated mods
+                if (IsHardSyncInProgress)
                 {
-                    MultiplayerOverlay.Show($"Checking mod compatibility with {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+                    DebugConsole.Log("[GameClient] Hard sync reconnection detected. Skipping mod validation entirely.");
+                    SetState(ClientState.InGame);
+                    MultiplayerSession.InSession = true;
+                    
+                    // Re-enable packet processing for game packets
+                    PacketHandler.readyToProcess = true;
+                    DebugConsole.Log("[GameClient] Re-enabled packet processing after hard sync.");
+                    
+                    // Send ready status immediately since this is hard sync
+                    PacketSender.SendToHost(new ClientReadyStatusPacket(
+                        SteamUser.GetSteamID(),
+                        ClientReadyState.Ready
+                    ));
+                    
+                    // Recreate multiplayer cursors (only if in game)
+                    if (Utils.IsInGame())
+                    {
+                        MultiplayerSession.CreateConnectedPlayerCursors();
+                    }
+                    
+                    // Mark hard sync as complete
+                    IsHardSyncInProgress = false;
+                    
+                    // Close overlay to restore normal gameplay
+                    MultiplayerOverlay.Close();
+                    DebugConsole.Log("[GameClient] Hard sync complete - restored normal gameplay.");
+                }
+                else
+                {
+                    // Normal connection - do mod sync
+                    SetState(ClientState.SyncingMods);
+                    MultiplayerSession.InSession = true;
+                    
+                    if (Utils.IsInMenu())
+                    {
+                        MultiplayerOverlay.Show($"Checking mod compatibility with {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+                    }
                 }
             }
         }
@@ -260,7 +294,11 @@ namespace ONI_MP.Networking
                         SteamUser.GetSteamID(),
                         ClientReadyState.Ready
                     ));
-                    MultiplayerSession.CreateConnectedPlayerCursors();
+                    
+                    if (Utils.IsInGame())
+                    {
+                        MultiplayerSession.CreateConnectedPlayerCursors();
+                    }
                 }
                 MultiplayerSession.InSession = true;
                 if (Utils.IsInMenu())
@@ -284,11 +322,6 @@ namespace ONI_MP.Networking
             DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
             MultiplayerSession.InSession = false;
             SetState(ClientState.Disconnected);
-            //if(!userTriggeredDisconnect && remote == MultiplayerSession.LocalSteamID)
-            //{
-            //    CoroutineRunner.RunOne(ShowMessageAndReturnToTitle());
-            //}
-            userTriggeredDisconnect = false;
             Connection = null;
         }
 

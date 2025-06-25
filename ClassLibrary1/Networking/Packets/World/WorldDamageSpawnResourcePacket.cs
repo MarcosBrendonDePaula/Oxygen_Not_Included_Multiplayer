@@ -61,27 +61,76 @@ namespace ONI_MP.Networking.Packets.World
 
         public void OnDispatched()
         {
-            Element element = ElementLoader.elements[ElementIndex];
-
-            InvokePlaySoundForSubstance(element, Position);
-
-            float dropMass = Mass;
-            if (dropMass <= 0f)
-                return;
-
-            GameObject dropped = element.substance.SpawnResource(Position, dropMass, Temperature, DiseaseIndex, DiseaseCount);
-            NetworkIdentity identity = dropped.GetComponent<NetworkIdentity>();
-            identity.OverrideNetId(NetId);
-            DebugConsole.Log("[WorldDamageSpawnResourcePacket] Synchronized Network ID");
-
-            Pickupable pickup = dropped.GetComponent<Pickupable>();
-            if (pickup != null && pickup.GetMyWorld()?.worldInventory.IsReachable(pickup) == true)
+            try
             {
-                PopFXManager.Instance.SpawnFX(
-                    PopFXManager.Instance.sprite_Resource,
-                    Mathf.RoundToInt(dropMass) + " " + element.name,
-                    dropped.transform
-                );
+                if (ElementIndex >= ElementLoader.elements.Count)
+                {
+                    DebugConsole.LogError($"[WorldDamageSpawnResourcePacket] Invalid ElementIndex: {ElementIndex}");
+                    return;
+                }
+
+                Element element = ElementLoader.elements[ElementIndex];
+                if (element?.substance == null)
+                {
+                    DebugConsole.LogError($"[WorldDamageSpawnResourcePacket] Element or substance is null for index {ElementIndex}");
+                    return;
+                }
+
+                float dropMass = Mass;
+                if (dropMass <= 0f)
+                {
+                    DebugConsole.LogWarning($"[WorldDamageSpawnResourcePacket] Invalid mass: {dropMass}");
+                    return;
+                }
+
+                // Validate grid position before spawning
+                int cell = Grid.PosToCell(Position);
+                if (!Grid.IsValidCell(cell))
+                {
+                    DebugConsole.LogWarning($"[WorldDamageSpawnResourcePacket] Invalid grid position: {Position} (cell: {cell})");
+                    return;
+                }
+
+                // Check if Grid is initialized
+                if (Grid.WidthInCells <= 0 || Grid.HeightInCells <= 0)
+                {
+                    DebugConsole.LogWarning("[WorldDamageSpawnResourcePacket] Grid not initialized properly");
+                    return;
+                }
+
+                InvokePlaySoundForSubstance(element, Position);
+
+                GameObject dropped = element.substance.SpawnResource(Position, dropMass, Temperature, DiseaseIndex, DiseaseCount);
+                if (dropped == null)
+                {
+                    DebugConsole.LogWarning($"[WorldDamageSpawnResourcePacket] Failed to spawn resource at {Position}");
+                    return;
+                }
+
+                NetworkIdentity identity = dropped.GetComponent<NetworkIdentity>();
+                if (identity != null)
+                {
+                    identity.OverrideNetId(NetId);
+                    DebugConsole.Log("[WorldDamageSpawnResourcePacket] Synchronized Network ID");
+                }
+                else
+                {
+                    DebugConsole.LogWarning("[WorldDamageSpawnResourcePacket] No NetworkIdentity component found on spawned resource");
+                }
+
+                Pickupable pickup = dropped.GetComponent<Pickupable>();
+                if (pickup != null && pickup.GetMyWorld()?.worldInventory.IsReachable(pickup) == true)
+                {
+                    PopFXManager.Instance.SpawnFX(
+                        PopFXManager.Instance.sprite_Resource,
+                        Mathf.RoundToInt(dropMass) + " " + element.name,
+                        dropped.transform
+                    );
+                }
+            }
+            catch (System.Exception ex)
+            {
+                DebugConsole.LogError($"[WorldDamageSpawnResourcePacket] Error in OnDispatched: {ex}");
             }
         }
 

@@ -66,7 +66,7 @@ namespace ONI_MP.Menus
             AddModList(dialog.transform, missingMods);
 
             // Add action buttons
-            AddDialogButton(dialog.transform, "Subscribe All", new Vector2(-80, -230), () =>
+            AddDialogButton(dialog.transform, "Subscribe to All Mods", new Vector2(-100, -250), () =>
             {
                 foreach (var mod in missingMods)
                 {
@@ -76,9 +76,10 @@ namespace ONI_MP.Menus
                     }
                 }
                 DebugConsole.Log("[ModCompatibilityDialog] Attempted to subscribe and enable all missing mods. Please restart the game.");
+                Close();
             });
 
-            AddDialogButton(dialog.transform, "Cancel", new Vector2(80, -230), () =>
+            AddDialogButton(dialog.transform, "Cancel", new Vector2(100, -250), () =>
             {
                 Close();
             });
@@ -209,223 +210,73 @@ namespace ONI_MP.Menus
 
         private static void AddModList(Transform parent, List<ModCompatibilityStatusPacket.MissingModInfo> missingMods)
         {
-            // Create scroll view container
-            GameObject scrollViewContainer = new GameObject("ModListContainer", typeof(RectTransform), typeof(ScrollRect));
-            scrollViewContainer.transform.SetParent(parent, worldPositionStays: false);
+            // Create simple list container
+            GameObject listContainer = new GameObject("ModListContainer", typeof(RectTransform), typeof(Image));
+            listContainer.transform.SetParent(parent, worldPositionStays: false);
 
-            var containerRt = scrollViewContainer.GetComponent<RectTransform>();
-            containerRt.sizeDelta = new Vector2(550, 180);
+            var containerRt = listContainer.GetComponent<RectTransform>();
+            containerRt.sizeDelta = new Vector2(550, 200);
             containerRt.anchoredPosition = new Vector2(0, 20);
 
             // Add background for the list
-            GameObject listBg = new GameObject("ListBackground", typeof(RectTransform), typeof(Image));
-            listBg.transform.SetParent(scrollViewContainer.transform, worldPositionStays: false);
+            var listBgImg = listContainer.GetComponent<Image>();
+            listBgImg.color = new Color(0.1f, 0.1f, 0.15f, 1f);
 
-            var listBgRt = listBg.GetComponent<RectTransform>();
-            listBgRt.anchorMin = Vector2.zero;
-            listBgRt.anchorMax = Vector2.one;
-            listBgRt.offsetMin = Vector2.zero;
-            listBgRt.offsetMax = Vector2.zero;
-
-            var listBgImg = listBg.GetComponent<Image>();
-            listBgImg.color = new Color(0.08f, 0.08f, 0.12f, 0.8f);
-
-            // Create viewport for scrolling
-            GameObject viewport = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
-            viewport.transform.SetParent(scrollViewContainer.transform, worldPositionStays: false);
-
-            var viewportRt = viewport.GetComponent<RectTransform>();
-            viewportRt.anchorMin = Vector2.zero;
-            viewportRt.anchorMax = Vector2.one;
-            viewportRt.offsetMin = new Vector2(5, 5);
-            viewportRt.offsetMax = new Vector2(-5, -5);
-
-            var viewportImg = viewport.GetComponent<Image>();
-            viewportImg.color = Color.clear;
-
-            var mask = viewport.GetComponent<Mask>();
-            mask.showMaskGraphic = false;
-
-            // Create content container for mods
-            GameObject content = new GameObject("Content", typeof(RectTransform));
-            content.transform.SetParent(viewport.transform, worldPositionStays: false);
-
-            var contentRt = content.GetComponent<RectTransform>();
-            contentRt.anchorMin = new Vector2(0, 1);
-            contentRt.anchorMax = new Vector2(1, 1);
-            contentRt.pivot = new Vector2(0.5f, 1);
-            contentRt.anchoredPosition = Vector2.zero;
+            // Create simple text list
+            float yPos = 80;
+            DebugConsole.Log($"[ModCompatibilityDialog] Creating simple list for {missingMods.Count} mods");
             
-            // Calculate content height based on number of mods (65px per mod)
-            float contentHeight = Mathf.Max(170, missingMods.Count * 65 + 10);
-            contentRt.sizeDelta = new Vector2(0, contentHeight);
-
-            // Setup ScrollRect
-            var scrollRect = scrollViewContainer.GetComponent<ScrollRect>();
-            scrollRect.content = contentRt;
-            scrollRect.viewport = viewportRt;
-            scrollRect.vertical = true;
-            scrollRect.horizontal = false;
-            scrollRect.movementType = ScrollRect.MovementType.Clamped;
-            scrollRect.scrollSensitivity = 20;
-
-            float yPos = -10;
             for (int i = 0; i < missingMods.Count; i++)
             {
                 var mod = missingMods[i];
                 
-                // Create mod item container
-                GameObject modItem = new GameObject($"Mod_{mod.Id}", typeof(RectTransform), typeof(Image));
-                modItem.transform.SetParent(content.transform, worldPositionStays: false);
+                // Create simple text item
+                GameObject modText = new GameObject($"ModText_{i}", typeof(RectTransform), typeof(Text));
+                modText.transform.SetParent(listContainer.transform, worldPositionStays: false);
 
-                var itemRt = modItem.GetComponent<RectTransform>();
-                itemRt.sizeDelta = new Vector2(-10, 60);
-                itemRt.anchorMin = new Vector2(0, 1);
-                itemRt.anchorMax = new Vector2(1, 1);
-                itemRt.pivot = new Vector2(0.5f, 1);
-                itemRt.anchoredPosition = new Vector2(0, yPos);
+                var textRt = modText.GetComponent<RectTransform>();
+                textRt.sizeDelta = new Vector2(520, 25);
+                textRt.anchoredPosition = new Vector2(0, yPos);
 
-                var itemImg = modItem.GetComponent<Image>();
-                itemImg.color = i % 2 == 0 ? new Color(0.15f, 0.15f, 0.2f, 0.6f) : new Color(0.2f, 0.2f, 0.25f, 0.6f);
+                var textComp = modText.GetComponent<Text>();
+                textComp.text = $"• {mod.Name ?? mod.Id}";
+                textComp.fontSize = 14;
+                textComp.color = Color.white;
+                textComp.alignment = TextAnchor.MiddleLeft;
+                textComp.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                textComp.raycastTarget = false;
+                
+                // Add text outline for better visibility
+                var outline = modText.AddComponent<UnityEngine.UI.Outline>();
+                outline.effectColor = Color.black;
+                outline.effectDistance = new Vector2(1, -1);
 
-                // Mod icon/status indicator
-                GameObject statusIcon = new GameObject("StatusIcon", typeof(RectTransform), typeof(Image));
-                statusIcon.transform.SetParent(modItem.transform, worldPositionStays: false);
-
-                var iconRt = statusIcon.GetComponent<RectTransform>();
-                iconRt.sizeDelta = new Vector2(12, 12);
-                iconRt.anchoredPosition = new Vector2(-250, 15);
-
-                var iconImg = statusIcon.GetComponent<Image>();
-                iconImg.color = new Color(1f, 0.6f, 0.2f, 1f); // Orange warning
-
-                // Add mod name (main text)
-                GameObject nameText = new GameObject("ModName", typeof(RectTransform), typeof(Text));
-                nameText.transform.SetParent(modItem.transform, worldPositionStays: false);
-
-                var nameRt = nameText.GetComponent<RectTransform>();
-                nameRt.sizeDelta = new Vector2(300, 18);
-                nameRt.anchoredPosition = new Vector2(-120, 15);
-
-                var nameTextComp = nameText.GetComponent<Text>();
-                nameTextComp.text = mod.Name ?? mod.Id;
-                nameTextComp.fontSize = 13;
-                nameTextComp.color = new Color(1f, 0.95f, 0.8f, 1f);
-                nameTextComp.alignment = TextAnchor.MiddleLeft;
-                nameTextComp.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-                nameTextComp.fontStyle = FontStyle.Bold;
-                nameTextComp.raycastTarget = false;
-
-                // Add mod details (version)
-                GameObject versionText = new GameObject("Version", typeof(RectTransform), typeof(Text));
-                versionText.transform.SetParent(modItem.transform, worldPositionStays: false);
-
-                var versionRt = versionText.GetComponent<RectTransform>();
-                versionRt.sizeDelta = new Vector2(300, 14);
-                versionRt.anchoredPosition = new Vector2(-120, -2);
-
-                var versionTextComp = versionText.GetComponent<Text>();
-                versionTextComp.text = $"Required: v{mod.Version}";
-                versionTextComp.fontSize = 10;
-                versionTextComp.color = new Color(0.7f, 0.7f, 0.7f, 1f);
-                versionTextComp.alignment = TextAnchor.MiddleLeft;
-                versionTextComp.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-                versionTextComp.raycastTarget = false;
-
-                // Add mod ID
-                GameObject idText = new GameObject("ModID", typeof(RectTransform), typeof(Text));
-                idText.transform.SetParent(modItem.transform, worldPositionStays: false);
-
-                var idRt = idText.GetComponent<RectTransform>();
-                idRt.sizeDelta = new Vector2(300, 12);
-                idRt.anchoredPosition = new Vector2(-120, -15);
-
-                var idTextComp = idText.GetComponent<Text>();
-                idTextComp.text = $"ID: {mod.Id}";
-                idTextComp.fontSize = 9;
-                idTextComp.color = new Color(0.6f, 0.6f, 0.6f, 1f);
-                idTextComp.alignment = TextAnchor.MiddleLeft;
-                idTextComp.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-                idTextComp.raycastTarget = false;
-
-                // Add individual action buttons
-                AddModActionButton(modItem.transform, "View", new Vector2(180, 10), 65, 25, () =>
+                yPos -= 30;
+                
+                // If we have too many mods, stop displaying and show count
+                if (i >= 5)
                 {
-                    if (!string.IsNullOrEmpty(mod.SteamWorkshopUrl))
-                    {
-                        Application.OpenURL(mod.SteamWorkshopUrl);
-                        DebugConsole.Log($"[ModCompatibilityDialog] Opening workshop page for mod: {mod.Name ?? mod.Id}");
-                    }
-                });
+                    GameObject moreText = new GameObject("MoreText", typeof(RectTransform), typeof(Text));
+                    moreText.transform.SetParent(listContainer.transform, worldPositionStays: false);
 
-                AddModActionButton(modItem.transform, "Install", new Vector2(180, -15), 65, 25, () =>
-                {
-                    if (ONI_MP.Mods.ModLoader.SubscribeToWorkshopMod(mod.Id))
-                    {
-                        ONI_MP.Mods.ModLoader.SetModEnabled(mod.Id, true);
-                        DebugConsole.Log($"[ModCompatibilityDialog] Subscribed and enabled mod: {mod.Name ?? mod.Id}");
-                    }
-                });
+                    var moreRt = moreText.GetComponent<RectTransform>();
+                    moreRt.sizeDelta = new Vector2(520, 25);
+                    moreRt.anchoredPosition = new Vector2(0, yPos);
 
-                yPos -= 65;
+                    var moreComp = moreText.GetComponent<Text>();
+                    moreComp.text = $"... and {missingMods.Count - i - 1} more mods";
+                    moreComp.fontSize = 12;
+                    moreComp.color = new Color(0.8f, 0.8f, 0.8f, 1f);
+                    moreComp.alignment = TextAnchor.MiddleLeft;
+                    moreComp.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                    moreComp.raycastTarget = false;
+                    break;
+                }
             }
+            
+            DebugConsole.Log($"[ModCompatibilityDialog] Created simple mod list");
         }
 
-        private static void AddModActionButton(Transform parent, string text, Vector2 position, float width, float height, System.Action onClick)
-        {
-            // Create compact button for mod actions
-            GameObject btnGO = new GameObject($"ModBtn_{text}", typeof(RectTransform), typeof(Button), typeof(Image));
-            btnGO.transform.SetParent(parent, worldPositionStays: false);
-
-            var rt = btnGO.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(width, height);
-            rt.anchoredPosition = position;
-
-            var img = btnGO.GetComponent<Image>();
-            img.color = text == "View" ? new Color(0.2f, 0.5f, 0.3f, 1f) : new Color(0.4f, 0.3f, 0.6f, 1f);
-
-            var btn = btnGO.GetComponent<Button>();
-            
-            // Set up color transitions
-            var colors = btn.colors;
-            if (text == "View")
-            {
-                colors.normalColor = new Color(0.2f, 0.5f, 0.3f, 1f);
-                colors.highlightedColor = new Color(0.3f, 0.6f, 0.4f, 1f);
-                colors.pressedColor = new Color(0.1f, 0.4f, 0.2f, 1f);
-            }
-            else
-            {
-                colors.normalColor = new Color(0.4f, 0.3f, 0.6f, 1f);
-                colors.highlightedColor = new Color(0.5f, 0.4f, 0.7f, 1f);
-                colors.pressedColor = new Color(0.3f, 0.2f, 0.5f, 1f);
-            }
-            btn.colors = colors;
-            
-            btn.onClick.AddListener(() => {
-                DebugConsole.Log($"[ModCompatibilityDialog] Mod action '{text}' clicked.");
-                onClick();
-            });
-
-            // Add text to button
-            GameObject textGO = new GameObject("Text", typeof(RectTransform), typeof(Text));
-            textGO.transform.SetParent(btnGO.transform, worldPositionStays: false);
-
-            var textRt = textGO.GetComponent<RectTransform>();
-            textRt.anchorMin = Vector2.zero;
-            textRt.anchorMax = Vector2.one;
-            textRt.offsetMin = Vector2.zero;
-            textRt.offsetMax = Vector2.zero;
-
-            var btnText = textGO.GetComponent<Text>();
-            btnText.text = text;
-            btnText.fontSize = 11;
-            btnText.color = Color.white;
-            btnText.alignment = TextAnchor.MiddleCenter;
-            btnText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            btnText.fontStyle = FontStyle.Bold;
-            btnText.raycastTarget = false;
-        }
 
         private static void AddDialogButton(Transform parent, string text, Vector2 position, System.Action onClick)
         {

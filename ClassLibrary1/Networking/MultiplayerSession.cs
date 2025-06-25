@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using ONI_MP.DebugTools;
+using ONI_MP.Misc;
 using ONI_MP.Networking.Packets;
 using ONI_MP.UI;
 using Steamworks;
@@ -53,35 +54,77 @@ namespace ONI_MP.Networking
             if (PlayerCursors.ContainsKey(steamID))
                 return;
 
-            var canvasGO = GameScreenManager.Instance.ssCameraCanvas;
-            if (canvasGO == null)
+            // Check if GameScreenManager exists and is properly initialized
+            if (GameScreenManager.Instance == null)
             {
-                DebugConsole.LogError("[MultiplayerSession] ssCameraCanvas is null, cannot create cursor.");
+                DebugConsole.LogWarning("[MultiplayerSession] GameScreenManager.Instance is null, cannot create cursor.");
                 return;
             }
 
-            var cursorGO = new GameObject($"Cursor_{steamID}");
-            cursorGO.transform.SetParent(canvasGO.transform, false);
-            cursorGO.layer = LayerMask.NameToLayer("UI");
+            var canvasGO = GameScreenManager.Instance.ssCameraCanvas;
+            if (canvasGO == null)
+            {
+                DebugConsole.LogWarning("[MultiplayerSession] ssCameraCanvas is null, cannot create cursor.");
+                return;
+            }
 
-            var playerCursor = cursorGO.AddComponent<PlayerCursor>();
+            try
+            {
+                var cursorGO = new GameObject($"Cursor_{steamID}");
+                cursorGO.transform.SetParent(canvasGO.transform, false);
+                cursorGO.layer = LayerMask.NameToLayer("UI");
 
-            playerCursor.AssignPlayer(steamID);
-            playerCursor.Init();
+                var playerCursor = cursorGO.AddComponent<PlayerCursor>();
 
-            PlayerCursors[steamID] = playerCursor;
-            DebugConsole.Log($"[MultiplayerSession] Created new cursor for {SteamFriends.GetFriendPersonaName(steamID)}");
+                playerCursor.AssignPlayer(steamID);
+                playerCursor.Init();
+
+                PlayerCursors[steamID] = playerCursor;
+                DebugConsole.Log($"[MultiplayerSession] Created new cursor for {SteamFriends.GetFriendPersonaName(steamID)}");
+            }
+            catch (System.Exception ex)
+            {
+                DebugConsole.LogError($"[MultiplayerSession] Error creating cursor for {steamID}: {ex}");
+            }
         }
 
         public static void CreateConnectedPlayerCursors()
         {
-            var members = SteamLobby.GetAllLobbyMembers();
-            foreach (var playerId in members)
+            try
             {
-                if (playerId == LocalSteamID)
-                    continue;
+                // Only create cursors if we're in game and have proper UI setup
+                if (!Utils.IsInGame())
+                {
+                    DebugConsole.LogWarning("[MultiplayerSession] Not in game, skipping cursor creation.");
+                    return;
+                }
 
-                CreateNewPlayerCursor(playerId);
+                var members = SteamLobby.GetAllLobbyMembers();
+                if (members == null)
+                {
+                    DebugConsole.LogWarning("[MultiplayerSession] No lobby members found, using connected players instead.");
+                    // Fallback to connected players
+                    foreach (var player in ConnectedPlayers.Values)
+                    {
+                        if (player.SteamID == LocalSteamID)
+                            continue;
+
+                        CreateNewPlayerCursor(player.SteamID);
+                    }
+                    return;
+                }
+
+                foreach (var playerId in members)
+                {
+                    if (playerId == LocalSteamID)
+                        continue;
+
+                    CreateNewPlayerCursor(playerId);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                DebugConsole.LogError($"[MultiplayerSession] Error creating connected player cursors: {ex}");
             }
         }
 

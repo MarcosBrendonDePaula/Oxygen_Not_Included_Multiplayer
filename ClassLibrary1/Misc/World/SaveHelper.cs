@@ -17,7 +17,7 @@ using UnityEngine.SceneManagement;
 public static class SaveHelper
 {
 
-    public static int SAVEFILE_CHUNKSIZE_KB = 256;
+    public static int SAVEFILE_CHUNKSIZE_KB = 64;
     public static void RequestWorldLoad(WorldSave world)
     {
         SteamNetworkingComponent.scheduler.Run(() => LoadWorldSave(Path.GetFileNameWithoutExtension(world.Name), world.Data));

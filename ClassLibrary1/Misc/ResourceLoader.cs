@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Reflection;
+using ONI_MP.DebugTools;
 using UnityEngine;
 
 namespace ONI_MP.Misc
@@ -13,7 +14,7 @@ namespace ONI_MP.Misc
             {
                 if (stream == null)
                 {
-                    Debug.LogError($"Embedded resource not found: {resourceName}");
+                    DebugConsole.LogError($"Embedded resource not found: {resourceName}");
                     return null;
                 }
 

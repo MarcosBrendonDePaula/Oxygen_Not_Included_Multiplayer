@@ -9,6 +9,7 @@ using System.Linq;
 using ONI_MP.Misc;
 using UnityEngine.UI;
 using System.Collections;
+using ONI_MP.DebugTools;
 
 [HarmonyPatch(typeof(MainMenu), "OnPrefabInit")]
 internal static class MainMenuPatch
@@ -113,21 +114,21 @@ internal static class MainMenuPatch
                         new Vector2(0.5f, 0.5f)
                     );
                     image.sprite = newSprite;
-                    Debug.Log("[ONI_MP] Replaced main menu logo with custom logo.");
+                    DebugConsole.Log("[ONI_MP] Replaced main menu logo with custom logo.");
                 }
                 else
                 {
-                    Debug.LogWarning("[ONI_MP] Failed to load embedded logo texture.");
+                    DebugConsole.LogWarning("[ONI_MP] Failed to load embedded logo texture.");
                 }
             }
             else
             {
-                Debug.LogWarning("[ONI_MP] Logo GameObject found, but no Image component attached.");
+                DebugConsole.LogWarning("[ONI_MP] Logo GameObject found, but no Image component attached.");
             }
         }
         else
         {
-            Debug.LogWarning("[ONI_MP] Could not find logo GameObject.");
+            DebugConsole.LogWarning("[ONI_MP] Could not find logo GameObject.");
         }
 
     }
@@ -138,7 +139,7 @@ internal static class MainMenuPatch
         var border = menu.transform.Find("FrontEndBackground/mainmenu_border");
         if (border == null)
         {
-            Debug.LogError("[ONI_MP] Could not find mainmenu_border.");
+            DebugConsole.LogError("[ONI_MP] Could not find mainmenu_border.");
             return;
         }
 
@@ -148,7 +149,7 @@ internal static class MainMenuPatch
 
         if (tex1 == null || tex2 == null)
         {
-            Debug.LogError("[ONI_MP] Failed to load one or both static background textures.");
+            DebugConsole.LogError("[ONI_MP] Failed to load one or both static background textures.");
             return;
         }
 
@@ -175,7 +176,7 @@ internal static class MainMenuPatch
 
         // Step 4: Start background rotation
         menu.StartCoroutine(RotateBackground(image, sprite1, sprite2));
-        Debug.Log("[ONI_MP] Rotating static background inserted.");
+        DebugConsole.Log("[ONI_MP] Rotating static background inserted.");
     }
 
     private static IEnumerator RotateBackground(UnityEngine.UI.Image image, Sprite sprite1, Sprite sprite2)
@@ -200,14 +201,14 @@ internal static class MainMenuPatch
         GameObject uiGroup = GameObject.Find("UI Group");
         if (uiGroup == null)
         {
-            Debug.LogWarning("[ONI_MP] UI Group not found.");
+            DebugConsole.LogWarning("[ONI_MP] UI Group not found.");
             return;
         }
 
         GameObject topLeftColumns = GameObject.Find("TopLeftColumns");
         if (topLeftColumns == null)
         {
-            Debug.LogWarning("[ONI_MP] TopLeftColumns not found.");
+            DebugConsole.LogWarning("[ONI_MP] TopLeftColumns not found.");
             return;
         }
 
@@ -242,7 +243,7 @@ internal static class MainMenuPatch
             }
             else
             {
-                Debug.LogWarning($"[ONI_MP] Could not find {motdNames[i]} under MOTD.");
+                DebugConsole.LogWarning($"[ONI_MP] Could not find {motdNames[i]} under MOTD.");
             }
         }
     }
@@ -254,7 +255,7 @@ internal static class MainMenuPatch
 
         if (dlcLogos == null || topLeft == null)
         {
-            Debug.LogWarning("[ONI_MP] Could not find DLC logos or TopLeftColumns.");
+            DebugConsole.LogWarning("[ONI_MP] Could not find DLC logos or TopLeftColumns.");
             return;
         }
 
@@ -268,7 +269,7 @@ internal static class MainMenuPatch
         rect.localScale = Vector3.one;
 
         dlcLogos.SetAsFirstSibling();
-        Debug.Log("[ONI_MP] Raised DLC logos to better top-left position.");
+        DebugConsole.Log("[ONI_MP] Raised DLC logos to better top-left position.");
     }
 
     private static void UpdateBuildNumber()
@@ -278,13 +279,13 @@ internal static class MainMenuPatch
 
         if (promoContainer == null)
         {
-            Debug.LogWarning("[ONI_MP] Promo container not found. Cannot reposition build watermark.");
+            DebugConsole.LogWarning("[ONI_MP] Promo container not found. Cannot reposition build watermark.");
             return;
         }
 
         if (watermark == null)
         {
-            Debug.LogWarning("[ONI_MP] BuildWatermark object not found.");
+            DebugConsole.LogWarning("[ONI_MP] BuildWatermark object not found.");
             return;
         }
 
@@ -302,7 +303,7 @@ internal static class MainMenuPatch
         // Place it just above the DLC panels (which are 215 high)
         watermarkRect.anchoredPosition = new Vector2(30f, 260f);
 
-        Debug.Log("[ONI_MP] BuildWatermark repositioned above promo panels.");
+        DebugConsole.Log("[ONI_MP] BuildWatermark repositioned above promo panels.");
     }
 
 

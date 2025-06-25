@@ -7,6 +7,7 @@ using System;
 using System.Reflection;
 using System.Linq;
 using ONI_MP.Misc;
+using UnityEngine.UI;
 
 [HarmonyPatch(typeof(MainMenu), "OnPrefabInit")]
 internal static class MainMenuPatch
@@ -45,8 +46,12 @@ internal static class MainMenuPatch
         );
         makeButton.Invoke(__instance, new object[] { joinInfo });
 
+        InsertStaticBackground(__instance);
         UpdateLogo();
         UpdatePlacements(__instance);
+        UpdatePromos();
+        UpdateDLC();
+        UpdateBuildNumber();
     }
 
     // Reflection utility to build ButtonInfo struct
@@ -91,7 +96,6 @@ internal static class MainMenuPatch
     {
         // Attempt to find and replace the logo
         GameObject logoObj = GameObject.Find("Logo");
-        //logoObj.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
         if (logoObj != null)
         {
             var image = logoObj.GetComponent<UnityEngine.UI.Image>();
@@ -124,4 +128,166 @@ internal static class MainMenuPatch
         }
 
     }
+
+    private static void InsertStaticBackground(MainMenu menu)
+    {
+        // Step 1: Find FrontEndBackground/mainmenu_border
+        var border = menu.transform.Find("FrontEndBackground/mainmenu_border");
+        if (border == null)
+        {
+            Debug.LogError("[ONI_MP] Could not find mainmenu_border.");
+            return;
+        }
+
+        // Step 2: Load the embedded static background
+        Texture2D bgTex = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.background-static.png");
+        if (bgTex == null)
+        {
+            Debug.LogError("[ONI_MP] Failed to load static background texture.");
+            return;
+        }
+
+        Sprite bgSprite = Sprite.Create(
+            bgTex,
+            new Rect(0, 0, bgTex.width, bgTex.height),
+            new Vector2(0.5f, 0.5f),
+            bgTex.width
+        );
+
+        // Step 3: Create the UI Image GameObject
+        GameObject bgGO = new GameObject("ONI_MP_StaticBackground", typeof(UnityEngine.UI.Image));
+        bgGO.transform.SetParent(border, false);
+
+        var image = bgGO.GetComponent<UnityEngine.UI.Image>();
+        image.sprite = bgSprite;
+        image.preserveAspect = true;
+
+        var rect = image.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        // Step 4: Place it as the last sibling (on top of other children under mainmenu_border)
+        bgGO.transform.SetAsLastSibling();
+
+        Debug.Log("[ONI_MP] Static background inserted as last sibling of mainmenu_border.");
+    }
+
+    private static void UpdatePromos()
+    {
+        GameObject topLeftColumns = GameObject.Find("TopLeftColumns");
+        if (topLeftColumns == null)
+        {
+            Debug.LogWarning("[ONI_MP] TopLeftColumns not found.");
+            return;
+        }
+
+        // Create container object under canvas root
+        GameObject rootCanvas = GameObject.Find("Canvas");
+        if (rootCanvas == null)
+        {
+            Debug.LogError("[ONI_MP] Root Canvas not found.");
+            return;
+        }
+
+        GameObject promoContainer = new GameObject("ONI_MP_PromoContainer", typeof(RectTransform));
+        promoContainer.transform.SetParent(rootCanvas.transform, false);
+
+        // Manually place bottom-left
+        RectTransform promoRect = promoContainer.GetComponent<RectTransform>();
+        promoRect.anchorMin = new Vector2(0f, 0f);
+        promoRect.anchorMax = new Vector2(0f, 0f);
+        promoRect.pivot = new Vector2(0f, 0f);
+        promoRect.anchoredPosition = new Vector2(30f, 30f); // bottom-left corner + margin
+        promoRect.sizeDelta = new Vector2(1000f, 215f);     // wide enough for 3x banners
+
+        // Remove layout system — manual positioning
+        string[] motdNames = { "MOTDBox_A", "MOTDBox_B", "MOTDBox_C" };
+        float bannerWidth = 300f;
+        float bannerHeight = 215f;
+        float spacing = 10f;
+
+        for (int i = 0; i < motdNames.Length; i++)
+        {
+            Transform banner = topLeftColumns.transform.Find("MOTD/" + motdNames[i]);
+            if (banner != null)
+            {
+                banner.SetParent(promoContainer.transform, false);
+
+                RectTransform bannerRect = banner.GetComponent<RectTransform>();
+                bannerRect.anchorMin = new Vector2(0f, 0f);
+                bannerRect.anchorMax = new Vector2(0f, 0f);
+                bannerRect.pivot = new Vector2(0f, 0f);
+                bannerRect.sizeDelta = new Vector2(bannerWidth, bannerHeight);
+                bannerRect.anchoredPosition = new Vector2((bannerWidth + spacing) * i, 0f);
+            }
+            else
+            {
+                Debug.LogWarning($"[ONI_MP] Could not find {motdNames[i]} under MOTD.");
+            }
+        }
+
+        Debug.Log("[ONI_MP] Promo banners manually positioned at bottom-left.");
+    }
+
+    private static void UpdateDLC()
+    {
+        Transform dlcLogos = GameObject.Find("DLCLogos (1)")?.transform;
+        Transform topLeft = GameObject.Find("TopLeftColumns")?.transform;
+
+        if (dlcLogos == null || topLeft == null)
+        {
+            Debug.LogWarning("[ONI_MP] Could not find DLC logos or TopLeftColumns.");
+            return;
+        }
+
+        dlcLogos.SetParent(topLeft, true);
+
+        var rect = dlcLogos.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0f, 1f);
+        rect.anchoredPosition = new Vector2(20f, 0f);
+        rect.localScale = Vector3.one;
+
+        dlcLogos.SetAsFirstSibling();
+        Debug.Log("[ONI_MP] Raised DLC logos to better top-left position.");
+    }
+
+    private static void UpdateBuildNumber()
+    {
+        GameObject promoContainer = GameObject.Find("ONI_MP_PromoContainer");
+        GameObject watermark = GameObject.Find("BuildWatermark");
+
+        if (promoContainer == null)
+        {
+            Debug.LogWarning("[ONI_MP] Promo container not found. Cannot reposition build watermark.");
+            return;
+        }
+
+        if (watermark == null)
+        {
+            Debug.LogWarning("[ONI_MP] BuildWatermark object not found.");
+            return;
+        }
+
+        RectTransform promoRect = promoContainer.GetComponent<RectTransform>();
+        RectTransform watermarkRect = watermark.GetComponent<RectTransform>();
+
+        // Re-parent the watermark to the same parent as the promo container
+        watermark.transform.SetParent(promoContainer.transform.parent, worldPositionStays: false);
+
+        // Anchor it to bottom-left
+        watermarkRect.anchorMin = new Vector2(0f, 0f);
+        watermarkRect.anchorMax = new Vector2(0f, 0f);
+        watermarkRect.pivot = new Vector2(0f, 0f);
+
+        // Place it just above the DLC panels (which are 215 high)
+        watermarkRect.anchoredPosition = new Vector2(30f, 260f);
+
+        Debug.Log("[ONI_MP] BuildWatermark repositioned above promo panels.");
+    }
+
+
 }

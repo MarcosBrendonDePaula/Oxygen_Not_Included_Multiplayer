@@ -75,7 +75,7 @@ namespace ONI_MP.Networking.Components
                     FacingLeft = facingLeft
                 };
 
-                PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
+                PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.UnreliableNoNagle);
             }
         }
     }

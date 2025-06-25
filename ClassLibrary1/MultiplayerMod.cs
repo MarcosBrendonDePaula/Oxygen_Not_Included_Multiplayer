@@ -32,10 +32,10 @@ namespace ONI_MP
             SetupListeners();
             DebugConsole.Log("[ONI_MP] Loaded Oxygen Not Included Together Multiplayer Mod.");
 
-            //foreach (var res in Assembly.GetExecutingAssembly().GetManifestResourceNames())
-            //{
-            //    DebugConsole.Log("Resource: " + res);
-            //}
+            foreach (var res in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            {
+                DebugConsole.Log("Embedded Resource: " + res);
+            }
         }
 
         private void SetupListeners()

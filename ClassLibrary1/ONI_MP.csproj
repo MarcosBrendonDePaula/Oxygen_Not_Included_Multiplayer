@@ -28,6 +28,5 @@
   <ItemGroup>
     <EmbeddedResource Include="Assets\oni_together_logo.png" />
 	<EmbeddedResource Include="Assets\background-static.png" />
-	<EmbeddedResource Include="Assets\background-static2.png" />
   </ItemGroup>
 </Project>

@@ -135,7 +135,6 @@ internal static class MainMenuPatch
 
     private static void InsertStaticBackground(MainMenu menu)
     {
-        // Step 1: Find FrontEndBackground/mainmenu_border
         var border = menu.transform.Find("FrontEndBackground/mainmenu_border");
         if (border == null)
         {
@@ -143,18 +142,15 @@ internal static class MainMenuPatch
             return;
         }
 
-        // Step 2: Load both static background textures
-        Texture2D tex1 = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.background-static.png");
-        Texture2D tex2 = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.background-static2.png");
+        Texture2D texture = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.background-static.png");
 
-        if (tex1 == null || tex2 == null)
+        if (texture == null)
         {
             DebugConsole.LogError("[ONI_MP] Failed to load one or both static background textures.");
             return;
         }
 
-        Sprite sprite1 = Sprite.Create(tex1, new Rect(0, 0, tex1.width, tex1.height), new Vector2(0.5f, 0.5f), tex1.width);
-        Sprite sprite2 = Sprite.Create(tex2, new Rect(0, 0, tex2.width, tex2.height), new Vector2(0.5f, 0.5f), tex2.width);
+        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
 
         // Step 3: Create Image GameObject if it doesn't exist
         if (staticBgGO == null)
@@ -172,28 +168,8 @@ internal static class MainMenuPatch
         }
 
         var image = staticBgGO.GetComponent<UnityEngine.UI.Image>();
+        image.sprite = sprite;
         image.preserveAspect = true;
-
-        // Step 4: Start background rotation
-        menu.StartCoroutine(RotateBackground(image, sprite1, sprite2));
-        DebugConsole.Log("[ONI_MP] Rotating static background inserted.");
-    }
-
-    private static IEnumerator RotateBackground(UnityEngine.UI.Image image, Sprite sprite1, Sprite sprite2)
-    {
-        bool showFirst = true;
-        while (true)
-        {
-            image.sprite = showFirst ? sprite1 : sprite2;
-            if(showFirst)
-            {
-                // Play portal sound
-            }
-            showFirst = !showFirst;
-
-            float waitTime = UnityEngine.Random.Range(5f, 10f);
-            yield return new WaitForSeconds(waitTime);
-        }
     }
 
     private static void UpdatePromos()

@@ -80,6 +80,7 @@ namespace ONI_MP
 
     class ClientSettings
     {
+        public bool UseCustomMainMenu { get; set; } = true;
         public int MaxMessagesPerPoll { get; set; } = 16;
         public bool UseRandomPlayerColor { get; set; } = true;
         public ColorRGB PlayerColor { get; set; } = new ColorRGB(255, 255, 255);

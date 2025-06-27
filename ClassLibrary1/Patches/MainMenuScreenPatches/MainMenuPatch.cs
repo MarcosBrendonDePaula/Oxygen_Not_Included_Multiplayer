@@ -10,6 +10,7 @@ using ONI_MP.Misc;
 using UnityEngine.UI;
 using System.Collections;
 using ONI_MP.DebugTools;
+using ONI_MP;
 
 [HarmonyPatch(typeof(MainMenu), "OnPrefabInit")]
 internal static class MainMenuPatch
@@ -50,13 +51,18 @@ internal static class MainMenuPatch
         );
         makeButton.Invoke(__instance, new object[] { joinInfo });
 
-        InsertStaticBackground(__instance);
+        bool useCustomMenu = Configuration.GetClientProperty<bool>("UseCustomMainMenu");
+        if (useCustomMenu)
+        {
+            InsertStaticBackground(__instance);
+            UpdatePromos();
+            UpdateDLC();
+            UpdateBuildNumber();
+            AddSocials(__instance);
+        }
+
         UpdateLogo();
         UpdatePlacements(__instance);
-        UpdatePromos();
-        UpdateDLC();
-        UpdateBuildNumber();
-        AddSocials(__instance);
     }
 
     // Reflection utility to build ButtonInfo struct

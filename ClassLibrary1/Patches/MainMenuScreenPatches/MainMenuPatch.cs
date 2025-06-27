@@ -56,6 +56,7 @@ internal static class MainMenuPatch
         UpdatePromos();
         UpdateDLC();
         UpdateBuildNumber();
+        AddSocials(__instance);
     }
 
     // Reflection utility to build ButtonInfo struct
@@ -114,21 +115,8 @@ internal static class MainMenuPatch
                         new Vector2(0.5f, 0.5f)
                     );
                     image.sprite = newSprite;
-                    DebugConsole.Log("[ONI_MP] Replaced main menu logo with custom logo.");
-                }
-                else
-                {
-                    DebugConsole.LogWarning("[ONI_MP] Failed to load embedded logo texture.");
                 }
             }
-            else
-            {
-                DebugConsole.LogWarning("[ONI_MP] Logo GameObject found, but no Image component attached.");
-            }
-        }
-        else
-        {
-            DebugConsole.LogWarning("[ONI_MP] Could not find logo GameObject.");
         }
 
     }
@@ -137,18 +125,12 @@ internal static class MainMenuPatch
     {
         var border = menu.transform.Find("FrontEndBackground/mainmenu_border");
         if (border == null)
-        {
-            DebugConsole.LogError("[ONI_MP] Could not find mainmenu_border.");
             return;
-        }
 
         Texture2D texture = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.background-static.png");
 
         if (texture == null)
-        {
-            DebugConsole.LogError("[ONI_MP] Failed to load one or both static background textures.");
             return;
-        }
 
         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
 
@@ -176,17 +158,11 @@ internal static class MainMenuPatch
     {
         GameObject uiGroup = GameObject.Find("UI Group");
         if (uiGroup == null)
-        {
-            DebugConsole.LogWarning("[ONI_MP] UI Group not found.");
             return;
-        }
 
         GameObject topLeftColumns = GameObject.Find("TopLeftColumns");
         if (topLeftColumns == null)
-        {
-            DebugConsole.LogWarning("[ONI_MP] TopLeftColumns not found.");
             return;
-        }
 
         GameObject promoContainer = new GameObject("ONI_MP_PromoContainer", typeof(RectTransform));
         promoContainer.transform.SetParent(uiGroup.transform, false);
@@ -217,10 +193,6 @@ internal static class MainMenuPatch
                 bannerRect.sizeDelta = new Vector2(bannerWidth, bannerHeight);
                 bannerRect.anchoredPosition = new Vector2((bannerWidth + spacing) * i, 0f);
             }
-            else
-            {
-                DebugConsole.LogWarning($"[ONI_MP] Could not find {motdNames[i]} under MOTD.");
-            }
         }
     }
 
@@ -230,10 +202,7 @@ internal static class MainMenuPatch
         Transform topLeft = GameObject.Find("TopLeftColumns")?.transform;
 
         if (dlcLogos == null || topLeft == null)
-        {
-            DebugConsole.LogWarning("[ONI_MP] Could not find DLC logos or TopLeftColumns.");
             return;
-        }
 
         dlcLogos.SetParent(topLeft, true);
 
@@ -245,7 +214,6 @@ internal static class MainMenuPatch
         rect.localScale = Vector3.one;
 
         dlcLogos.SetAsFirstSibling();
-        DebugConsole.Log("[ONI_MP] Raised DLC logos to better top-left position.");
     }
 
     private static void UpdateBuildNumber()
@@ -254,16 +222,10 @@ internal static class MainMenuPatch
         GameObject watermark = GameObject.Find("BuildWatermark");
 
         if (promoContainer == null)
-        {
-            DebugConsole.LogWarning("[ONI_MP] Promo container not found. Cannot reposition build watermark.");
             return;
-        }
 
         if (watermark == null)
-        {
-            DebugConsole.LogWarning("[ONI_MP] BuildWatermark object not found.");
             return;
-        }
 
         RectTransform promoRect = promoContainer.GetComponent<RectTransform>();
         RectTransform watermarkRect = watermark.GetComponent<RectTransform>();
@@ -278,9 +240,88 @@ internal static class MainMenuPatch
 
         // Place it just above the DLC panels (which are 215 high)
         watermarkRect.anchoredPosition = new Vector2(30f, 260f);
-
-        DebugConsole.Log("[ONI_MP] BuildWatermark repositioned above promo panels.");
     }
 
+    private static void AddSocials(MainMenu menu)
+    {
+        var promoContainer = GameObject.Find("ONI_MP_PromoContainer");
+        if (promoContainer == null)
+        {
+            return;
+        }
+
+        GameObject socialsContainer = new GameObject("ONI_MP_SocialsContainer", typeof(RectTransform));
+        socialsContainer.transform.SetParent(promoContainer.transform.parent, false);
+
+        RectTransform socialsRect = socialsContainer.GetComponent<RectTransform>();
+        socialsRect.anchorMin = new Vector2(0f, 0f);
+        socialsRect.anchorMax = new Vector2(0f, 0f);
+        socialsRect.pivot = new Vector2(0f, 0f);
+
+        // place right next to the promos
+        socialsRect.anchoredPosition = new Vector2(
+            promoContainer.GetComponent<RectTransform>().anchoredPosition.x + 920f,
+            30f
+        );
+
+
+        var layout = socialsContainer.AddComponent<HorizontalLayoutGroup>();
+        layout.childAlignment = TextAnchor.MiddleLeft;
+        layout.spacing = 10f;
+        layout.childForceExpandHeight = false;
+        layout.childForceExpandWidth = false;
+        layout.childControlHeight = false;
+        layout.childControlWidth = false;
+
+        // Example Discord button
+        var discordSprite = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.discord.png");
+        AddSocialButton(socialsContainer.transform, "Join ONI Together\non Discord", "https://discord.gg/jpxveK6mmY", discordSprite);
+
+        // Automatically resize the container to properly fit the buttons
+        int buttonCount = socialsContainer.transform.childCount;
+        float buttonWidth = 96f;
+        float totalWidth = buttonCount * buttonWidth + (buttonCount - 1) * layout.spacing;
+
+        socialsRect.sizeDelta = new Vector2(totalWidth, 100f); // keep the same height
+    }
+
+    private static void AddSocialButton(Transform parent, string tooltip, string url, Texture2D spriteSheet)
+    {
+        if (spriteSheet == null)
+            return;
+
+        GameObject buttonGO = new GameObject($"SocialButton_{tooltip}", typeof(RectTransform));
+        buttonGO.transform.SetParent(parent, false);
+
+        var buttonImage = buttonGO.AddComponent<Image>();
+
+        var button = buttonGO.AddComponent<Button>();
+
+        var rectTransform = button.GetComponent<RectTransform>();
+        rectTransform.sizeDelta = new Vector2(96f, 96f);
+
+        // slice the spritesheet (3 frames horizontally)
+        Sprite normalSprite = Sprite.Create(spriteSheet, new Rect(0, 0, 512, 512), new Vector2(0.5f, 0.5f));
+        Sprite highlightedSprite = Sprite.Create(spriteSheet, new Rect(512, 0, 512, 512), new Vector2(0.5f, 0.5f));
+        Sprite pressedSprite = Sprite.Create(spriteSheet, new Rect(1024, 0, 512, 512), new Vector2(0.5f, 0.5f));
+
+        buttonImage.sprite = normalSprite;
+
+        var spriteState = new SpriteState
+        {
+            highlightedSprite = highlightedSprite,
+            pressedSprite = pressedSprite
+        };
+        button.spriteState = spriteState;
+        button.transition = Selectable.Transition.SpriteSwap;
+
+        var tooltipComp = buttonGO.AddComponent<ToolTip>();
+        tooltipComp.toolTip = tooltip;
+
+        button.onClick.AddListener(() =>
+        {
+            Application.OpenURL(url);
+        });
+    }
 
 }

@@ -4,7 +4,7 @@
 > **Note:** This is a work-in-progress project. Not to be confused with [onimp/oni_multiplayer](https://github.com/onimp/oni_multiplayer).
 
 A new mod that introduces multiplayer functionality to *Oxygen Not Included*, featuring a custom networking layer and lobby system.
-> **Note:** This mod is in the very early pre-pre alpha stage
+> **Note:** This mod is in the very early pre-pre alpha stage. Name is subject to change
 
 Join the [Discord](https://discord.gg/jpxveK6mmY)
 

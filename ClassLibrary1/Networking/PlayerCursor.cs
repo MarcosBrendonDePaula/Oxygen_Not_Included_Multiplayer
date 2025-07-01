@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ONI_MP.DebugTools;
+using ONI_MP.Misc;
 using ONI_MP.Networking.States;
 using Steamworks;
 using TMPro;
@@ -29,6 +30,8 @@ namespace ONI_MP.Networking
         private CursorState cursorState = CursorState.NONE;
 
         System.Action OnCursorStateChanged;
+
+        private Shader playerCursorShader;
 
         protected override void OnSpawn()
         {
@@ -66,7 +69,9 @@ namespace ONI_MP.Networking
             canvas.overrideSorting = true;
             canvas.sortingOrder = 100;
             SetColor(Color.white);
-            SetVisibility(false);            
+            SetVisibility(false);
+
+            playerCursorShader = ResourceLoader.LoadShaderFromBundle("playercursorbundle", "Custom/PlayerCursorAction");
         }
 
 

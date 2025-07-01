@@ -93,6 +93,10 @@ namespace ONI_MP.Networking
                 }
                 else
                 {
+                    // Hide the icon
+                    var color = cursorActionImage.color;
+                    color.a = 0f;
+                    cursorActionImage.color = color;
                     DebugConsole.LogWarning($"Sprite '{icon}' not found.");
                 }
             }
@@ -117,7 +121,7 @@ namespace ONI_MP.Networking
 
         private Image CreateCursorActionImage(GameObject parent, Sprite actionSprite)
         {
-            var imageGameObject = new GameObject("CursorActionImage") { transform = { parent = parent.transform } };
+            var imageGameObject = new GameObject($"{name}_CursorActionImage") { transform = { parent = parent.transform } };
 
             var rectTransform = imageGameObject.AddComponent<RectTransform>();
             float scale = 0.1f;
@@ -140,7 +144,7 @@ namespace ONI_MP.Networking
 
         private TextMeshProUGUI CreateCursorText(GameObject parent, Vector3 offset)
         {
-            var textGameObject = new GameObject(name) { transform = { parent = parent.transform } };
+            var textGameObject = new GameObject($"{name}_Name") { transform = { parent = parent.transform } };
 
             var rectTransform = textGameObject.AddComponent<RectTransform>();
             rectTransform.sizeDelta = new Vector2(50, 50);

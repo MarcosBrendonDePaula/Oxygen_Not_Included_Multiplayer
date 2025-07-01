@@ -197,19 +197,6 @@ namespace ONI_MP.Networking
             SetState(ClientState.Connected);
 
             // We've reconnected in game
-            if(Utils.IsInGame())
-            {
-                SetState(ClientState.InGame);
-                PacketHandler.readyToProcess = true;
-                if(IsHardSyncInProgress)
-                    IsHardSyncInProgress = false;
-                PacketSender.SendToHost(new ClientReadyStatusPacket(
-                    SteamUser.GetSteamID(),
-                    ClientReadyState.Ready
-                ));
-                MultiplayerSession.CreateConnectedPlayerCursors();
-                SelectToolPatch.UpdateColor();
-            }
             MultiplayerSession.InSession = true;
 
             var hostId = MultiplayerSession.HostSteamID;
@@ -226,6 +213,20 @@ namespace ONI_MP.Networking
             if (Utils.IsInMenu())
             {
                 MultiplayerOverlay.Show($"Waiting for {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+            } 
+            else if(Utils.IsInGame())
+            {
+                // We're in game already. Consider this a reconnection
+                SetState(ClientState.InGame);
+                PacketHandler.readyToProcess = true;
+                if (IsHardSyncInProgress)
+                    IsHardSyncInProgress = false;
+                PacketSender.SendToHost(new ClientReadyStatusPacket(
+                    SteamUser.GetSteamID(),
+                    ClientReadyState.Ready
+                ));
+                MultiplayerSession.CreateConnectedPlayerCursors();
+                SelectToolPatch.UpdateColor();
             }
         }
 

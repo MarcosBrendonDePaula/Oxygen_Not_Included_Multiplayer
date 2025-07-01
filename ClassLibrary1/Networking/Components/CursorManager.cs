@@ -79,7 +79,7 @@ namespace ONI_MP.Networking.Components
 
             if(MultiplayerSession.IsHost)
             {
-                PacketSender.SendToAllClients(packet);
+                PacketSender.SendToAllClients(packet, SteamNetworkingSend.Unreliable);
             } else
             {
                 PacketSender.SendToHost(packet, SteamNetworkingSend.Unreliable);
@@ -88,8 +88,7 @@ namespace ONI_MP.Networking.Components
 
         private Vector3 GetCursorWorldPosition()
         {
-            var camera = GameScreenManager.Instance
-                .GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
+            var camera = GameScreenManager.Instance.GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
             if (camera == null) return Vector3.zero;
 
             var canvas = GameScreenManager.Instance.ssCameraCanvas ?.GetComponent<Canvas>();

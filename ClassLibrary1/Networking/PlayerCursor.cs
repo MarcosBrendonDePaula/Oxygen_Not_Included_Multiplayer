@@ -36,6 +36,30 @@ namespace ONI_MP.Networking
         private Material playerCursorMaterial = null;
         private Material originalMaterial = null;
 
+        private readonly Dictionary<CursorState, float> cursorActionThresholds = new Dictionary<CursorState, float>()
+        {
+            { CursorState.NONE, 0.36f },
+            { CursorState.SELECT, 0.36f },
+            { CursorState.BUILD, 0.36f },
+            { CursorState.DIG, 0.36f },
+            { CursorState.CANCEL, 0.36f },
+            { CursorState.DECONSTRUCT, 0.36f },
+            { CursorState.PRIORITIZE, 0.36f },
+            { CursorState.DEPRIORITIZE, 0.36f },
+            { CursorState.SWEEP, 0.36f },
+            { CursorState.MOP, 0.36f },
+            { CursorState.HARVEST, 0.36f },
+            { CursorState.DISINFECT, 0.36f },
+            { CursorState.ATTACK, 0.36f },
+            { CursorState.CAPTURE, 0.36f },
+            { CursorState.WRANGLE, 0.36f },
+            { CursorState.EMPTY_PIPE, 0.36f },
+            { CursorState.DISCONNECT, 0.36f },
+            { CursorState.CLEAR_FLOOR, 0.36f },
+            { CursorState.MOVE_TO, 0.36f }
+        };
+
+
         protected override void OnSpawn()
         {
             base.OnSpawn();
@@ -249,6 +273,12 @@ namespace ONI_MP.Networking
             {
                 cursorImage.sprite = sprite;
                 playerCursorMaterial.SetTexture("_MainTex", sprite.texture);
+
+                if (!cursorActionThresholds.TryGetValue(cursorState, out float threshold))
+                    threshold = 0.36f;
+
+                playerCursorMaterial.SetFloat("_Threshold", threshold);
+
                 cursorImage.material = playerCursorMaterial;
                 cursorImage.rectTransform.sizeDelta = new Vector2(sprite.rect.width * size_multiplier_x, sprite.rect.height * size_multiplier_y);
                 cursorImage.color = Color.white;

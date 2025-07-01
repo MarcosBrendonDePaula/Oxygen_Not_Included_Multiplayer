@@ -35,12 +35,7 @@ namespace ONI_MP
             go.AddComponent<CursorManager>();
             SetupListeners();
 
-            // Load custom asset bundles
-            string cursor_bundle = GetBundleBasedOnPlatform("ONI_MP.Assets.bundles.playercursor_win.bundle",
-                                                            "ONI_MP.Assets.bundles.playercursor_mac.bundle",
-                                                            "ONI_MP.Assets.bundles.playercursor_lin.bundle");
-            LoadAssetBundle("playercursorbundle", cursor_bundle);
-
+            LoadAssetBundles();
 
             DebugConsole.Log("[ONI_MP] Loaded Oxygen Not Included Together Multiplayer Mod.");
 
@@ -48,6 +43,15 @@ namespace ONI_MP
             {
                 DebugConsole.Log("Embedded Resource: " + res);
             }
+        }
+
+        void LoadAssetBundles()
+        {
+            // Load custom asset bundles
+            string cursor_bundle = GetBundleBasedOnPlatform("ONI_MP.Assets.bundles.playercursor_win.bundle",
+                                                            "ONI_MP.Assets.bundles.playercursor_mac.bundle",
+                                                            "ONI_MP.Assets.bundles.playercursor_lin.bundle");
+            LoadAssetBundle("playercursorbundle", cursor_bundle);
         }
 
         private void SetupListeners()
@@ -97,16 +101,16 @@ namespace ONI_MP
             }
         }
 
-        public string GetBundleBasedOnPlatform(params string[] platform_bundles)
+        public string GetBundleBasedOnPlatform(string windows_bundle, string mac_bundle, string linux_bundle)
         {
             switch (Application.platform)
             {
                 case RuntimePlatform.OSXPlayer:
-                    return platform_bundles[1];
+                    return mac_bundle;
                 case RuntimePlatform.LinuxPlayer:
-                    return platform_bundles[2];
+                    return linux_bundle;
                 default:
-                    return platform_bundles[0];
+                    return windows_bundle;
             }
         }
     }

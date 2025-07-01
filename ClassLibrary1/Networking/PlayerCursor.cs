@@ -20,6 +20,7 @@ namespace ONI_MP.Networking
 
         private Camera camera = null;
 
+        private Texture2D cursorTexture = null;
         private Image cursorImage = null;
         private TextMeshProUGUI cursorText = null;
 
@@ -31,8 +32,9 @@ namespace ONI_MP.Networking
         System.Action OnCursorStateChanged;
 
         private Color playerColor = Color.white;
-        private Shader playerCursorShader;
-        private Material playerCursorMaterial;
+        private Shader playerCursorShader = null;
+        private Material playerCursorMaterial = null;
+        private Material originalMaterial = null;
 
         protected override void OnSpawn()
         {
@@ -48,11 +50,12 @@ namespace ONI_MP.Networking
         {
             camera = GameScreenManager.Instance.GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
 
-            var cursorTexture = Assets.GetTexture("cursor_arrow");
+            cursorTexture = Assets.GetTexture("cursor_arrow");
             var cursor = new GameObject(name);
 
             // only a single cursor image now
             cursorImage = CreateCursorImage(cursor, cursorTexture);
+            originalMaterial = cursorImage.material;
 
             // text stays the same
             cursorText = CreateCursorText(cursor, new Vector3(cursorTexture.width, -cursorTexture.height, 0));
@@ -89,44 +92,11 @@ namespace ONI_MP.Networking
 
             if (string.IsNullOrEmpty(icon))
             {
-                // fallback to the arrow
-                var arrowTexture = Assets.GetTexture("cursor_arrow");
-                cursorImage.sprite = Sprite.Create(
-                    arrowTexture,
-                    new Rect(0, 0, arrowTexture.width, arrowTexture.height),
-                    Vector2.zero
-                );
-                //cursorImage.material = null; // clear any shader
-                cursorImage.rectTransform.sizeDelta = new Vector2(arrowTexture.width, arrowTexture.height);
-
-                // color the arrow with the player's assigned color
-                cursorImage.color = playerColor;
+                RestoreCursor();
             }
             else
             {
-                var sprite = Assets.GetSprite(icon);
-                if (sprite != null && playerCursorMaterial != null)
-                {
-                    cursorImage.sprite = sprite;
-
-                    // assign sprite texture to shader
-                    playerCursorMaterial.SetTexture("_MainTex", sprite.texture);
-
-                    // assign material
-                    cursorImage.material = playerCursorMaterial;
-
-                    // resize
-                    cursorImage.rectTransform.sizeDelta = new Vector2(sprite.rect.width * 0.1f, sprite.rect.height * 0.1f);
-
-                    // keep Image.color white, let shader recolor it
-                    cursorImage.color = Color.white;
-                }
-                else
-                {
-                    cursorImage.color = playerColor;
-                    //cursorImage.material = null;
-                    DebugConsole.LogWarning($"UpdateActionImage: Sprite '{icon}' not found or material missing.");
-                }
+                UpdateCursor(icon, 0.15f, 0.15f);
             }
         }
 
@@ -254,6 +224,39 @@ namespace ONI_MP.Networking
                 case CursorState.MOVE_TO: return "icon_action_moveto";
                 case CursorState.DISCONNECT: return "icon_action_disconnect";
                 default: return $"[{state.ToString()}]";
+            }
+        }
+
+        public void RestoreCursor()
+        {
+            if (cursorImage != null && cursorTexture != null)
+            {
+                cursorImage.sprite = Sprite.Create(
+                    cursorTexture,
+                    new Rect(0, 0, cursorTexture.width, cursorTexture.height),
+                    Vector2.zero
+                );
+                cursorImage.material = originalMaterial;
+                cursorImage.rectTransform.sizeDelta = new Vector2(cursorTexture.width, cursorTexture.height);
+                cursorImage.color = playerColor;
+            }
+        }
+
+        private void UpdateCursor(string icon, float size_multiplier_x, float size_multiplier_y)
+        {
+            var sprite = Assets.GetSprite(icon);
+            if (sprite != null && playerCursorMaterial != null)
+            {
+                cursorImage.sprite = sprite;
+                playerCursorMaterial.SetTexture("_MainTex", sprite.texture);
+                cursorImage.material = playerCursorMaterial;
+                cursorImage.rectTransform.sizeDelta = new Vector2(sprite.rect.width * size_multiplier_x, sprite.rect.height * size_multiplier_y);
+                cursorImage.color = Color.white;
+            }
+            else
+            {
+                RestoreCursor();
+                DebugConsole.LogWarning($"UpdateActionImage: Sprite '{icon}' not found or material missing.");
             }
         }
 

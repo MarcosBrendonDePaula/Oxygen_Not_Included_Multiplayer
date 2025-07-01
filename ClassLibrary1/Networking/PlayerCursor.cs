@@ -141,29 +141,6 @@ namespace ONI_MP.Networking
             return imageComponent;
         }
 
-        private Image CreateCursorActionImage(GameObject parent, Sprite actionSprite)
-        {
-            var imageGameObject = new GameObject($"{name}_CursorActionImage") { transform = { parent = parent.transform } };
-
-            var rectTransform = imageGameObject.AddComponent<RectTransform>();
-            float scale = 0.1f;
-
-            if (actionSprite != null)
-            {
-                float scaledWidth = actionSprite.rect.width * scale;
-                float scaledHeight = actionSprite.rect.height * scale;
-                rectTransform.sizeDelta = new Vector2(scaledWidth, scaledHeight);
-                rectTransform.pivot = new Vector2(0.5f, 0f); // center-bottom
-                rectTransform.anchoredPosition = new Vector2(0, -scaledHeight / 2f);
-            }
-
-            var imageComponent = imageGameObject.AddComponent<Image>();
-            imageComponent.sprite = actionSprite;
-            imageComponent.raycastTarget = false;
-
-            return imageComponent;
-        }
-
         private TextMeshProUGUI CreateCursorText(GameObject parent, Vector3 offset)
         {
             var textGameObject = new GameObject($"{name}_Name") { transform = { parent = parent.transform } };

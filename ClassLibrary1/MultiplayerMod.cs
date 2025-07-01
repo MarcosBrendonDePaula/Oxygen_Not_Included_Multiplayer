@@ -64,7 +64,7 @@ namespace ONI_MP
 
         public static AssetBundle LoadAssetBundle(string bundleKey, string resourceName)
         {
-            if (MultiplayerMod.LoadedBundles.TryGetValue(bundleKey, out var bundle))
+            if (LoadedBundles.TryGetValue(bundleKey, out var bundle))
             {
                 DebugConsole.Log($"LoadAssetBundle: Reusing cached AssetBundle '{bundleKey}'.");
                 return bundle;
@@ -75,7 +75,7 @@ namespace ONI_MP
 
             if (bundle != null)
             {
-                MultiplayerMod.LoadedBundles[bundleKey] = bundle;
+                LoadedBundles[bundleKey] = bundle;
                 DebugConsole.Log($"LoadAssetBundle: Successfully loaded AssetBundle '{bundleKey}' from resource '{resourceName}'.");
 
                 foreach (var name in bundle.GetAllAssetNames())

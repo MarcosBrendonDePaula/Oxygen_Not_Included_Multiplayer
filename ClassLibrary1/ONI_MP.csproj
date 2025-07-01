@@ -30,6 +30,8 @@
     <EmbeddedResource Include="Assets\oni_together_logo.png" />
 	<EmbeddedResource Include="Assets\background-static.png" />
 	<EmbeddedResource Include="Assets\discord.png" />
-	<EmbeddedResource Include="Assets\bundles\playercursor.bundle" />
+	<EmbeddedResource Include="Assets\bundles\playercursor_win.bundle" />
+	<EmbeddedResource Include="Assets\bundles\playercursor_mac.bundle" />
+	<EmbeddedResource Include="Assets\bundles\playercursor_lin.bundle" />
   </ItemGroup>
 </Project>

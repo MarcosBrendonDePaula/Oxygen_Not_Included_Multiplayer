@@ -36,8 +36,12 @@ namespace ONI_MP
             SetupListeners();
 
             // Load custom asset bundles
-            LoadAssetBundle("playercursorbundle", "ONI_MP.Assets.bundles.playercursor.bundle");
-            
+            string cursor_bundle = GetBundleBasedOnPlatform("ONI_MP.Assets.bundles.playercursor_win.bundle",
+                                                            "ONI_MP.Assets.bundles.playercursor_mac.bundle",
+                                                            "ONI_MP.Assets.bundles.playercursor_lin.bundle");
+            LoadAssetBundle("playercursorbundle", cursor_bundle);
+
+
             DebugConsole.Log("[ONI_MP] Loaded Oxygen Not Included Together Multiplayer Mod.");
 
             foreach (var res in Assembly.GetExecutingAssembly().GetManifestResourceNames())
@@ -69,6 +73,21 @@ namespace ONI_MP
             {
                 MultiplayerMod.LoadedBundles[bundleKey] = bundle;
                 DebugConsole.Log($"LoadAssetBundle: Successfully loaded AssetBundle '{bundleKey}' from resource '{resourceName}'.");
+
+                foreach (var name in bundle.GetAllAssetNames())
+                {
+                    DebugConsole.Log($"[ONI_MP] Bundle Asset: {name}");
+                }
+
+                foreach (var name in bundle.GetAllScenePaths())
+                {
+                    DebugConsole.Log($"[ONI_MP] Scene: {name}");
+                }
+
+                foreach (var name in bundle.GetAllAssetNames())
+                {
+                    DebugConsole.Log($"[ONI_MP] Asset: {name}");
+                }
                 return bundle;
             }
             else
@@ -78,6 +97,17 @@ namespace ONI_MP
             }
         }
 
-
+        public string GetBundleBasedOnPlatform(params string[] platform_bundles)
+        {
+            switch (Application.platform)
+            {
+                case RuntimePlatform.OSXPlayer:
+                    return platform_bundles[1];
+                case RuntimePlatform.LinuxPlayer:
+                    return platform_bundles[2];
+                default:
+                    return platform_bundles[0];
+            }
+        }
     }
 }

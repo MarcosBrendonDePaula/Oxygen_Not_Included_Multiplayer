@@ -86,8 +86,8 @@ namespace ONI_MP.Cloud
 
                     updateRequest.ProgressChanged += progress =>
                     {
-                        double percent = progress.BytesSent * 100.0 / fs.Length;
-                        MultiplayerOverlay.Show($"Uploading world: {percent:0.##}%");
+                        int percent = (int) (progress.BytesSent * 100.0 / fs.Length);
+                        MultiplayerOverlay.Show($"Uploading world: {percent}%");
                     };
 
                     var result = await updateRequest.UploadAsync();
@@ -137,8 +137,8 @@ namespace ONI_MP.Cloud
 
                     createRequest.ProgressChanged += progress =>
                     {
-                        double percent = progress.BytesSent * 100.0 / fs.Length;
-                        MultiplayerOverlay.Show($"Uploading world: {percent:0.##}%");
+                        int percent = (int) (progress.BytesSent * 100.0 / fs.Length);
+                        MultiplayerOverlay.Show($"Uploading world: {percent}%");
                     };
 
                     var result = await createRequest.UploadAsync();

@@ -47,11 +47,11 @@ namespace ONI_MP.Cloud
 
                     request.MediaDownloader.ProgressChanged += progress =>
                     {
-                        double percent = progress.BytesDownloaded > 0 && totalSize > 0
-                            ? progress.BytesDownloaded * 100.0 / totalSize
+                        int percent = progress.BytesDownloaded > 0 && totalSize > 0
+                            ? (int) (progress.BytesDownloaded * 100.0 / totalSize)
                             : 0;
 
-                        MultiplayerOverlay.Show($"Downloading world: {percent:0.##}%");
+                        MultiplayerOverlay.Show($"Downloading world: {percent}%");
                     };
 
                     request.Download(fs);

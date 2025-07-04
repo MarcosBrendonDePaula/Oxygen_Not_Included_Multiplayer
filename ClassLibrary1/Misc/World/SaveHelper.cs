@@ -114,7 +114,7 @@ public static class SaveHelper
                         await fs.WriteAsync(buffer, 0, read);
                         downloaded += read;
 
-                        double percent = totalSize > 0 ? downloaded * 100.0 / totalSize : 0;
+                        int percent = totalSize > 0 ? (int) (downloaded * 100.0 / totalSize) : 0;
                         MultiplayerOverlay.Show($"Downloading world from host: {percent:0}%");
                     }
                 }

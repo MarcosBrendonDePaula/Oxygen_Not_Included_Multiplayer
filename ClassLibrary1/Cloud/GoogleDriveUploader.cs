@@ -8,6 +8,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Events;
 using static System.Net.WebRequestMethods;
+using File = System.IO.File;
 
 namespace ONI_MP.Cloud
 {

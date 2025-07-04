@@ -16,7 +16,6 @@ namespace ONI_MP
 
         public HostSettings Host { get; set; } = new HostSettings();
         public ClientSettings Client { get; set; } = new ClientSettings();
-        public GoogleDriveSettings GoogleDrive { get; set; } = new GoogleDriveSettings();
 
         public static Configuration Instance
         {
@@ -40,7 +39,7 @@ namespace ONI_MP
 
         public static T GetGoogleDriveProperty<T>(string propertyName)
         {
-            return Instance.GetProperty<T>(Instance.GoogleDrive, propertyName);
+            return Instance.GetProperty<T>(Instance.Host.GoogleDrive, propertyName);
         }
 
         private T GetProperty<T>(object obj, string propertyName)
@@ -82,6 +81,8 @@ namespace ONI_MP
         public int MaxLobbySize { get; set; } = 4;
         public int MaxMessagesPerPoll { get; set; } = 128;
         public int SaveFileTransferChunkKB { get; set; } = 256;
+
+        public GoogleDriveSettings GoogleDrive { get; set; } = new GoogleDriveSettings();
     }
 
     class ClientSettings
@@ -96,7 +97,7 @@ namespace ONI_MP
     {
         public string CredentialsPath { get; set; } = "";
         public string TokenPath { get; set; } = "";
-        public string ApplicationName { get; set; } = "ONI Multiplayer Mod"; // default
+        public string ApplicationName { get; set; } = "ONI Multiplayer Mod";
     }
 
 

@@ -99,7 +99,6 @@ public static class SaveHelper
             using (var response = await http.GetAsync(shareLink, System.Net.Http.HttpCompletionOption.ResponseHeadersRead))
             {
                 response.EnsureSuccessStatusCode();
-                DebugConsole.Log("Got a response from the share link");
 
                 var totalSize = response.Content.Headers.ContentLength ?? 0L;
                 var downloaded = 0L;
@@ -125,9 +124,11 @@ public static class SaveHelper
                         var estimatedRemainingSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
 
                         var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
-                        string timeLeftStr = $"{(int)timeLeft.TotalSeconds}s remaining";
+                        string timeLeftStr = $"{Utils.FormatTime(timeLeft.TotalSeconds)} remaining";
 
-                        MultiplayerOverlay.Show($"Downloading world from host: {percent}%\n({timeLeftStr})");
+                        string speedStr = Utils.FormatBytes((long)bytesPerSecond) + "/s";
+
+                        MultiplayerOverlay.Show($"Downloading world from host: {percent}%\n({speedStr}, {timeLeftStr})");
                     }
                 }
             }

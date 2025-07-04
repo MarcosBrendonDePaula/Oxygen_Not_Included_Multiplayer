@@ -60,10 +60,10 @@ namespace ONI_MP.Cloud
                         var remainingBytes = totalSize - progress.BytesDownloaded;
                         var estimatedRemainingSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
 
-                        var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
-                        string timeLeftStr = $"{(int)timeLeft.TotalSeconds}s remaining";
+                        string timeLeftStr = $"{Utils.FormatTime(estimatedRemainingSeconds)} remaining";
+                        string speedStr = Utils.FormatBytes((long)bytesPerSecond) + "/s";
 
-                        MultiplayerOverlay.Show($"Downloading world: {percent}%\n({timeLeftStr})");
+                        MultiplayerOverlay.Show($"Downloading world: {percent}%\n({speedStr}, {timeLeftStr})");
                     };
 
                     request.Download(fs);
@@ -120,10 +120,10 @@ namespace ONI_MP.Cloud
                             ? remainingBytes / bytesPerSecond
                             : 0;
 
-                        var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
-                        string timeLeftStr = $"{(int)timeLeft.TotalSeconds}s remaining";
+                        string timeLeftStr = $"{Utils.FormatTime(estimatedRemainingSeconds)} remaining";
+                        string speedStr = Utils.FormatBytes((long)bytesPerSecond) + "/s";
 
-                        MultiplayerOverlay.Show($"Downloading world from host: {e.ProgressPercentage}%\n({timeLeftStr})");
+                        MultiplayerOverlay.Show($"Downloading world from host: {e.ProgressPercentage}%\n({speedStr}, {timeLeftStr})");
                     };
 
                     web.DownloadFileCompleted += (s, e) =>
@@ -143,7 +143,6 @@ namespace ONI_MP.Cloud
 
                     web.DownloadFileAsync(new Uri(shareLink), targetFile);
 
-                    // Wait for completion synchronously to match your pattern:
                     while (web.IsBusy)
                     {
                         System.Threading.Thread.Sleep(100);

@@ -2,6 +2,7 @@
 using Google.Apis.Upload;
 using ONI_MP.DebugTools;
 using ONI_MP.Menus;
+using ONI_MP.Misc;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -97,9 +98,10 @@ namespace ONI_MP.Cloud
                         var estimatedRemainingSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
 
                         var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
-                        string timeLeftStr = $"{(int)timeLeft.TotalSeconds}s remaining";
+                        string timeLeftStr = $"{Utils.FormatTime(timeLeft.TotalSeconds)} remaining";
+                        string speedStr = Utils.FormatBytes((long)bytesPerSecond) + "/s";
 
-                        MultiplayerOverlay.Show($"Uploading world: {percent}%\n({timeLeftStr})");
+                        MultiplayerOverlay.Show($"Uploading world: {percent}%\n({speedStr}, {timeLeftStr})");
                     };
 
                     var result = await updateRequest.UploadAsync();
@@ -160,9 +162,10 @@ namespace ONI_MP.Cloud
                         var estimatedRemainingSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
 
                         var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
-                        string timeLeftStr = $"{(int)timeLeft.TotalSeconds}s remaining";
+                        string timeLeftStr = $"{Utils.FormatTime(timeLeft.TotalSeconds)} remaining";
+                        string speedStr = Utils.FormatBytes((long)bytesPerSecond) + "/s";
 
-                        MultiplayerOverlay.Show($"Uploading world: {percent}%\n({timeLeftStr})");
+                        MultiplayerOverlay.Show($"Uploading world: {percent}%\n({speedStr}, {timeLeftStr})");
                     };
 
                     var result = await createRequest.UploadAsync();

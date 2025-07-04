@@ -80,7 +80,6 @@ public static class SaveHelper
     public static async Task DownloadSaveAsync(string shareLink, string fileName, System.Action OnCompleted, System.Action OnFailed)
     {
         MultiplayerOverlay.Show("Downloading world from host...");
-        DebugConsole.Log("Download starting...");
 
         try
         {
@@ -116,8 +115,7 @@ public static class SaveHelper
                         downloaded += read;
 
                         double percent = totalSize > 0 ? downloaded * 100.0 / totalSize : 0;
-                        MultiplayerOverlay.Show($"Downloading world from host: {percent:0.##}%");
-                        DebugConsole.Log($"Downloading world from host: {percent:0.##}%");
+                        MultiplayerOverlay.Show($"Downloading world from host: {percent:0}%");
                     }
                 }
             }

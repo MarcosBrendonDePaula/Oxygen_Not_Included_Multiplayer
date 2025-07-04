@@ -178,7 +178,7 @@ namespace ONI_MP.Networking
 
             DebugConsole.Log($"[GameServer] Connection to {clientId} fully established!");
             //SaveFileRequestPacket.SendSaveFile(clientId); // Old method
-            GoogleDriveUtils.UploadAndSendToClient(clientId); // Upload to googledrive and send to the client
+            //GoogleDriveUtils.UploadAndSendToClient(clientId); // Upload to googledrive and send to the client
         }
 
 

@@ -11,6 +11,7 @@ using ONI_MP.Networking.Packets.Core;
 using System.Collections;
 using UnityEngine;
 using ONI_MP.Patches.ToolPatches;
+using ONI_MP.Networking.Packets.World;
 
 namespace ONI_MP.Networking
 {
@@ -213,6 +214,11 @@ namespace ONI_MP.Networking
             if (Utils.IsInMenu())
             {
                 MultiplayerOverlay.Show($"Waiting for {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+                var packet = new SaveFileRequestPacket 
+                { 
+                    Requester = MultiplayerSession.LocalSteamID
+                };
+                PacketSender.SendToHost(packet);
             } 
             else if(Utils.IsInGame())
             {

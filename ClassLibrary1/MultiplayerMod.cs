@@ -56,8 +56,17 @@ namespace ONI_MP
 
             try
             {
+                GoogleDrive.Instance.OnInitialized.AddListener(() =>
+                {
+                    GoogleDrive.Instance.Uploader.OnUploadStarted.AddListener(() =>
+                    {
+                        SpeedControlScreen.Instance?.Pause(false); // Pause the game when uploading starts
+                    });
+                });
+
                 GoogleDrive.Instance.Initialize(credentialsPath, tokenPath);
                 DebugConsole.Log("GoogleDrive initialized and ready!");
+
             }
             catch (Exception ex)
             {

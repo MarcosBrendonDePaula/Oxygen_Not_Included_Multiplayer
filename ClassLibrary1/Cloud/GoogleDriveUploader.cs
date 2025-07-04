@@ -5,16 +5,16 @@ using ONI_MP.Menus;
 using System;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace ONI_MP.Cloud
 {
     public class GoogleDriveUploader
     {
         private readonly DriveService _service;
-
-        public event System.Action OnUploadStarted;
-        public event System.Action<string> OnUploadFinished;
-        public event System.Action<Exception> OnUploadFailed;
+        public UnityEvent OnUploadStarted { get; } = new UnityEvent();
+        public UnityEvent<string> OnUploadFinished { get; } = new UnityEvent<string>();
+        public UnityEvent<Exception> OnUploadFailed { get; } = new UnityEvent<Exception>();
 
         public GoogleDriveUploader(DriveService service)
         {

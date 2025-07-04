@@ -8,6 +8,7 @@ using UnityEngine;
 using ONI_MP.Networking.States;
 using ONI_MP.Networking.Packets.World;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Cloud;
 
 namespace ONI_MP.Networking
 {
@@ -176,7 +177,8 @@ namespace ONI_MP.Networking
             player.Connection = conn;
 
             DebugConsole.Log($"[GameServer] Connection to {clientId} fully established!");
-            SaveFileRequestPacket.SendSaveFile(clientId);
+            //SaveFileRequestPacket.SendSaveFile(clientId); // Old method
+            GoogleDriveUtils.UploadAndSendToClient(clientId); // Upload to googledrive and send to the client
         }
 
 

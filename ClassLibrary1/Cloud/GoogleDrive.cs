@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace ONI_MP.Cloud
 {
@@ -27,6 +28,7 @@ namespace ONI_MP.Cloud
 
         public GoogleDriveUploader Uploader { get; private set; }
         public GoogleDriveDownloader Downloader { get; private set; }
+        public UnityEvent OnInitialized { get; } = new UnityEvent();
 
         /// <summary>
         /// Initializes the Google Drive service using user-provided credentials and token,
@@ -44,12 +46,6 @@ namespace ONI_MP.Cloud
             {
                 DebugConsole.LogError($"GoogleDrive: credentials.json not found at {credentialsPath}", false);
                 //throw new FileNotFoundException("credentials.json missing", credentialsPath);
-                return;
-            }
-
-            if (!File.Exists(tokenPath))
-            {
-                DebugConsole.LogError($"GoogleDrive: token.json not found at {tokenPath}", false);
                 return;
             }
 
@@ -82,6 +78,7 @@ namespace ONI_MP.Cloud
 
             DebugConsole.Log($"GoogleDrive: Initialized successfully with application name '{_applicationName}'.");
             _initialized = _service != null;
+            OnInitialized.Invoke();
         }
     }
 }

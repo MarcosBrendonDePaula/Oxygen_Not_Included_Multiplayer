@@ -66,7 +66,7 @@ namespace ONI_MP.Cloud
             {
                 OnUploadFailed?.Invoke(ex);
                 MultiplayerOverlay.Show($"Upload failed: {ex.Message}");
-                CoroutineRunner.RunOne(WaitAndHide());
+                FinishUploading(3);
             }
         }
 
@@ -97,7 +97,7 @@ namespace ONI_MP.Cloud
                         DebugConsole.LogError($"GoogleDriveUploader: Overwrite failed - {result.Exception}", false);
                         OnUploadFailed?.Invoke(result.Exception);
                         MultiplayerOverlay.Show($"Upload failed: {result.Exception?.Message}");
-                        CoroutineRunner.RunOne(WaitAndHide());
+                        FinishUploading(3);
                         return;
                     }
 
@@ -117,7 +117,7 @@ namespace ONI_MP.Cloud
             {
                 OnUploadFailed?.Invoke(ex);
                 MultiplayerOverlay.Show($"Overwrite failed: {ex.Message}");
-                CoroutineRunner.RunOne(WaitAndHide());
+                FinishUploading(3);
             }
         }
 
@@ -148,7 +148,7 @@ namespace ONI_MP.Cloud
                         DebugConsole.LogError($"GoogleDriveUploader: Upload failed - {result.Exception}", false);
                         OnUploadFailed?.Invoke(result.Exception);
                         MultiplayerOverlay.Show($"Upload failed: {result.Exception?.Message}");
-                        CoroutineRunner.RunOne(WaitAndHide());
+                        FinishUploading(3);
                         return;
                     }
 
@@ -169,7 +169,7 @@ namespace ONI_MP.Cloud
             {
                 OnUploadFailed?.Invoke(ex);
                 MultiplayerOverlay.Show($"Upload failed: {ex.Message}");
-                CoroutineRunner.RunOne(WaitAndHide());
+                FinishUploading(3);
             }
         }
 
@@ -189,7 +189,7 @@ namespace ONI_MP.Cloud
 
             OnUploadFinished?.Invoke(link);
             MultiplayerOverlay.Show("Upload complete!");
-            CoroutineRunner.RunOne(WaitAndHide());
+            FinishUploading();
         }
 
         public async Task<string> GetOrCreateFolderAsync(string folderName)
@@ -220,11 +220,12 @@ namespace ONI_MP.Cloud
             return folder.Id;
         }
 
-        private IEnumerator WaitAndHide()
+        private async void FinishUploading(int seconds = 1)
         {
-            yield return new WaitForSeconds(1f);
+            await Task.Delay(seconds * 1000); // wait for 1 second
             MultiplayerOverlay.Close();
             IsUploading = false;
         }
+
     }
 }

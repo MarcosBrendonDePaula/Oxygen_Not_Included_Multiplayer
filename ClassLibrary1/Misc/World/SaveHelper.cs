@@ -74,7 +74,7 @@ public static class SaveHelper
     }
 
     /// <summary>
-    /// Downloads a save file from a Google Drive share link to a known location.
+    /// Downloads a save file from a Google Drive share link to a known location. GOOGLE DRIVE DOES NOT NEED TO BE INITIALIZED HERE
     /// </summary>
     public static void DownloadSave(string shareLink, string fileName, System.Action OnCompleted, System.Action OnFailed)
     {

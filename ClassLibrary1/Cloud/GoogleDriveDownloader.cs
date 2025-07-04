@@ -38,20 +38,32 @@ namespace ONI_MP.Cloud
                 OnDownloadStarted?.Invoke();
                 MultiplayerOverlay.Show("Starting download...");
 
+                var startTime = System.DateTime.UtcNow;
+
                 using (var fs = new FileStream(localDestinationPath, FileMode.Create))
                 {
                     var request = _service.Files.Get(fileId);
 
-                    var fileMetadata = _service.Files.Get(fileId).Execute();
+                    var fileMetadata = request.Execute();
                     long totalSize = fileMetadata.Size ?? 0;
 
                     request.MediaDownloader.ProgressChanged += progress =>
                     {
-                        int percent = progress.BytesDownloaded > 0 && totalSize > 0
-                            ? (int) (progress.BytesDownloaded * 100.0 / totalSize)
+                        int percent = totalSize > 0
+                            ? (int)(progress.BytesDownloaded * 100.0 / totalSize)
                             : 0;
 
-                        MultiplayerOverlay.Show($"Downloading world: {percent}%");
+                        var elapsed = System.DateTime.UtcNow - startTime;
+                        double elapsedSeconds = elapsed.TotalSeconds > 0 ? elapsed.TotalSeconds : 1;
+                        double bytesPerSecond = progress.BytesDownloaded / elapsedSeconds;
+
+                        var remainingBytes = totalSize - progress.BytesDownloaded;
+                        var estimatedRemainingSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
+
+                        var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
+                        string timeLeftStr = $"{(int)timeLeft.TotalSeconds}s remaining";
+
+                        MultiplayerOverlay.Show($"Downloading world: {percent}%\n({timeLeftStr})");
                     };
 
                     request.Download(fs);
@@ -90,11 +102,28 @@ namespace ONI_MP.Cloud
 
                 Directory.CreateDirectory(Path.GetDirectoryName(targetFile));
 
+                var startTime = System.DateTime.UtcNow;
+
                 using (var web = new System.Net.WebClient())
                 {
                     web.DownloadProgressChanged += (s, e) =>
                     {
-                        MultiplayerOverlay.Show($"Downloading world from host: {e.ProgressPercentage}%");
+                        var elapsed = System.DateTime.UtcNow - startTime;
+                        double elapsedSeconds = elapsed.TotalSeconds > 0 ? elapsed.TotalSeconds : 1;
+                        double bytesPerSecond = e.BytesReceived / elapsedSeconds;
+
+                        var remainingBytes = e.TotalBytesToReceive > 0
+                            ? e.TotalBytesToReceive - e.BytesReceived
+                            : 0;
+
+                        var estimatedRemainingSeconds = bytesPerSecond > 0
+                            ? remainingBytes / bytesPerSecond
+                            : 0;
+
+                        var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
+                        string timeLeftStr = $"{(int)timeLeft.TotalSeconds}s remaining";
+
+                        MultiplayerOverlay.Show($"Downloading world from host: {e.ProgressPercentage}%\n({timeLeftStr})");
                     };
 
                     web.DownloadFileCompleted += (s, e) =>

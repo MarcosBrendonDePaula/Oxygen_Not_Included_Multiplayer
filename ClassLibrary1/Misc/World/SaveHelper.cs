@@ -103,6 +103,7 @@ public static class SaveHelper
 
                 var totalSize = response.Content.Headers.ContentLength ?? 0L;
                 var downloaded = 0L;
+                var startTime = System.DateTime.UtcNow;
 
                 using (var stream = await response.Content.ReadAsStreamAsync())
                 using (var fs = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -114,8 +115,19 @@ public static class SaveHelper
                         await fs.WriteAsync(buffer, 0, read);
                         downloaded += read;
 
-                        int percent = totalSize > 0 ? (int) (downloaded * 100.0 / totalSize) : 0;
-                        MultiplayerOverlay.Show($"Downloading world from host: {percent:0}%");
+                        int percent = totalSize > 0 ? (int)(downloaded * 100.0 / totalSize) : 0;
+
+                        var elapsed = System.DateTime.UtcNow - startTime;
+                        double elapsedSeconds = elapsed.TotalSeconds > 0 ? elapsed.TotalSeconds : 1;
+                        double bytesPerSecond = downloaded / elapsedSeconds;
+
+                        var remainingBytes = totalSize - downloaded;
+                        var estimatedRemainingSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
+
+                        var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
+                        string timeLeftStr = $"{(int)timeLeft.TotalSeconds}s remaining";
+
+                        MultiplayerOverlay.Show($"Downloading world from host: {percent}%\n({timeLeftStr})");
                     }
                 }
             }

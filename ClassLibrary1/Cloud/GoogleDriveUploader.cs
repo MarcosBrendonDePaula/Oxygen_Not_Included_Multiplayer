@@ -3,7 +3,6 @@ using Google.Apis.Upload;
 using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using System;
-using System.Collections;
 using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -79,6 +78,8 @@ namespace ONI_MP.Cloud
                     Name = Path.GetFileName(localFilePath)
                 };
 
+                var startTime = System.DateTime.UtcNow;
+
                 using (var fs = new FileStream(localFilePath, FileMode.Open))
                 {
                     var updateRequest = _service.Files.Update(metadata, existingFileId, fs, "application/octet-stream");
@@ -86,8 +87,19 @@ namespace ONI_MP.Cloud
 
                     updateRequest.ProgressChanged += progress =>
                     {
-                        int percent = (int) (progress.BytesSent * 100.0 / fs.Length);
-                        MultiplayerOverlay.Show($"Uploading world: {percent}%");
+                        int percent = (int)(progress.BytesSent * 100.0 / fs.Length);
+
+                        var elapsed = System.DateTime.UtcNow - startTime;
+                        double elapsedSeconds = elapsed.TotalSeconds > 0 ? elapsed.TotalSeconds : 1;
+                        double bytesPerSecond = progress.BytesSent / elapsedSeconds;
+
+                        var remainingBytes = fs.Length - progress.BytesSent;
+                        var estimatedRemainingSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
+
+                        var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
+                        string timeLeftStr = $"{(int)timeLeft.TotalSeconds}s remaining";
+
+                        MultiplayerOverlay.Show($"Uploading world: {percent}%\n({timeLeftStr})");
                     };
 
                     var result = await updateRequest.UploadAsync();
@@ -101,7 +113,6 @@ namespace ONI_MP.Cloud
                         return;
                     }
 
-                    // after upload, move to correct folder if needed
                     if (!string.IsNullOrEmpty(folderId))
                     {
                         var moveRequest = _service.Files.Update(new Google.Apis.Drive.v3.Data.File(), existingFileId);
@@ -130,6 +141,8 @@ namespace ONI_MP.Cloud
                     Name = Path.GetFileName(localFilePath)
                 };
 
+                var startTime = System.DateTime.UtcNow;
+
                 using (var fs = new FileStream(localFilePath, FileMode.Open))
                 {
                     var createRequest = _service.Files.Create(metadata, fs, "application/octet-stream");
@@ -137,8 +150,19 @@ namespace ONI_MP.Cloud
 
                     createRequest.ProgressChanged += progress =>
                     {
-                        int percent = (int) (progress.BytesSent * 100.0 / fs.Length);
-                        MultiplayerOverlay.Show($"Uploading world: {percent}%");
+                        int percent = (int)(progress.BytesSent * 100.0 / fs.Length);
+
+                        var elapsed = System.DateTime.UtcNow - startTime;
+                        double elapsedSeconds = elapsed.TotalSeconds > 0 ? elapsed.TotalSeconds : 1;
+                        double bytesPerSecond = progress.BytesSent / elapsedSeconds;
+
+                        var remainingBytes = fs.Length - progress.BytesSent;
+                        var estimatedRemainingSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
+
+                        var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
+                        string timeLeftStr = $"{(int)timeLeft.TotalSeconds}s remaining";
+
+                        MultiplayerOverlay.Show($"Uploading world: {percent}%\n({timeLeftStr})");
                     };
 
                     var result = await createRequest.UploadAsync();
@@ -175,7 +199,6 @@ namespace ONI_MP.Cloud
 
         private void GrantPublicAccessAndFinish(string uploadedFileId)
         {
-            // grant public read access
             var permission = new Google.Apis.Drive.v3.Data.Permission
             {
                 Type = "anyone",
@@ -194,7 +217,6 @@ namespace ONI_MP.Cloud
 
         public async Task<string> GetOrCreateFolderAsync(string folderName)
         {
-            // 1. Search for existing
             var listRequest = _service.Files.List();
             listRequest.Q = $"mimeType='application/vnd.google-apps.folder' and name='{folderName}' and trashed=false";
             listRequest.Fields = "files(id, name)";
@@ -205,7 +227,6 @@ namespace ONI_MP.Cloud
                 return folders.Files[0].Id;
             }
 
-            // 2. If not found, create it
             var metadata = new Google.Apis.Drive.v3.Data.File
             {
                 Name = folderName,
@@ -222,10 +243,9 @@ namespace ONI_MP.Cloud
 
         private async void FinishUploading(int seconds = 1)
         {
-            await Task.Delay(seconds * 1000); // wait for 1 second
+            await Task.Delay(seconds * 1000);
             MultiplayerOverlay.Close();
             IsUploading = false;
         }
-
     }
 }

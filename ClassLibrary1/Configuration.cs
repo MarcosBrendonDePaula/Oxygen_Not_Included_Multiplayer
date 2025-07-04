@@ -16,6 +16,7 @@ namespace ONI_MP
 
         public HostSettings Host { get; set; } = new HostSettings();
         public ClientSettings Client { get; set; } = new ClientSettings();
+        public GoogleDriveSettings GoogleDrive { get; set; } = new GoogleDriveSettings();
 
         public static Configuration Instance
         {
@@ -35,6 +36,11 @@ namespace ONI_MP
         public static T GetClientProperty<T>(string propertyName)
         {
             return Instance.GetProperty<T>(Instance.Client, propertyName);
+        }
+
+        public static T GetGoogleDriveProperty<T>(string propertyName)
+        {
+            return Instance.GetProperty<T>(Instance.GoogleDrive, propertyName);
         }
 
         private T GetProperty<T>(object obj, string propertyName)
@@ -85,6 +91,15 @@ namespace ONI_MP
         public bool UseRandomPlayerColor { get; set; } = true;
         public ColorRGB PlayerColor { get; set; } = new ColorRGB(255, 255, 255);
     }
+
+    class GoogleDriveSettings
+    {
+        public string CredentialsPath { get; set; } = "";
+        public string TokenPath { get; set; } = "";
+        public string DriveFolderId { get; set; } = "";
+        public string ApplicationName { get; set; } = "ONI Multiplayer Mod"; // default
+    }
+
 
     class ColorRGB
     {

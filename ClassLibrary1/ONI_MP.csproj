@@ -23,7 +23,7 @@
 	<Reference Include="UnityEngine.UIModule" HintPath="$(ManagedPath)\UnityEngine.UIModule.dll" Private="false" />
 	<Reference Include="UnityEngine.TextRenderingModule" HintPath="$(ManagedPath)\UnityEngine.TextRenderingModule.dll" Private="false" />
 	<Reference Include="ImGui.NET" HintPath="$(ManagedPath)\ImGui.NET.dll" Private="false" />
-	<Reference Include="Newtonsoft.Json.dll" HintPath="$(ManagedPath)\Newtonsoft.Json.dll" Private="false" />
+	<!--<Reference Include="Newtonsoft.Json.dll" HintPath="$(ManagedPath)\Newtonsoft.Json.dll" Private="false" />-->
   </ItemGroup>
 
   <ItemGroup>
@@ -33,5 +33,9 @@
 	<EmbeddedResource Include="Assets\bundles\playercursor_win.bundle" />
 	<EmbeddedResource Include="Assets\bundles\playercursor_mac.bundle" />
 	<EmbeddedResource Include="Assets\bundles\playercursor_lin.bundle" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Drive.v3" Version="1.69.0.3783" />
   </ItemGroup>
 </Project>

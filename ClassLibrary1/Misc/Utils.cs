@@ -82,27 +82,6 @@ namespace ONI_MP.Misc
         public static TMP_FontAsset GetDefaultTMPFont()
         {
             return Localization.FontAsset;
-            /*
-            var font = Resources.FindObjectsOfTypeAll<TMP_FontAsset>()
-                .FirstOrDefault(f => f.name == "NotoSans-Regular");
-
-            if (font == null)
-            {
-                DebugConsole.Log("[ONI_MP] Fallback: NotoSans-Regular not found. Attempting to use any available font.");
-
-                var fallback = Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault();
-                if (fallback != null)
-                {
-                    DebugConsole.Log($"[ONI_MP] Using fallback font: {fallback.name}");
-                    return fallback;
-                }
-
-                DebugConsole.Log("[ONI_MP] ERROR: No TMP_FontAsset found at all.");
-                return null;
-            }
-
-            return font;
-            */
         }
 
         public static List<ChunkData> CollectChunks(int startX, int startY, int chunkSize, int numChunksX, int numChunksY)

@@ -43,6 +43,7 @@ namespace ONI_MP.Networking.Packets.Architecture
         HardSyncComplete = 33, // Not in use atm
         Disinfect = 34,
         SpeedChange = 35,
-        PlayerCursor = 36
+        PlayerCursor = 36,
+        GoogleDriveFileShare = 37
     }
 }

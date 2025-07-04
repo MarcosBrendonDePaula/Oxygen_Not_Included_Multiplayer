@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ONI_MP.Networking.Packets.Cloud;
 using ONI_MP.Networking.Packets.Core;
 using ONI_MP.Networking.Packets.DuplicantActions;
 using ONI_MP.Networking.Packets.Events;
@@ -70,6 +71,7 @@ namespace ONI_MP.Networking.Packets.Architecture
             Register(PacketType.Disinfect, () => new DisinfectPacket());
             Register(PacketType.SpeedChange, () => new SpeedChangePacket());
             Register(PacketType.PlayerCursor, () => new PlayerCursorPacket());
+            Register(PacketType.GoogleDriveFileShare, () => new GoogleDriveFileSharePacket());
         }
     }
 }

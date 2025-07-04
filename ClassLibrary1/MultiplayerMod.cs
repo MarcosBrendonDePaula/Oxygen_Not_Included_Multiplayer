@@ -8,6 +8,8 @@ using ONI_MP.Components;
 using System.Reflection;
 using System.Collections.Generic;
 using ONI_MP.Misc;
+using ONI_MP.Cloud;
+using System;
 
 namespace ONI_MP
 {
@@ -27,8 +29,10 @@ namespace ONI_MP
             DebugMenu.Init();
             SteamLobby.Initialize();
 
+            InitializeCloud();
+
             var go = new GameObject("Multiplayer_Modules");
-            Object.DontDestroyOnLoad(go);
+            UnityEngine.Object.DontDestroyOnLoad(go);
             go.AddComponent<SteamNetworkingComponent>();
             go.AddComponent<UIVisibilityController>();
             go.AddComponent<MainThreadExecutor>();
@@ -42,6 +46,22 @@ namespace ONI_MP
             foreach (var res in Assembly.GetExecutingAssembly().GetManifestResourceNames())
             {
                 DebugConsole.Log("Embedded Resource: " + res);
+            }
+        }
+
+        void InitializeCloud()
+        {
+            string credentialsPath = Configuration.GetGoogleDriveProperty<string>("CredentialsPath");
+            string tokenPath = Configuration.GetGoogleDriveProperty<string>("TokenPath");
+
+            try
+            {
+                GoogleDrive.Instance.Initialize(credentialsPath, tokenPath);
+                DebugConsole.Log("GoogleDrive initialized and ready!");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogError($"GoogleDrive init failed: {ex.Message}");
             }
         }
 

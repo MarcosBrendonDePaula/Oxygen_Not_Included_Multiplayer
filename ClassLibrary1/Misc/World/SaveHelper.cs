@@ -12,6 +12,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -76,13 +77,13 @@ public static class SaveHelper
     /// <summary>
     /// Downloads a save file from a Google Drive share link to a known location. GOOGLE DRIVE DOES NOT NEED TO BE INITIALIZED HERE
     /// </summary>
-    public static void DownloadSave(string shareLink, string fileName, System.Action OnCompleted, System.Action OnFailed)
+    public static async Task DownloadSaveAsync(string shareLink, string fileName, System.Action OnCompleted, System.Action OnFailed)
     {
         MultiplayerOverlay.Show("Downloading world from host...");
+        DebugConsole.Log("Download starting...");
 
         try
         {
-            // consistent location, e.g. the normal saves folder
             var savePath = SaveLoader.GetCloudSavesDefault()
                 ? SaveLoader.GetCloudSavePrefix()
                 : SaveLoader.GetSavePrefixAndCreateFolder();
@@ -95,41 +96,42 @@ public static class SaveHelper
 
             Directory.CreateDirectory(Path.GetDirectoryName(targetFile));
 
-            using (var web = new System.Net.WebClient())
+            using (var http = new System.Net.Http.HttpClient())
+            using (var response = await http.GetAsync(shareLink, System.Net.Http.HttpCompletionOption.ResponseHeadersRead))
             {
-                web.DownloadProgressChanged += (s, e) =>
-                {
-                    MultiplayerOverlay.Show($"Downloading world from host: {e.ProgressPercentage}%");
-                };
+                response.EnsureSuccessStatusCode();
+                DebugConsole.Log("Got a response from the share link");
 
-                web.DownloadFileCompleted += (s, e) =>
+                var totalSize = response.Content.Headers.ContentLength ?? 0L;
+                var downloaded = 0L;
+
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var fs = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    if (e.Error != null)
+                    var buffer = new byte[8192];
+                    int read;
+                    while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                     {
-                        MultiplayerOverlay.Show($"Download failed: {e.Error.Message}");
-                        DebugConsole.LogError($"[SaveHelper] Download failed: {e.Error.Message}");
-                        OnFailed?.Invoke();
-                        return;
+                        await fs.WriteAsync(buffer, 0, read);
+                        downloaded += read;
+
+                        double percent = totalSize > 0 ? downloaded * 100.0 / totalSize : 0;
+                        MultiplayerOverlay.Show($"Downloading world from host: {percent:0.##}%");
+                        DebugConsole.Log($"Downloading world from host: {percent:0.##}%");
                     }
-
-                    MultiplayerOverlay.Show("Download complete!");
-                    DebugConsole.Log($"[SaveHelper] Downloaded to: {targetFile}");
-                    OnCompleted?.Invoke();
-                };
-
-                web.DownloadFileAsync(new Uri(shareLink), targetFile);
-
-                // Wait for completion in a blocking way to keep your current sync pattern:
-                while (web.IsBusy)
-                {
-                    System.Threading.Thread.Sleep(100); // or yield in a coroutine if you prefer
                 }
             }
+
+            DebugConsole.Log("Download complete!");
+            MultiplayerOverlay.Show("Download complete!");
+            DebugConsole.Log($"[SaveHelper] Downloaded to: {targetFile}");
+            OnCompleted?.Invoke();
         }
         catch (Exception ex)
         {
             MultiplayerOverlay.Show($"Download failed: {ex.Message}");
             DebugConsole.LogError($"[SaveHelper] Download failed: {ex.Message}");
+            OnFailed?.Invoke();
         }
     }
 

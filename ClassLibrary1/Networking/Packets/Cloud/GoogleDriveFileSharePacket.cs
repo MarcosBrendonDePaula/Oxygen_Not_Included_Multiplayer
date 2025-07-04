@@ -1,7 +1,9 @@
 ﻿using ONI_MP.DebugTools;
 using ONI_MP.Menus;
+using ONI_MP.Misc;
 using ONI_MP.Misc.World;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.States;
 using System;
 using System.IO;
 
@@ -35,25 +37,27 @@ namespace ONI_MP.Networking.Packets.Cloud
 
             DebugConsole.Log($"[GoogleDriveFileSharePacket] Received file share link for {FileName}: {ShareLink}");
 
-            if (!Misc.Utils.IsInGame())
+            if (Utils.IsInGame())
             {
                 return;
             }
 
-            SaveHelper.DownloadSave(
-                ShareLink,
-                FileName,
-                OnCompleted: () =>
-                {
-                    DebugConsole.Log($"[GoogleDriveFileSharePacket] Download complete, loading {FileName}");
-                    SaveHelper.LoadDownloadedSave(FileName);
-                },
-                OnFailed: () =>
-                {
-                    DebugConsole.LogError($"[GoogleDriveFileSharePacket] Download failed for {FileName}");
-                    MultiplayerOverlay.Show("Could not download the world file from the host.");
-                }
-            );
+            DebugConsole.Log("Trying to download");
+            _ = SaveHelper.DownloadSaveAsync(
+                    ShareLink,
+                    FileName,
+                    OnCompleted: () =>
+                    {
+                        DebugConsole.Log($"[GoogleDriveFileSharePacket] Download complete, loading {FileName}");
+                        SaveHelper.LoadDownloadedSave(FileName);
+                    },
+                    OnFailed: () =>
+                    {
+                        DebugConsole.LogError($"[GoogleDriveFileSharePacket] Download failed for {FileName}");
+                        MultiplayerOverlay.Show("Could not download the world file from the host.");
+                    }
+                );
+
         }
 
     }

@@ -28,6 +28,11 @@ namespace ONI_MP.Networking.Packets.Cloud
 
         public void OnDispatched()
         {
+            if(MultiplayerSession.IsHost)
+            {
+                return; // Host does nothing here
+            }
+
             DebugConsole.Log($"[GoogleDriveFileSharePacket] Received file share link for {FileName}: {ShareLink}");
 
             if (!Misc.Utils.IsInGame())

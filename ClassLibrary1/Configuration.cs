@@ -96,7 +96,6 @@ namespace ONI_MP
     {
         public string CredentialsPath { get; set; } = "";
         public string TokenPath { get; set; } = "";
-        public string DriveFolderId { get; set; } = "";
         public string ApplicationName { get; set; } = "ONI Multiplayer Mod"; // default
     }
 

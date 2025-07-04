@@ -7,6 +7,7 @@ using System.Collections;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Events;
+using static System.Net.WebRequestMethods;
 
 namespace ONI_MP.Cloud
 {
@@ -68,14 +69,14 @@ namespace ONI_MP.Cloud
             }
         }
 
-        private void OverwriteFile(string localFilePath, string existingFileId, string driveFolderId)
+        private void OverwriteFile(string localFilePath, string existingFileId, string folderId)
         {
             try
             {
                 var metadata = new Google.Apis.Drive.v3.Data.File
                 {
-                    Name = Path.GetFileName(localFilePath),
-                    Parents = driveFolderId != null ? new[] { driveFolderId } : null
+                    Name = Path.GetFileName(localFilePath)
+                    // DO NOT set Parents on an update
                 };
 
                 using (var fs = new FileStream(localFilePath, FileMode.Open))
@@ -100,6 +101,15 @@ namespace ONI_MP.Cloud
                         return;
                     }
 
+                    // after upload, move to correct folder if needed
+                    if (!string.IsNullOrEmpty(folderId))
+                    {
+                        var moveRequest = _service.Files.Update(new Google.Apis.Drive.v3.Data.File(), existingFileId);
+                        moveRequest.AddParents = folderId;
+                        moveRequest.Fields = "id, parents";
+                        moveRequest.Execute();
+                    }
+
                     GrantPublicAccessAndFinish(updateRequest.ResponseBody.Id);
                 }
             }
@@ -111,14 +121,14 @@ namespace ONI_MP.Cloud
             }
         }
 
-        private void UploadNewFile(string localFilePath, string driveFolderId)
+        private void UploadNewFile(string localFilePath, string folderId)
         {
             try
             {
                 var metadata = new Google.Apis.Drive.v3.Data.File
                 {
-                    Name = Path.GetFileName(localFilePath),
-                    Parents = driveFolderId != null ? new[] { driveFolderId } : null
+                    Name = Path.GetFileName(localFilePath)
+                    // do not set Parents directly
                 };
 
                 using (var fs = new FileStream(localFilePath, FileMode.Open))
@@ -143,7 +153,18 @@ namespace ONI_MP.Cloud
                         return;
                     }
 
-                    GrantPublicAccessAndFinish(createRequest.ResponseBody.Id);
+                    var uploadedFileId = createRequest.ResponseBody.Id;
+
+                    // after upload, move to correct folder
+                    if (!string.IsNullOrEmpty(folderId))
+                    {
+                        var moveRequest = _service.Files.Update(new Google.Apis.Drive.v3.Data.File(), uploadedFileId);
+                        moveRequest.AddParents = folderId;
+                        moveRequest.Fields = "id, parents";
+                        moveRequest.Execute();
+                    }
+
+                    GrantPublicAccessAndFinish(uploadedFileId);
                 }
             }
             catch (Exception ex)
@@ -164,7 +185,8 @@ namespace ONI_MP.Cloud
             };
             _service.Permissions.Create(permission, uploadedFileId).Execute();
 
-            string link = $"https://drive.google.com/uc?id={uploadedFileId}&export=download";
+            //string view_link = $"https://drive.google.com/file/d/{uploadedFileId}/view?usp=drive_link";
+            string link = $"https://drive.usercontent.google.com/u/0/uc?id={uploadedFileId}&export=download";
 
             DebugConsole.Log($"GoogleDriveUploader: Upload successful. Shareable link: {link}");
 
@@ -172,6 +194,35 @@ namespace ONI_MP.Cloud
             MultiplayerOverlay.Show("Upload complete!");
             CoroutineRunner.RunOne(WaitAndHide());
         }
+
+        public string GetOrCreateFolder(string folderName)
+        {
+            // 1. Search for existing
+            var listRequest = _service.Files.List();
+            listRequest.Q = $"mimeType='application/vnd.google-apps.folder' and name='{folderName}' and trashed=false";
+            listRequest.Fields = "files(id, name)";
+            var folders = listRequest.Execute();
+
+            if (folders.Files != null && folders.Files.Count > 0)
+            {
+                return folders.Files[0].Id;
+            }
+
+            // 2. If not found, create it
+            var metadata = new Google.Apis.Drive.v3.Data.File
+            {
+                Name = folderName,
+                MimeType = "application/vnd.google-apps.folder"
+            };
+
+            var createRequest = _service.Files.Create(metadata);
+            createRequest.Fields = "id";
+            var folder = createRequest.Execute();
+
+            DebugConsole.Log($"GoogleDriveUploader: Created new folder '{folderName}' with ID {folder.Id}");
+            return folder.Id;
+        }
+
 
         IEnumerator WaitAndHide()
         {

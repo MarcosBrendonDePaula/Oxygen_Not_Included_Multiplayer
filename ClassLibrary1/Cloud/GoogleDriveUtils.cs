@@ -55,12 +55,8 @@ namespace ONI_MP.Cloud
             var path = SaveLoader.GetActiveSaveFilePath();
             SaveLoader.Instance.Save(path); // Saves current state to that file
 
-            string driveFolderId = Configuration.GetGoogleDriveProperty<string>("DriveFolderId");
-            if (string.IsNullOrEmpty(driveFolderId))
-            {
-                driveFolderId = null;
-            }
-            GoogleDrive.Instance.Uploader.UploadFile(path, driveFolderId);
+            var folderId = GoogleDrive.Instance.Uploader.GetOrCreateFolder("Oxygen Not Included Multiplayer Saves");
+            GoogleDrive.Instance.Uploader.UploadFile(path, folderId);
         }
 
     }

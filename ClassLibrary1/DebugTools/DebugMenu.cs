@@ -102,9 +102,12 @@ namespace ONI_MP.DebugTools
 
                     GUILayout.Space(10);
                     GUILayout.Label($"Google Drive");
-                    if (GUILayout.Button("Test Upload"))
+                    if (MultiplayerSession.IsHost)
                     {
-                        GoogleDriveUtils.UploadSaveFile();
+                        if (GUILayout.Button("Test Upload"))
+                        {
+                            GoogleDriveUtils.UploadSaveFile();
+                        }
                     }
                     //DrawPlayerList();
                 }

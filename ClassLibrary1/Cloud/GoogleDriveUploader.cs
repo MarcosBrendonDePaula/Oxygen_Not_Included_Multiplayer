@@ -5,9 +5,9 @@ using ONI_MP.Menus;
 using System;
 using System.Collections;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
-using static System.Net.WebRequestMethods;
 using File = System.IO.File;
 
 namespace ONI_MP.Cloud
@@ -27,7 +27,7 @@ namespace ONI_MP.Cloud
             _service = service;
         }
 
-        public void UploadFile(string localFilePath, string driveFolderId = null)
+        public async void UploadFile(string localFilePath, string driveFolderId = null)
         {
             if (!GoogleDrive.Instance.IsInitialized)
             {
@@ -51,15 +51,15 @@ namespace ONI_MP.Cloud
                 var listRequest = _service.Files.List();
                 listRequest.Q = $"name='{Path.GetFileName(localFilePath)}' and trashed=false";
                 listRequest.Fields = "files(id, name)";
-                var existingFiles = listRequest.Execute();
+                var existingFiles = await listRequest.ExecuteAsync();
 
                 if (existingFiles.Files != null && existingFiles.Files.Count > 0)
                 {
-                    OverwriteFile(localFilePath, existingFiles.Files[0].Id, driveFolderId);
+                    await OverwriteFileAsync(localFilePath, existingFiles.Files[0].Id, driveFolderId);
                 }
                 else
                 {
-                    UploadNewFile(localFilePath, driveFolderId);
+                    await UploadNewFileAsync(localFilePath, driveFolderId);
                 }
             }
             catch (Exception ex)
@@ -70,14 +70,13 @@ namespace ONI_MP.Cloud
             }
         }
 
-        private void OverwriteFile(string localFilePath, string existingFileId, string folderId)
+        private async Task OverwriteFileAsync(string localFilePath, string existingFileId, string folderId)
         {
             try
             {
                 var metadata = new Google.Apis.Drive.v3.Data.File
                 {
                     Name = Path.GetFileName(localFilePath)
-                    // DO NOT set Parents on an update
                 };
 
                 using (var fs = new FileStream(localFilePath, FileMode.Open))
@@ -91,7 +90,7 @@ namespace ONI_MP.Cloud
                         MultiplayerOverlay.Show($"Uploading world: {percent:0.##}%");
                     };
 
-                    var result = updateRequest.Upload();
+                    var result = await updateRequest.UploadAsync();
 
                     if (result.Status != UploadStatus.Completed)
                     {
@@ -108,7 +107,7 @@ namespace ONI_MP.Cloud
                         var moveRequest = _service.Files.Update(new Google.Apis.Drive.v3.Data.File(), existingFileId);
                         moveRequest.AddParents = folderId;
                         moveRequest.Fields = "id, parents";
-                        moveRequest.Execute();
+                        await moveRequest.ExecuteAsync();
                     }
 
                     GrantPublicAccessAndFinish(updateRequest.ResponseBody.Id);
@@ -122,14 +121,13 @@ namespace ONI_MP.Cloud
             }
         }
 
-        private void UploadNewFile(string localFilePath, string folderId)
+        private async Task UploadNewFileAsync(string localFilePath, string folderId)
         {
             try
             {
                 var metadata = new Google.Apis.Drive.v3.Data.File
                 {
                     Name = Path.GetFileName(localFilePath)
-                    // do not set Parents directly
                 };
 
                 using (var fs = new FileStream(localFilePath, FileMode.Open))
@@ -143,7 +141,7 @@ namespace ONI_MP.Cloud
                         MultiplayerOverlay.Show($"Uploading world: {percent:0.##}%");
                     };
 
-                    var result = createRequest.Upload();
+                    var result = await createRequest.UploadAsync();
 
                     if (result.Status != UploadStatus.Completed)
                     {
@@ -156,13 +154,12 @@ namespace ONI_MP.Cloud
 
                     var uploadedFileId = createRequest.ResponseBody.Id;
 
-                    // after upload, move to correct folder
                     if (!string.IsNullOrEmpty(folderId))
                     {
                         var moveRequest = _service.Files.Update(new Google.Apis.Drive.v3.Data.File(), uploadedFileId);
                         moveRequest.AddParents = folderId;
                         moveRequest.Fields = "id, parents";
-                        moveRequest.Execute();
+                        await moveRequest.ExecuteAsync();
                     }
 
                     GrantPublicAccessAndFinish(uploadedFileId);
@@ -186,7 +183,6 @@ namespace ONI_MP.Cloud
             };
             _service.Permissions.Create(permission, uploadedFileId).Execute();
 
-            //string view_link = $"https://drive.google.com/file/d/{uploadedFileId}/view?usp=drive_link";
             string link = $"https://drive.usercontent.google.com/u/0/uc?id={uploadedFileId}&export=download";
 
             DebugConsole.Log($"GoogleDriveUploader: Upload successful. Shareable link: {link}");
@@ -196,13 +192,13 @@ namespace ONI_MP.Cloud
             CoroutineRunner.RunOne(WaitAndHide());
         }
 
-        public string GetOrCreateFolder(string folderName)
+        public async Task<string> GetOrCreateFolderAsync(string folderName)
         {
             // 1. Search for existing
             var listRequest = _service.Files.List();
             listRequest.Q = $"mimeType='application/vnd.google-apps.folder' and name='{folderName}' and trashed=false";
             listRequest.Fields = "files(id, name)";
-            var folders = listRequest.Execute();
+            var folders = await listRequest.ExecuteAsync();
 
             if (folders.Files != null && folders.Files.Count > 0)
             {
@@ -218,14 +214,13 @@ namespace ONI_MP.Cloud
 
             var createRequest = _service.Files.Create(metadata);
             createRequest.Fields = "id";
-            var folder = createRequest.Execute();
+            var folder = await createRequest.ExecuteAsync();
 
             DebugConsole.Log($"GoogleDriveUploader: Created new folder '{folderName}' with ID {folder.Id}");
             return folder.Id;
         }
 
-
-        IEnumerator WaitAndHide()
+        private IEnumerator WaitAndHide()
         {
             yield return new WaitForSeconds(1f);
             MultiplayerOverlay.Close();

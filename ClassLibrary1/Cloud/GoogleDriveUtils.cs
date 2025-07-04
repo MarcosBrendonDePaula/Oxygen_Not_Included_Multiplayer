@@ -50,12 +50,12 @@ namespace ONI_MP.Cloud
             UploadSaveFile();
         }
 
-        public static void UploadSaveFile()
+        public static async void UploadSaveFile()
         {
             var path = SaveLoader.GetActiveSaveFilePath();
             SaveLoader.Instance.Save(path); // Saves current state to that file
 
-            var folderId = GoogleDrive.Instance.Uploader.GetOrCreateFolder("Oxygen Not Included Multiplayer Saves");
+            var folderId = await GoogleDrive.Instance.Uploader.GetOrCreateFolderAsync("Oxygen Not Included Multiplayer Saves");
             GoogleDrive.Instance.Uploader.UploadFile(path, folderId);
         }
 

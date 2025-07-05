@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using ONI_MP.Cloud;
 using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Networking.Packets.Architecture;
@@ -11,8 +12,8 @@ namespace ONI_MP.Networking.Packets.Core
     {
         public PacketType Type => PacketType.ClientReadyStatus;
 
-        private CSteamID SenderId;
-        private ClientReadyState Status = ClientReadyState.Unready;
+        public CSteamID SenderId;
+        public ClientReadyState Status = ClientReadyState.Unready;
 
         public ClientReadyStatusPacket() { }
 
@@ -42,48 +43,38 @@ namespace ONI_MP.Networking.Packets.Core
                 return;
             }
 
-            if (!MultiplayerSession.ConnectedPlayers.TryGetValue(SenderId, out var player))
+            ReadyManager.SetPlayerReadyState(SenderId, Status);
+            DebugConsole.Log($"[ClientReadyStatusPacket] {SenderId} marked as {Status}");
+
+            // Build the overlay message
+            string message = "Waiting for players to be ready!\n";
+            bool allReady = ReadyManager.AreAllPlayersReady(
+                OnIteration: () => { MultiplayerOverlay.Show(message); },
+                OnPlayerChecked: (steamName, readyState) =>
+                {
+                    message += $"{steamName} : {readyState}\n";
+                });
+
+            MultiplayerOverlay.Show(message);
+
+            if(GameServerHardSync.IsHardSyncInProgress)
             {
-                DebugConsole.LogWarning($"[ClientReadyStatusPacket] Unknown sender: {SenderId}");
+                if(allReady)
+                {
+                    GoogleDriveUtils.UploadAndSendToAllClients();
+                }
                 return;
             }
 
-            player.readyState = Status;
-            DebugConsole.Log($"[ClientReadyStatusPacket] {player} marked as {Status}");
-
-            // Build message string for overlay
-            string message = "Waiting for players to be ready!\n";
-            MultiplayerOverlay.Show(message);
-            bool allReady = true;
-            foreach (var p in MultiplayerSession.AllPlayers)
-            {
-                MultiplayerOverlay.Show(message);
-                if (p.SteamID == MultiplayerSession.HostSteamID)
-                    continue;
-
-                message += $"{p.SteamName} : {p.readyState}\n";
-
-                if (p.readyState != ClientReadyState.Ready)
-                    allReady = false;
-            }
-
-
             if (allReady)
             {
-                CoroutineRunner.RunOne(DelayAllReadyBroadcast());
-            } else
+                ReadyManager.SendAllReadyPacket();
+            }
+            else
             {
                 // Broadcast updated overlay message to all clients
-                PacketSender.SendToAllClients(new ClientReadyStatusUpdatePacket(message));
+                ReadyManager.SendStatusUpdatePacketToClients(message);
             }
         }
-
-        private System.Collections.IEnumerator DelayAllReadyBroadcast()
-        {
-            yield return new UnityEngine.WaitForSeconds(1f);
-            PacketSender.SendToAllClients(new AllClientsReadyPacket());
-            AllClientsReadyPacket.ProcessAllReady(); // Host transitions after delay
-        }
-
     }
 }

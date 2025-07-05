@@ -17,6 +17,8 @@ namespace ONI_MP.Networking
         private static bool hardSyncInProgress = false;
         private static int numberOfClientsAtTimeOfSync = 0;
 
+        public static bool IsHardSyncInProgress => hardSyncInProgress;
+
         public static void PerformHardSync()
         {
             if (hardSyncInProgress)

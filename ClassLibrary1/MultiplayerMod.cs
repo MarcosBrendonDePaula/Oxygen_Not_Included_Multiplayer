@@ -89,6 +89,8 @@ namespace ONI_MP
             {
                 OnPostSceneLoaded.Invoke();
             };
+
+            ReadyManager.SetupListeners();
         }
 
         public static AssetBundle LoadAssetBundle(string bundleKey, string resourceName)

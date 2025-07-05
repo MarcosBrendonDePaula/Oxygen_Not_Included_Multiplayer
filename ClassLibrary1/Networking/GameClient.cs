@@ -214,11 +214,18 @@ namespace ONI_MP.Networking
             if (Utils.IsInMenu())
             {
                 MultiplayerOverlay.Show($"Waiting for {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
-                var packet = new SaveFileRequestPacket 
-                { 
-                    Requester = MultiplayerSession.LocalSteamID
-                };
-                PacketSender.SendToHost(packet);
+                if (!IsHardSyncInProgress)
+                {
+                    var packet = new SaveFileRequestPacket
+                    {
+                        Requester = MultiplayerSession.LocalSteamID
+                    };
+                    PacketSender.SendToHost(packet);
+                } else
+                {
+                    // Tell the host we're ready
+                    ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
+                }
             } 
             else if(Utils.IsInGame())
             {
@@ -227,10 +234,8 @@ namespace ONI_MP.Networking
                 PacketHandler.readyToProcess = true;
                 if (IsHardSyncInProgress)
                     IsHardSyncInProgress = false;
-                PacketSender.SendToHost(new ClientReadyStatusPacket(
-                    SteamUser.GetSteamID(),
-                    ClientReadyState.Ready
-                ));
+
+                ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
                 MultiplayerSession.CreateConnectedPlayerCursors();
                 SelectToolPatch.UpdateColor();
             }

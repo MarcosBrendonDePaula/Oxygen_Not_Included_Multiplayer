@@ -35,14 +35,13 @@ namespace ONI_MP.Networking.Packets.Cloud
                 return; // Host does nothing here
             }
 
-            DebugConsole.Log($"[GoogleDriveFileSharePacket] Received file share link for {FileName}: {ShareLink}");
-
             if (Utils.IsInGame())
             {
                 return;
             }
 
-            DebugConsole.Log("Trying to download");
+            DebugConsole.Log($"[GoogleDriveFileSharePacket] Received file share link for {FileName}: {ShareLink}");
+
             _ = SaveHelper.DownloadSaveAsync(
                     ShareLink,
                     FileName,
@@ -54,7 +53,7 @@ namespace ONI_MP.Networking.Packets.Cloud
                     OnFailed: () =>
                     {
                         DebugConsole.LogError($"[GoogleDriveFileSharePacket] Download failed for {FileName}");
-                        MultiplayerOverlay.Show("Could not download the world file from the host.");
+                        //MultiplayerOverlay.Show("Could not download the world file from the host.");
                     }
                 );
 

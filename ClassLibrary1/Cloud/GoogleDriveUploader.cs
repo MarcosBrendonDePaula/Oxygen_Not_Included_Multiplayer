@@ -3,6 +3,7 @@ using Google.Apis.Upload;
 using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Misc;
+using ONI_MP.Networking;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -215,7 +216,7 @@ namespace ONI_MP.Cloud
 
             OnUploadFinished?.Invoke(link);
             MultiplayerOverlay.Show("Upload complete!");
-            FinishUploading();
+            UploadSucceeded();
         }
 
         public async Task<string> GetOrCreateFolderAsync(string folderName)
@@ -248,6 +249,13 @@ namespace ONI_MP.Cloud
         {
             await Task.Delay(seconds * 1000);
             MultiplayerOverlay.Close();
+            IsUploading = false;
+        }
+
+        private async void UploadSucceeded(int seconds = 1)
+        {
+            await Task.Delay(seconds * 1000);
+            ReadyManager.RunReadyCheck();
             IsUploading = false;
         }
     }

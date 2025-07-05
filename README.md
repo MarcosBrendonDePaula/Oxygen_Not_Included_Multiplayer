@@ -13,7 +13,7 @@ Steam workshop: Not released yet.
 
 ## Demo
 
-![Multiplayer Demo](https://i.imgur.com/BDSK0cu.png)
+![Multiplayer Demo](https://i.imgur.com/VfiPUkn.jpeg)
 
 ---
 

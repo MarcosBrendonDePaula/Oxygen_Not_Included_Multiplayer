@@ -51,9 +51,6 @@ namespace ONI_MP
 
         void InitializeCloud()
         {
-            string credentialsPath = Configuration.GetGoogleDriveProperty<string>("CredentialsPath");
-            string tokenPath = Configuration.GetGoogleDriveProperty<string>("TokenPath");
-
             try
             {
                 GoogleDrive.Instance.OnInitialized.AddListener(() =>
@@ -64,7 +61,7 @@ namespace ONI_MP
                     });
                 });
 
-                GoogleDrive.Instance.Initialize(credentialsPath, tokenPath);
+                GoogleDrive.Instance.Initialize();
                 DebugConsole.Log("GoogleDrive initialized and ready!");
 
             }

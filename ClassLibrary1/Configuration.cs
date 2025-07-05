@@ -95,8 +95,6 @@ namespace ONI_MP
 
     class GoogleDriveSettings
     {
-        public string CredentialsPath { get; set; } = "";
-        public string TokenPath { get; set; } = "";
         public string ApplicationName { get; set; } = "ONI Multiplayer Mod";
     }
 

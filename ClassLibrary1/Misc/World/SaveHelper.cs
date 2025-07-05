@@ -77,7 +77,12 @@ public static class SaveHelper
     /// <summary>
     /// Downloads a save file from a Google Drive share link to a known location. GOOGLE DRIVE DOES NOT NEED TO BE INITIALIZED HERE
     /// </summary>
-    public static async Task DownloadSaveAsync(string shareLink, string fileName, System.Action OnCompleted, System.Action OnFailed)
+    public static async Task DownloadSaveAsync(
+    string shareLink,
+    string fileName,
+    System.Action OnCompleted,
+    System.Action OnFailed
+)
     {
         MultiplayerOverlay.Show("Downloading world from host...");
 
@@ -95,40 +100,58 @@ public static class SaveHelper
 
             Directory.CreateDirectory(Path.GetDirectoryName(targetFile));
 
-            using (var http = new System.Net.Http.HttpClient())
-            using (var response = await http.GetAsync(shareLink, System.Net.Http.HttpCompletionOption.ResponseHeadersRead))
+            var handler = new System.Net.Http.HttpClientHandler
             {
-                response.EnsureSuccessStatusCode();
+                AllowAutoRedirect = true
+            };
 
-                var totalSize = response.Content.Headers.ContentLength ?? 0L;
-                var downloaded = 0L;
-                var startTime = System.DateTime.UtcNow;
+            using (var http = new System.Net.Http.HttpClient(handler))
+            {
+                http.DefaultRequestHeaders.UserAgent.ParseAdd(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0"
+                );
 
-                using (var stream = await response.Content.ReadAsStreamAsync())
-                using (var fs = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None))
+                using (var response = await http.GetAsync(
+                           shareLink,
+                           System.Net.Http.HttpCompletionOption.ResponseHeadersRead
+                       ))
                 {
-                    var buffer = new byte[8192];
-                    int read;
-                    while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    response.EnsureSuccessStatusCode();
+
+                    var totalSize = response.Content.Headers.ContentLength ?? 0L;
+                    var downloaded = 0L;
+                    var startTime = System.DateTime.UtcNow;
+
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    using (var fs = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None))
                     {
-                        await fs.WriteAsync(buffer, 0, read);
-                        downloaded += read;
+                        var buffer = new byte[65536]; // 64KB buffer
+                        int read;
+                        while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        {
+                            await fs.WriteAsync(buffer, 0, read);
+                            downloaded += read;
 
-                        int percent = totalSize > 0 ? (int)(downloaded * 100.0 / totalSize) : 0;
+                            int percent = totalSize > 0 ? (int)(downloaded * 100.0 / totalSize) : 0;
 
-                        var elapsed = System.DateTime.UtcNow - startTime;
-                        double elapsedSeconds = elapsed.TotalSeconds > 0 ? elapsed.TotalSeconds : 1;
-                        double bytesPerSecond = downloaded / elapsedSeconds;
+                            var elapsed = System.DateTime.UtcNow - startTime;
+                            double elapsedSeconds = elapsed.TotalSeconds > 0 ? elapsed.TotalSeconds : 1;
+                            double bytesPerSecond = downloaded / elapsedSeconds;
 
-                        var remainingBytes = totalSize - downloaded;
-                        var estimatedRemainingSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
+                            var remainingBytes = totalSize - downloaded;
+                            var estimatedRemainingSeconds = bytesPerSecond > 0
+                                ? remainingBytes / bytesPerSecond
+                                : 0;
 
-                        var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
-                        string timeLeftStr = $"{Utils.FormatTime(timeLeft.TotalSeconds)} remaining";
+                            var timeLeft = TimeSpan.FromSeconds(estimatedRemainingSeconds);
+                            string timeLeftStr = $"{Utils.FormatTime(timeLeft.TotalSeconds)} remaining";
 
-                        string speedStr = Utils.FormatBytes((long)bytesPerSecond) + "/s";
+                            string speedStr = Utils.FormatBytes((long)bytesPerSecond) + "/s";
 
-                        MultiplayerOverlay.Show($"Downloading world from host: {percent}%\n({speedStr}, {timeLeftStr})");
+                            MultiplayerOverlay.Show(
+                                $"Downloading world from host: {percent}%\n({speedStr}, {timeLeftStr})"
+                            );
+                        }
                     }
                 }
             }
@@ -145,6 +168,7 @@ public static class SaveHelper
             OnFailed?.Invoke();
         }
     }
+
 
     public static void LoadDownloadedSave(string fileName)
     {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ONI_MP.Menus;
+using ONI_MP.Networking;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.Cloud;
 using Steamworks;
@@ -28,6 +29,10 @@ namespace ONI_MP.Cloud
                 };
 
                 PacketSender.SendToAllClients(packet);
+
+                if (GameServerHardSync.IsHardSyncInProgress) {
+                    GameServerHardSync.IsHardSyncInProgress = false;
+                }
             });
             UploadSaveFile();
         }

@@ -35,7 +35,12 @@ namespace ONI_MP.Networking
 
         public static void SendAllReadyPacket()
         {
-            CoroutineRunner.RunOne(DelayAllReadyBroadcast());
+            if (!MultiplayerSession.IsHost)
+                return;
+
+            //CoroutineRunner.RunOne(DelayAllReadyBroadcast());
+            PacketSender.SendToAllClients(new AllClientsReadyPacket());
+            AllClientsReadyPacket.ProcessAllReady();
         }
 
         private static System.Collections.IEnumerator DelayAllReadyBroadcast()

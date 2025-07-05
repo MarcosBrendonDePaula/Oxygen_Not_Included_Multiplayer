@@ -61,6 +61,7 @@ namespace ONI_MP.Networking.Packets.Core
             {
                 if(allReady)
                 {
+                    ReadyManager.MarkAllAsUnready(); // Reset player ready states
                     GoogleDriveUtils.UploadAndSendToAllClients();
                 }
                 return;

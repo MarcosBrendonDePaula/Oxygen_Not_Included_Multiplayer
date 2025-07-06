@@ -65,6 +65,8 @@ Steam workshop: Not released yet.
       > (At the start of every new cycle the server will perform a hard sync, which basically boots out all the clients and makes them redownload the map before automatically reconnecting them)
     - Player cursors
       > See where other players are pointing, the tool they are using and they are color coded.
+    - Save file synchronization via Google Drive
+      > Using Google Drive allows synchronization of worlds larger then 10MB. A limit the old multiplayer mod had. Without it, this mod had the same issue.
 
 - Synchronized UI Elements
      - World Cycle

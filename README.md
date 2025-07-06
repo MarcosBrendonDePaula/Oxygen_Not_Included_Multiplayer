@@ -66,7 +66,7 @@ Steam workshop: Not released yet.
     - Player cursors
       > See where other players are pointing, the tool they are using and they are color coded.
     - Save file synchronization via Google Drive
-      > Using Google Drive allows synchronization of worlds larger then 10MB. A limit the old multiplayer mod had. Without it, this mod would have the same 10MB limit. This however comes at the cost of a small but simple setup process by hosts that only needs to be compelted once.
+      > Using Google Drive allows synchronization of worlds larger then 10MB. A limit the other multiplayer mod has. Without it, this mod would have the same 10MB limit. This however comes at the cost of a small but simple setup process by hosts that only needs to be compelted once. The guide can be found [here](https://github.com/Lyraedan/Oxygen_Not_Included_Multiplayer/wiki/Google-Drive-Setup-Guide)
 
 - Synchronized UI Elements
      - World Cycle

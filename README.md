@@ -66,7 +66,7 @@ Steam workshop: Not released yet.
     - Player cursors
       > See where other players are pointing, the tool they are using and they are color coded.
     - Save file synchronization via Google Drive
-      > Using Google Drive allows synchronization of worlds larger then 10MB. A limit the old multiplayer mod had. Without it, this mod had the same issue.
+      > Using Google Drive allows synchronization of worlds larger then 10MB. A limit the old multiplayer mod had. Without it, this mod would have the same 10MB limit. This however comes at the cost of a small but simple setup process by hosts.
 
 - Synchronized UI Elements
      - World Cycle

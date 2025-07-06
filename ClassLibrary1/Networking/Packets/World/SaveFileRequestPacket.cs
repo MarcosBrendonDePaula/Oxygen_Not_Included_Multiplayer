@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using ONI_MP.Cloud;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets.Architecture;
 using Steamworks;
@@ -33,7 +34,8 @@ namespace ONI_MP.Networking.Packets.World
                 return;
 
             DebugConsole.Log($"[Packets/SaveFileRequest] Received request from {Requester}");
-            SendSaveFile(Requester);
+            GoogleDriveUtils.UploadAndSendToClient(Requester);
+            //SendSaveFile(Requester);
         }
 
         public static void SendSaveFile(CSteamID requester)

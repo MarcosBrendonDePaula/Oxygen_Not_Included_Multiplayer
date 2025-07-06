@@ -33,10 +33,11 @@ namespace ONI_MP.Patches
         [UsedImplicitly]
         public static bool PreventPauseInMultiplayer(bool playSound = true, bool isCrashed = false)
         {
-            if (MultiplayerSession.InSession && !isCrashed)
+            // Restore pause functionality
+            /*if (MultiplayerSession.InSession && !isCrashed)
             {
                 return false;
-            }
+            }*/
 
             return true;
         }

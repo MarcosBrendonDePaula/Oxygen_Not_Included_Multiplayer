@@ -12,13 +12,11 @@ public class MultiplayerPlayer
     public HSteamNetConnection? Connection { get; set; } = null;
     public bool IsConnected => Connection != null;
 
-    public ClientReadyState readyState { get; set; } = ClientReadyState.Unready;
     public MultiplayerPlayer(CSteamID steamID)
     {
         SteamID = steamID;
         SteamName = SteamFriends.GetFriendPersonaName(steamID);
         AvatarImageId = SteamFriends.GetLargeFriendAvatar(steamID);
-        readyState = (SteamID == MultiplayerSession.HostSteamID) ? ClientReadyState.Ready : ClientReadyState.Unready;
     }
 
     public override string ToString()

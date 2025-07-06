@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using ONI_MP.DebugTools;
+using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.UI;
 using Steamworks;
@@ -24,7 +25,7 @@ namespace ONI_MP.Networking.Packets.Social
         {
             SenderId = MultiplayerSession.LocalSteamID;
             Message = message;
-            PlayerColor = Configuration.Instance.Client.PlayerColor.ToColor();
+            PlayerColor = CursorManager.Instance.color;
         }
 
         public void Serialize(BinaryWriter writer)

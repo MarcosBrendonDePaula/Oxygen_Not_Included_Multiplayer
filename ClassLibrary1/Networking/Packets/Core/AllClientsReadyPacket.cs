@@ -30,7 +30,10 @@ namespace ONI_MP.Networking.Packets.Core
 
         public static void ProcessAllReady()
         {
-            CoroutineRunner.RunOne(CloseOverlayAfterDelay());
+            //CoroutineRunner.RunOne(CloseOverlayAfterDelay());
+            MultiplayerOverlay.Show("All players are ready!\nPlease wait...");
+            SpeedControlScreen.Instance?.Unpause(false);
+            MultiplayerOverlay.Close();
         }
 
         private static IEnumerator CloseOverlayAfterDelay()

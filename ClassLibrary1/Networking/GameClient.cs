@@ -11,6 +11,7 @@ using ONI_MP.Networking.Packets.Core;
 using System.Collections;
 using UnityEngine;
 using ONI_MP.Patches.ToolPatches;
+using ONI_MP.Networking.Packets.World;
 
 namespace ONI_MP.Networking
 {
@@ -197,19 +198,6 @@ namespace ONI_MP.Networking
             SetState(ClientState.Connected);
 
             // We've reconnected in game
-            if(Utils.IsInGame())
-            {
-                SetState(ClientState.InGame);
-                PacketHandler.readyToProcess = true;
-                if(IsHardSyncInProgress)
-                    IsHardSyncInProgress = false;
-                PacketSender.SendToHost(new ClientReadyStatusPacket(
-                    SteamUser.GetSteamID(),
-                    ClientReadyState.Ready
-                ));
-                MultiplayerSession.CreateConnectedPlayerCursors();
-                SelectToolPatch.UpdateColor();
-            }
             MultiplayerSession.InSession = true;
 
             var hostId = MultiplayerSession.HostSteamID;
@@ -226,6 +214,30 @@ namespace ONI_MP.Networking
             if (Utils.IsInMenu())
             {
                 MultiplayerOverlay.Show($"Waiting for {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+                if (!IsHardSyncInProgress)
+                {
+                    var packet = new SaveFileRequestPacket
+                    {
+                        Requester = MultiplayerSession.LocalSteamID
+                    };
+                    PacketSender.SendToHost(packet);
+                } else
+                {
+                    // Tell the host we're ready
+                    ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
+                }
+            } 
+            else if(Utils.IsInGame())
+            {
+                // We're in game already. Consider this a reconnection
+                SetState(ClientState.InGame);
+                PacketHandler.readyToProcess = true;
+                if (IsHardSyncInProgress)
+                    IsHardSyncInProgress = false;
+
+                ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
+                MultiplayerSession.CreateConnectedPlayerCursors();
+                SelectToolPatch.UpdateColor();
             }
         }
 

@@ -2,6 +2,7 @@
 using UnityEngine;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
+using ONI_MP.DebugTools;
 
 namespace ONI_MP.Patches.ToolPatches
 {
@@ -21,7 +22,7 @@ namespace ONI_MP.Patches.ToolPatches
             Texture2D cursor = Assets.GetTexture("cursor_arrow") as Texture2D;
             if (cursor == null)
             {
-                Debug.LogWarning("[ONI_MP] Default cursor_arrow texture not found.");
+                DebugConsole.LogWarning("[ONI_MP] Default cursor_arrow texture not found.");
                 return;
             }
 

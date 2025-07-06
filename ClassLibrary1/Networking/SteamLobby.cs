@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ONI_MP.Cloud;
 using ONI_MP.DebugTools;
 using ONI_MP.Misc;
 using ONI_MP.Networking.Packets;
@@ -51,6 +52,12 @@ namespace ONI_MP.Networking
         public static void CreateLobby(ELobbyType lobbyType = ELobbyType.k_ELobbyTypePublic, System.Action onSuccess = null)
         {
             if (!SteamManager.Initialized) return;
+            if (!GoogleDrive.Instance.IsInitialized)
+            {
+                DebugConsole.LogWarning("[SteamLobby] Cannot create lobby. GoogleDrive needs to be initialized!");
+                return;
+            }
+
             if (InLobby)
             {
                 DebugConsole.LogWarning("[SteamLobby] Cannot create a new lobby while already in one.");

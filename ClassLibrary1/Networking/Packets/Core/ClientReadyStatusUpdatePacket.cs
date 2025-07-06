@@ -10,7 +10,7 @@ namespace ONI_MP.Networking.Packets.Core
     {
         public PacketType Type => PacketType.ClientReadyStatusUpdate;
 
-        private string Message;
+        public string Message;
 
         public ClientReadyStatusUpdatePacket() { }
 

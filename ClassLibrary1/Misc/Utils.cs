@@ -82,27 +82,6 @@ namespace ONI_MP.Misc
         public static TMP_FontAsset GetDefaultTMPFont()
         {
             return Localization.FontAsset;
-            /*
-            var font = Resources.FindObjectsOfTypeAll<TMP_FontAsset>()
-                .FirstOrDefault(f => f.name == "NotoSans-Regular");
-
-            if (font == null)
-            {
-                DebugConsole.Log("[ONI_MP] Fallback: NotoSans-Regular not found. Attempting to use any available font.");
-
-                var fallback = Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault();
-                if (fallback != null)
-                {
-                    DebugConsole.Log($"[ONI_MP] Using fallback font: {fallback.name}");
-                    return fallback;
-                }
-
-                DebugConsole.Log("[ONI_MP] ERROR: No TMP_FontAsset found at all.");
-                return null;
-            }
-
-            return font;
-            */
         }
 
         public static List<ChunkData> CollectChunks(int startX, int startY, int chunkSize, int numChunksX, int numChunksY)
@@ -152,11 +131,46 @@ namespace ONI_MP.Misc
             return chunk;
         }
 
-        public static string FormatBytes(long bytes)
+        [Obsolete("Use new FormatBytes instead!")]
+        public static string FormatBytesOld(long bytes)
         {
             if (bytes < 1024) return $"{bytes} B";
             if (bytes < 1024 * 1024) return $"{bytes / 1024f:F1} KB";
             return $"{bytes / 1024f / 1024f:F2} MB";
+        }
+
+        public static string FormatBytes(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            double len = bytes;
+            int order = 0;
+            while (len >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                len /= 1024;
+            }
+            return $"{len:0.##} {sizes[order]}";
+        }
+
+        /// <summary>
+        /// Formats a timespan nicely:
+        /// 45s, 3m 12s, 1h 15m 20s
+        /// </summary>
+        public static string FormatTime(double seconds)
+        {
+            var ts = TimeSpan.FromSeconds(seconds);
+
+            string result = "";
+
+            if (ts.Hours > 0)
+                result += $"{ts.Hours}h ";
+
+            if (ts.Minutes > 0 || ts.Hours > 0)
+                result += $"{ts.Minutes}m ";
+
+            result += $"{ts.Seconds}s";
+
+            return result.Trim();
         }
 
         public static bool IsInMenu()

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ONI_MP.DebugTools;
+using ONI_MP.Misc;
 using ONI_MP.Networking.States;
 using Steamworks;
 using TMPro;
@@ -19,7 +20,7 @@ namespace ONI_MP.Networking
 
         private Camera camera = null;
 
-        private Image cursorActionImage = null;
+        private Texture2D cursorTexture = null;
         private Image cursorImage = null;
         private TextMeshProUGUI cursorText = null;
 
@@ -29,6 +30,35 @@ namespace ONI_MP.Networking
         private CursorState cursorState = CursorState.NONE;
 
         System.Action OnCursorStateChanged;
+
+        private Color playerColor = Color.white;
+        private Shader playerCursorShader = null;
+        private Material playerCursorMaterial = null;
+        private Material originalMaterial = null;
+
+        private readonly Dictionary<CursorState, float> cursorActionThresholds = new Dictionary<CursorState, float>()
+        {
+            { CursorState.NONE, 0.36f },
+            { CursorState.SELECT, 0.36f },
+            { CursorState.BUILD, 0.36f },
+            { CursorState.DIG, 0.36f },
+            { CursorState.CANCEL, 0.36f },
+            { CursorState.DECONSTRUCT, 0.36f },
+            { CursorState.PRIORITIZE, 0.36f },
+            { CursorState.DEPRIORITIZE, 0.36f },
+            { CursorState.SWEEP, 0.36f },
+            { CursorState.MOP, 0.36f },
+            { CursorState.HARVEST, 0.36f },
+            { CursorState.DISINFECT, 0.36f },
+            { CursorState.ATTACK, 0.36f },
+            { CursorState.CAPTURE, 0.36f },
+            { CursorState.WRANGLE, 0.36f },
+            { CursorState.EMPTY_PIPE, 0.36f },
+            { CursorState.DISCONNECT, 0.36f },
+            { CursorState.CLEAR_FLOOR, 0.36f },
+            { CursorState.MOVE_TO, 0.36f }
+        };
+
 
         protected override void OnSpawn()
         {
@@ -44,16 +74,18 @@ namespace ONI_MP.Networking
         {
             camera = GameScreenManager.Instance.GetCamera(GameScreenManager.UIRenderTarget.ScreenSpaceCamera);
 
-            var cursorTexture = Assets.GetTexture("cursor_arrow");
+            cursorTexture = Assets.GetTexture("cursor_arrow");
             var cursor = new GameObject(name);
 
-            cursorActionImage = CreateCursorActionImage(cursor, Assets.GetSprite("icon_action_dig"));
+            // only a single cursor image now
             cursorImage = CreateCursorImage(cursor, cursorTexture);
+            originalMaterial = cursorImage.material;
+
+            // text stays the same
             cursorText = CreateCursorText(cursor, new Vector3(cursorTexture.width, -cursorTexture.height, 0));
 
-            cursorActionImage.transform.SetSiblingIndex(0); // bottom
-            cursorImage.transform.SetSiblingIndex(1);       // middle
-            cursorText.transform.SetSiblingIndex(2);        // top
+            cursorImage.transform.SetSiblingIndex(0);      // base
+            cursorText.transform.SetSiblingIndex(1);       // above
 
             cursor.transform.SetParent(transform, false);
             gameObject.SetLayerRecursively(LayerMask.NameToLayer("UI"));
@@ -66,35 +98,29 @@ namespace ONI_MP.Networking
             canvas.overrideSorting = true;
             canvas.sortingOrder = 100;
             SetColor(Color.white);
-            SetVisibility(false);            
-        }
+            SetVisibility(false);
 
+            playerCursorShader = ResourceLoader.LoadShaderFromBundle("playercursorbundle", "assets/playercursoraction/playercursoraction.shader");
+
+            if (playerCursorShader != null)
+            {
+                playerCursorMaterial = new Material(playerCursorShader);
+                playerCursorMaterial.SetColor("_ReplacementColor", Color.white);
+                playerCursorMaterial.SetFloat("_Threshold", 0.36f);
+            }
+        }
 
         private void UpdateActionImage()
         {
             string icon = GetCursorActionIcon(cursorState);
+
             if (string.IsNullOrEmpty(icon))
             {
-                var color = cursorActionImage.color;
-                color.a = 0f;
-                cursorActionImage.color = color;
+                RestoreCursor();
             }
             else
             {
-                var sprite = Assets.GetSprite(icon);
-                if (sprite != null)
-                {
-                    cursorActionImage.sprite = sprite;
-                    cursorActionImage.rectTransform.sizeDelta = new Vector2(sprite.rect.width * 0.1f, sprite.rect.height * 0.1f);
-
-                    var color = cursorActionImage.color;
-                    color.a = 1f;
-                    cursorActionImage.color = color;
-                }
-                else
-                {
-                    DebugConsole.LogWarning($"Sprite '{icon}' not found.");
-                }
+                UpdateCursor(icon, 0.15f, 0.15f);
             }
         }
 
@@ -115,32 +141,9 @@ namespace ONI_MP.Networking
             return imageComponent;
         }
 
-        private Image CreateCursorActionImage(GameObject parent, Sprite actionSprite)
-        {
-            var imageGameObject = new GameObject("CursorActionImage") { transform = { parent = parent.transform } };
-
-            var rectTransform = imageGameObject.AddComponent<RectTransform>();
-            float scale = 0.1f;
-
-            if (actionSprite != null)
-            {
-                float scaledWidth = actionSprite.rect.width * scale;
-                float scaledHeight = actionSprite.rect.height * scale;
-                rectTransform.sizeDelta = new Vector2(scaledWidth, scaledHeight);
-                rectTransform.pivot = new Vector2(0.5f, 0f); // center-bottom
-                rectTransform.anchoredPosition = new Vector2(0, -scaledHeight / 2f);
-            }
-
-            var imageComponent = imageGameObject.AddComponent<Image>();
-            imageComponent.sprite = actionSprite;
-            imageComponent.raycastTarget = false;
-
-            return imageComponent;
-        }
-
         private TextMeshProUGUI CreateCursorText(GameObject parent, Vector3 offset)
         {
-            var textGameObject = new GameObject(name) { transform = { parent = parent.transform } };
+            var textGameObject = new GameObject($"{name}_Name") { transform = { parent = parent.transform } };
 
             var rectTransform = textGameObject.AddComponent<RectTransform>();
             rectTransform.sizeDelta = new Vector2(50, 50);
@@ -159,10 +162,17 @@ namespace ONI_MP.Networking
 
         public void SetColor(Color col)
         {
+            playerColor = col;
             if (cursorImage != null)
-                cursorImage.color = col;
+                cursorImage.color = playerColor;
+            
             if (cursorText != null)
-                cursorText.color = col;
+                cursorText.color = playerColor;
+
+            if (playerCursorMaterial != null)
+            {
+                playerCursorMaterial.SetColor("_ReplacementColor", playerColor);
+            }
         }
 
         // Using the color make it fully transparent instead of deactivating the object
@@ -180,14 +190,6 @@ namespace ONI_MP.Networking
                 var color = cursorText.color;
                 color.a = visible ? 1f : 0f;
                 cursorText.color = color;
-            }
-
-            if(!visible)
-            {
-                // Hide the cursor icon image too
-                var color = cursorActionImage.color;
-                color.a = 0f;
-                cursorActionImage.color = color;
             }
         }
 
@@ -223,6 +225,45 @@ namespace ONI_MP.Networking
                 case CursorState.MOVE_TO: return "icon_action_moveto";
                 case CursorState.DISCONNECT: return "icon_action_disconnect";
                 default: return $"[{state.ToString()}]";
+            }
+        }
+
+        public void RestoreCursor()
+        {
+            if (cursorImage != null && cursorTexture != null)
+            {
+                cursorImage.sprite = Sprite.Create(
+                    cursorTexture,
+                    new Rect(0, 0, cursorTexture.width, cursorTexture.height),
+                    Vector2.zero
+                );
+                cursorImage.material = originalMaterial;
+                cursorImage.rectTransform.sizeDelta = new Vector2(cursorTexture.width, cursorTexture.height);
+                cursorImage.color = playerColor;
+            }
+        }
+
+        private void UpdateCursor(string icon, float size_multiplier_x, float size_multiplier_y)
+        {
+            var sprite = Assets.GetSprite(icon);
+            if (sprite != null && playerCursorMaterial != null)
+            {
+                cursorImage.sprite = sprite;
+                playerCursorMaterial.SetTexture("_MainTex", sprite.texture);
+
+                if (!cursorActionThresholds.TryGetValue(cursorState, out float threshold))
+                    threshold = 0.36f;
+
+                playerCursorMaterial.SetFloat("_Threshold", threshold);
+
+                cursorImage.material = playerCursorMaterial;
+                cursorImage.rectTransform.sizeDelta = new Vector2(sprite.rect.width * size_multiplier_x, sprite.rect.height * size_multiplier_y);
+                cursorImage.color = Color.white;
+            }
+            else
+            {
+                RestoreCursor();
+                DebugConsole.LogWarning($"UpdateActionImage: Sprite '{icon}' not found or material missing.");
             }
         }
 

@@ -24,6 +24,17 @@ namespace ONI_MP.DebugTools
             };
 
             GUILayout.BeginArea(new Rect(10, 10, 400, Screen.height - 20), "Hierarchy", boxStyle);
+
+            if (GUILayout.Button("Copy to Clipboard", GUILayout.Height(25)))
+            {
+                string hierarchyText = "";
+                foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    hierarchyText += BuildHierarchyStringRecursive(root, 0);
+                }
+                GUIUtility.systemCopyBuffer = hierarchyText;
+            }
+
             scrollPos = GUILayout.BeginScrollView(scrollPos, false, true);
 
             foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
@@ -81,6 +92,28 @@ namespace ONI_MP.DebugTools
             }
         }
 
+        private string BuildHierarchyStringRecursive(GameObject obj, int indent)
+        {
+            string indentStr = new string(' ', indent * 2);
+            string typeInfo = "GameObject";
 
+            foreach (Component comp in obj.GetComponents<Component>())
+            {
+                if (!(comp is Transform))
+                {
+                    typeInfo = comp.GetType().Name;
+                    break;
+                }
+            }
+
+            string result = $"{indentStr}- {obj.name} [{typeInfo}]\n";
+
+            foreach (Transform child in obj.transform)
+            {
+                result += BuildHierarchyStringRecursive(child.gameObject, indent + 1);
+            }
+
+            return result;
+        }
     }
 }

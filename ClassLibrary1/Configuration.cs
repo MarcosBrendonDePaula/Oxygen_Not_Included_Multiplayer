@@ -37,6 +37,11 @@ namespace ONI_MP
             return Instance.GetProperty<T>(Instance.Client, propertyName);
         }
 
+        public static T GetGoogleDriveProperty<T>(string propertyName)
+        {
+            return Instance.GetProperty<T>(Instance.Host.GoogleDrive, propertyName);
+        }
+
         private T GetProperty<T>(object obj, string propertyName)
         {
             var prop = obj.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
@@ -76,14 +81,23 @@ namespace ONI_MP
         public int MaxLobbySize { get; set; } = 4;
         public int MaxMessagesPerPoll { get; set; } = 128;
         public int SaveFileTransferChunkKB { get; set; } = 256;
+
+        public GoogleDriveSettings GoogleDrive { get; set; } = new GoogleDriveSettings();
     }
 
     class ClientSettings
     {
+        public bool UseCustomMainMenu { get; set; } = true;
         public int MaxMessagesPerPoll { get; set; } = 16;
         public bool UseRandomPlayerColor { get; set; } = true;
         public ColorRGB PlayerColor { get; set; } = new ColorRGB(255, 255, 255);
     }
+
+    class GoogleDriveSettings
+    {
+        public string ApplicationName { get; set; } = "ONI Multiplayer Mod";
+    }
+
 
     class ColorRGB
     {

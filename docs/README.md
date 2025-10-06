@@ -9,6 +9,7 @@ Welcome to the ONI Together mod documentation. This folder contains all the guid
 
 ## Reference
 
+- **[Workflow Documentation](WORKFLOW.md)** - Complete mod workflow and architecture
 - **[API Reference](API_REFERENCE.md)** - Code documentation and examples
 - **[Changelog](CHANGELOG.md)** - Version history and changes
 
@@ -64,6 +65,7 @@ python build.py --clean --install
 docs/
 ├── README.md              # This file
 ├── DEVELOPMENT.md         # Complete development guide
+├── WORKFLOW.md            # Mod workflow and architecture
 ├── VISUAL_STUDIO_SETUP.md # Visual Studio configuration
 ├── API_REFERENCE.md       # Code documentation
 └── CHANGELOG.md           # Version history
@@ -72,6 +74,7 @@ docs/
 ## Need Help?
 
 1. Check the [Development Guide](DEVELOPMENT.md) for detailed instructions
-2. Run `python dev-tools.py test-deps` to check your setup
-3. Look at the [API Reference](API_REFERENCE.md) for code examples
-4. Check the [Changelog](CHANGELOG.md) for recent changes
+2. Read the [Workflow Documentation](WORKFLOW.md) to understand how the mod works
+3. Run `python dev-tools.py test-deps` to check your setup
+4. Look at the [API Reference](API_REFERENCE.md) for code examples
+5. Check the [Changelog](CHANGELOG.md) for recent changes

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <!-- Define ONI_GAME_DIR if not already set -->
+    <ONI_GAME_DIR Condition="'$(ONI_GAME_DIR)' == '' AND Exists('E:\SteamLibrary\steamapps\common\OxygenNotIncluded')">E:\SteamLibrary\steamapps\common\OxygenNotIncluded</ONI_GAME_DIR>
+    <ONI_GAME_DIR Condition="'$(ONI_GAME_DIR)' == '' AND Exists('C:\Program Files (x86)\Steam\steamapps\common\OxygenNotIncluded')">C:\Program Files (x86)\Steam\steamapps\common\OxygenNotIncluded</ONI_GAME_DIR>
+    <ONI_GAME_DIR Condition="'$(ONI_GAME_DIR)' == '' AND Exists('C:\Program Files\Steam\steamapps\common\OxygenNotIncluded')">C:\Program Files\Steam\steamapps\common\OxygenNotIncluded</ONI_GAME_DIR>
+    <ONI_GAME_DIR Condition="'$(ONI_GAME_DIR)' == '' AND Exists('D:\Steam\steamapps\common\OxygenNotIncluded')">D:\Steam\steamapps\common\OxygenNotIncluded</ONI_GAME_DIR>
+    <ONI_GAME_DIR Condition="'$(ONI_GAME_DIR)' == '' AND Exists('F:\Steam\steamapps\common\OxygenNotIncluded')">F:\Steam\steamapps\common\OxygenNotIncluded</ONI_GAME_DIR>
+    
+    <!-- Fallback for GAME_DIR compatibility -->
+    <ONI_GAME_DIR Condition="'$(ONI_GAME_DIR)' == '' AND '$(GAME_DIR)' != ''">$(GAME_DIR)</ONI_GAME_DIR>
+  </PropertyGroup>
+</Project>

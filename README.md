@@ -131,27 +131,56 @@ Initially it was just conceptual, but once I got lobbies and packets set up, I k
 
 To get started with building the mod, follow these steps:
 
-1. **Install .NET Framework 4.7.2**  
-   Make sure you have [.NET Framework 4.7.2](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net472) installed on your system.
+### Prerequisites
+- **Python 3.7+** for development scripts
+- **.NET Framework 4.7.2+** (Windows) or **.NET SDK 6.0+** (Linux/Mac)
+- **Oxygen Not Included** installed via Steam
 
-2. **Clone the repository**  
-   ```
+### Quick Setup
+
+1. **Clone the repository**  
+   ```bash
    git clone https://github.com/Lyraedan/Oxygen_Not_Included_Multiplayer.git
+   cd Oxygen_Not_Included_Multiplayer
    ```
 
-3. **Open the solution**  
-   Open the `.sln` file in Visual Studio (or your preferred C# IDE).
+2. **Run the setup script**  
+   ```bash
+   python setup-dev-environment.py
+   ```
+   This will automatically:
+   - Detect your ONI installation
+   - Configure environment variables
+   - Verify dependencies
+   - Test the build
 
-4. **Update the `ManagedPath` in the `.csproj` file**  
-   Open the `.csproj` file and find the `ManagedPath` property.  
-   Change its value to point to your local `OxygenNotIncluded_Data/Managed` folder, for example:
-   ```xml
-   <ManagedPath>C:\Program Files (x86)\Steam\steamapps\common\OxygenNotIncluded\OxygenNotIncluded_Data\Managed</ManagedPath>
+3. **Build and install the mod**  
+   ```bash
+   python build.py --install
    ```
 
-5. **Build the project**  
-   Once the `ManagedPath` is correctly set, build the project.  
-   If everything is configured correctly, the build should succeed.
+### Quick Commands
+
+```bash
+# Build and install mod
+python build.py --install
+
+# Configure Visual Studio
+python configure-vs.py
+
+# Development tools
+python dev-tools.py build --install    # Build and install
+python dev-tools.py configure-vs       # Configure Visual Studio
+python dev-tools.py watch-logs         # Monitor game logs
+python dev-tools.py test-deps          # Check dependencies
+```
+
+## Documentation
+
+- **[Development Guide](docs/DEVELOPMENT.md)** - Complete setup and development instructions
+- **[Visual Studio Setup](docs/VISUAL_STUDIO_SETUP.md)** - Configure Visual Studio for development
+- **[API Reference](docs/API_REFERENCE.md)** - Code documentation and examples
+- **[Changelog](docs/CHANGELOG.md)** - Version history and changes
 
 ---
 

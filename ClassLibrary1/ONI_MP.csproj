@@ -1,9 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../ONI_MP.props" Condition="Exists('../ONI_MP.props')" />
+
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework> <!-- Was net5.0 -->
     <ImplicitUsings>false</ImplicitUsings>
-	<ManagedPath>$(GAME_DIR)\OxygenNotIncluded_Data\Managed</ManagedPath>
-    <ManagedPath Condition="'$(GAME_DIR)' == ''">F:\SteamLibrary\steamapps\common\OxygenNotIncluded\OxygenNotIncluded_Data\Managed</ManagedPath>
+    <!-- Try ONI_GAME_DIR first, then fallback to GAME_DIR for compatibility, then hardcoded path -->
+    <ManagedPath Condition="'$(ONI_GAME_DIR)' != ''">$(ONI_GAME_DIR)\OxygenNotIncluded_Data\Managed</ManagedPath>
+    <ManagedPath Condition="'$(ONI_GAME_DIR)' == '' AND '$(GAME_DIR)' != ''">$(GAME_DIR)\OxygenNotIncluded_Data\Managed</ManagedPath>
+    <ManagedPath Condition="'$(ONI_GAME_DIR)' == '' AND '$(GAME_DIR)' == ''">E:\SteamLibrary\steamapps\common\OxygenNotIncluded\OxygenNotIncluded_Data\Managed</ManagedPath>
   </PropertyGroup>
 
   <ItemGroup>

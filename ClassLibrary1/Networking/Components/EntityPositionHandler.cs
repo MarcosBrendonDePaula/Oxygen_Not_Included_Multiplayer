@@ -1,82 +1,101 @@
-﻿using System;
+﻿using ONI_MP.DebugTools;
 using UnityEngine;
-using ONI_MP.Networking.Packets;
-using ONI_MP.DebugTools;
-using ONI_MP.Networking.Packets.Architecture;
-using ONI_MP.Networking.Packets.Core;
 
 namespace ONI_MP.Networking.Components
 {
-    public class EntityPositionHandler : KMonoBehaviour
-    {
-        private Vector3 lastSentPosition;
-        private float timer;
-        public static float SendInterval = 0.1f; // 100ms
+	public class EntityPositionHandler : KMonoBehaviour
+	{
+		private Vector3 lastSentPosition;
+		private Vector3 previousPosition;
+		private float timer;
+		public static float SendInterval = 0.05f; // 50ms
 
-        private NetworkIdentity networkedEntity;
-        private bool facingLeft;
-        protected override void OnSpawn()
-        {
-            base.OnSpawn();
+		private NetworkIdentity networkedEntity;
+		private Navigator navigator;
+		private bool facingLeft;
+		private Vector3 velocity;
 
-            networkedEntity = GetComponent<NetworkIdentity>();
-            if (networkedEntity == null)
-            {
-                DebugConsole.LogWarning("[EntityPositionSender] Missing NetworkedEntityComponent. This component requires it to function.");
-            }
+		protected override void OnSpawn()
+		{
+			base.OnSpawn();
 
-            lastSentPosition = transform.position;
-            facingLeft = false; // default facing direction
-        }
+			networkedEntity = GetComponent<NetworkIdentity>();
+			if (networkedEntity == null)
+			{
+				DebugConsole.LogWarning("[EntityPositionSender] Missing NetworkedEntityComponent. This component requires it to function.");
+			}
 
-        private void Update()
-        {
-            if (networkedEntity == null)
-                return;
+			navigator = GetComponent<Navigator>();
 
-            if (!MultiplayerSession.InSession || MultiplayerSession.IsClient)
-                return;
+			lastSentPosition = transform.position;
+			previousPosition = transform.position;
+			facingLeft = false;
+		}
 
-            SendPositionPacket();
-        }
+		private void Update()
+		{
+			if (networkedEntity == null)
+				return;
 
-        private void SendPositionPacket()
-        {
-            timer += Time.unscaledDeltaTime;
-            if (timer < SendInterval)
-                return;
+			if (!MultiplayerSession.InSession || MultiplayerSession.IsClient)
+				return;
 
-            timer = 0f;
+			SendPositionPacket();
+		}
 
-            Vector3 currentPosition = transform.position;
-            float deltaX = currentPosition.x - lastSentPosition.x;
+		private void SendPositionPacket()
+		{
+			timer += Time.unscaledDeltaTime;
+			if (timer < SendInterval)
+				return;
 
-            if (Vector3.Distance(currentPosition, lastSentPosition) > 0.01f)
-            {
-                Vector2 direction = new Vector2(deltaX, 0f);
-                if (direction.sqrMagnitude > 0.01f) // only check if there's meaningful movement
-                {
-                    Vector2 right = Vector2.right;
-                    float dot = Vector2.Dot(direction.normalized, right);
+			float actualDeltaTime = timer;
+			timer = 0f;
 
-                    bool newFacingLeft = dot < 0;
-                    if (newFacingLeft != facingLeft)
-                    {
-                        facingLeft = newFacingLeft;
-                    }
-                }
+			Vector3 currentPosition = transform.position;
 
-                lastSentPosition = currentPosition;
+			// Calculate velocity
+			velocity = (currentPosition - previousPosition) / actualDeltaTime;
+			previousPosition = currentPosition;
 
-                var packet = new EntityPositionPacket
-                {
-                    NetId = networkedEntity.NetId,
-                    Position = currentPosition,
-                    FacingLeft = facingLeft
-                };
+			float deltaX = currentPosition.x - lastSentPosition.x;
 
-                PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.UnreliableNoNagle);
-            }
-        }
-    }
+			if (Vector3.Distance(currentPosition, lastSentPosition) > 0.01f)
+			{
+				Vector2 direction = new Vector2(deltaX, 0f);
+				if (direction.sqrMagnitude > 0.01f)
+				{
+					Vector2 right = Vector2.right;
+					float dot = Vector2.Dot(direction.normalized, right);
+
+					bool newFacingLeft = dot < 0;
+					if (newFacingLeft != facingLeft)
+					{
+						facingLeft = newFacingLeft;
+					}
+				}
+
+				lastSentPosition = currentPosition;
+
+				// Get current NavType from navigator if available
+				NavType navType = NavType.Floor;
+				if (navigator != null && navigator.CurrentNavType != NavType.NumNavTypes)
+				{
+					navType = navigator.CurrentNavType;
+				}
+
+				var packet = new EntityPositionPacket
+				{
+					NetId = networkedEntity.NetId,
+					Position = currentPosition,
+					Velocity = velocity,
+					FacingLeft = facingLeft,
+					NavType = navType
+				};
+
+				PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
+			}
+		}
+	}
 }
+

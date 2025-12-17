@@ -1,0 +1,44 @@
+using HarmonyLib;
+using ONI_MP.DebugTools;
+using ONI_MP.Networking;
+using ONI_MP.Networking.Components;
+using ONI_MP.Networking.Packets.Social;
+using System.Collections.Generic;
+
+namespace ONI_MP.Patches.Social
+{
+	// Sync assignments (Minion -> Schedule)
+	[HarmonyPatch(typeof(Schedule), "Assign")]
+	public static class ScheduleAssignPatch
+	{
+		public static void Postfix(Schedule __instance, Schedulable schedulable)
+		{
+			if (!MultiplayerSession.InSession) return;
+			if (ScheduleAssignmentPacket.IsApplying) return;
+
+			var identity = schedulable.GetComponent<NetworkIdentity>();
+			if (identity != null)
+			{
+				var schedules = HarmonyLib.Traverse.Create(ScheduleManager.Instance).Field("schedules").GetValue<List<Schedule>>();
+				if (schedules == null) return;
+
+				int index = schedules.IndexOf(__instance);
+				if (index != -1)
+				{
+					var packet = new ScheduleAssignmentPacket
+					{
+						NetId = identity.NetId,
+						ScheduleIndex = index
+					};
+
+					if (MultiplayerSession.IsHost)
+						PacketSender.SendToAllClients(packet);
+					else
+						PacketSender.SendToHost(packet);
+
+					DebugConsole.Log($"[ScheduleAssignPatch] Sent assignment: {identity.name} -> Schedule {index}");
+				}
+			}
+		}
+	}
+}

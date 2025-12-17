@@ -1,0 +1,38 @@
+using ONI_MP.Networking.Packets.Architecture;
+using System.Collections.Generic;
+using System.IO;
+
+namespace ONI_MP.Networking.Packets.World
+{
+	public class DisinfectStatePacket : IPacket
+	{
+		public PacketType Type => PacketType.DisinfectState;
+
+		public List<int> DisinfectCells = new List<int>();
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(DisinfectCells.Count);
+			foreach (var cell in DisinfectCells)
+			{
+				writer.Write(cell);
+			}
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			int count = reader.ReadInt32();
+			DisinfectCells = new List<int>(count);
+			for (int i = 0; i < count; i++)
+			{
+				DisinfectCells.Add(reader.ReadInt32());
+			}
+		}
+
+		public void OnDispatched()
+		{
+			if (MultiplayerSession.IsHost) return;
+			ONI_MP.Networking.Components.WorldStateSyncer.Instance?.OnDisinfectStateReceived(this);
+		}
+	}
+}

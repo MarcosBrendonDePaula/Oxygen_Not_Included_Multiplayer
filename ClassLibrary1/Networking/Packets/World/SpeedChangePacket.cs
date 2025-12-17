@@ -1,61 +1,76 @@
-﻿using System;
-using System.IO;
-using ONI_MP.DebugTools;
+﻿using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Patches;
+using System;
+using System.IO;
 
 namespace ONI_MP.Networking.Packets.World
 {
-    public class SpeedChangePacket : IPacket
-    {
-        [Flags]
-        public enum SpeedState : int
-        {
-            Paused = -1,
-            Normal = 0,
-            Double = 1,
-            Triple = 2
-        }
+	public class SpeedChangePacket : IPacket
+	{
+		[Flags]
+		public enum SpeedState : int
+		{
+			Paused = -1,
+			Normal = 0,
+			Double = 1,
+			Triple = 2
+		}
 
-        public PacketType Type => PacketType.SpeedChange;
+		public PacketType Type => PacketType.SpeedChange;
 
-        public SpeedState Speed { get; set; }
+		public SpeedState Speed { get; set; }
 
-        public SpeedChangePacket() { }
+		public SpeedChangePacket() { }
 
-        public SpeedChangePacket(SpeedState speed)
-        {
-            Speed = speed;
-        }
+		public SpeedChangePacket(SpeedState speed)
+		{
+			Speed = speed;
+		}
 
-        public void Serialize(BinaryWriter writer)
-        {
-            writer.Write((int)Speed);
-        }
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write((int)Speed);
+		}
 
-        public void Deserialize(BinaryReader reader)
-        {
-            Speed = (SpeedState)reader.ReadInt32();
-        }
+		public void Deserialize(BinaryReader reader)
+		{
+			Speed = (SpeedState)reader.ReadInt32();
+		}
 
-        public void OnDispatched()
-        {
-            if (SpeedControlScreen.Instance == null)
-                return;
+		public void OnDispatched()
+		{
+			if (SpeedControlScreen.Instance == null)
+				return;
 
-            if (Speed == SpeedState.Paused)
-            {
-                if (!SpeedControlScreen.Instance.IsPaused)
-                    SpeedControlScreen.Instance.TogglePause();
-            }
-            else
-            {
-                if (SpeedControlScreen.Instance.IsPaused)
-                    SpeedControlScreen.Instance.TogglePause();
+			SpeedControlScreen_SendSpeedPacketPatch.IsSyncing = true;
+			try
+			{
+				if (Speed == SpeedState.Paused)
+				{
+					if (!SpeedControlScreen.Instance.IsPaused)
+						SpeedControlScreen.Instance.TogglePause();
+				}
+				else
+				{
+					if (SpeedControlScreen.Instance.IsPaused)
+						SpeedControlScreen.Instance.TogglePause();
 
-                SpeedControlScreen.Instance.SetSpeed((int)Speed);
-            }
+					SpeedControlScreen.Instance.SetSpeed((int)Speed);
+				}
+			}
+			finally
+			{
+				SpeedControlScreen_SendSpeedPacketPatch.IsSyncing = false;
+			}
 
-            DebugConsole.Log($"[SpeedChnagePacket] SpeedChangePacket received: Speed set to {Speed}");
-        }
-    }
+			// Rebroadcast if Host
+			if (MultiplayerSession.IsHost)
+			{
+				PacketSender.SendToAllClients(this);
+			}
+
+			DebugConsole.Log($"[SpeedChnagePacket] SpeedChangePacket received: Speed set to {Speed}");
+		}
+	}
 }

@@ -74,11 +74,43 @@ namespace ONI_MP.Networking.Packets.World
 		{
 			if (MultiplayerSession.IsHost) return;
 
+			// Minimum simulation temperature - cells with mass must have temperature above this
+			const float SIM_MIN_TEMPERATURE = 1f; // 1 Kelvin
+
 			foreach (var u in Updates)
 			{
+				// Skip invalid cells
+				if (!Grid.IsValidCell(u.Cell)) continue;
+
+				float temperature = u.Temperature;
+				float mass = u.Mass;
+
+				// Validation: The sim requires that if mass > 0, temperature must be > SIM_MIN_TEMPERATURE
+				// If we have invalid data, we need to fix it or skip the update
+				if (mass > 0f)
+				{
+					// Ensure temperature is valid for non-vacuum cells
+					if (temperature <= SIM_MIN_TEMPERATURE || float.IsNaN(temperature) || float.IsInfinity(temperature))
+					{
+						// Use a safe default temperature (room temperature ~293K / 20C)
+						temperature = 293.15f;
+					}
+				}
+				else
+				{
+					// For vacuum cells (mass == 0), temperature doesn't matter but set to 0 for consistency
+					temperature = 0f;
+				}
+
+				// Skip if mass is negative (corrupt data)
+				if (mass < 0f || float.IsNaN(mass) || float.IsInfinity(mass))
+				{
+					continue;
+				}
+
 				SimMessages.ModifyCell(
 						u.Cell, u.ElementIdx,
-						u.Temperature, u.Mass,
+						temperature, mass,
 						u.DiseaseIdx, u.DiseaseCount,
 						SimMessages.ReplaceType.Replace
 				);

@@ -48,6 +48,9 @@ namespace ONI_MP.Misc.World
 
 		public void Apply()
 		{
+			// Minimum simulation temperature - cells with mass must have temperature above this
+			const float SIM_MIN_TEMPERATURE = 1f; // 1 Kelvin
+
 			int len = Width * Height;
 			for (int i = 0; i < Width; i++)
 				for (int j = 0; j < Height; j++)
@@ -57,11 +60,33 @@ namespace ONI_MP.Misc.World
 					int cell = Grid.XYToCell(x, y);
 					if (!Grid.IsValidCell(cell)) continue;
 
+					float temperature = Temperatures[idx];
+					float mass = Masses[idx];
+
+					// Validation: The sim requires that if mass > 0, temperature must be > SIM_MIN_TEMPERATURE
+					if (mass > 0f)
+					{
+						if (temperature <= SIM_MIN_TEMPERATURE || float.IsNaN(temperature) || float.IsInfinity(temperature))
+						{
+							temperature = 293.15f; // Default to room temperature
+						}
+					}
+					else
+					{
+						temperature = 0f;
+					}
+
+					// Skip invalid mass data
+					if (mass < 0f || float.IsNaN(mass) || float.IsInfinity(mass))
+					{
+						continue;
+					}
+
 					SimMessages.ModifyCell(
 							cell,
 							Tiles[idx],
-							Temperatures[idx],
-							Masses[idx],
+							temperature,
+							mass,
 							DiseaseIdx[idx],
 							DiseaseCount[idx],
 							SimMessages.ReplaceType.Replace

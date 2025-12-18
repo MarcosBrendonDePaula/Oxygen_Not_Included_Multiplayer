@@ -64,9 +64,6 @@ namespace ONI_MP.Networking
 		/// <summary>
 		/// Send a packet to a player by their SteamID.
 		/// </summary>
-		/// <summary>
-		/// Send a packet to a player by their SteamID.
-		/// </summary>
 		public static bool SendToPlayer(CSteamID steamID, IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.ReliableNoNagle)
 		{
 			if (!MultiplayerSession.ConnectedPlayers.TryGetValue(steamID, out var player) || player.Connection == null)

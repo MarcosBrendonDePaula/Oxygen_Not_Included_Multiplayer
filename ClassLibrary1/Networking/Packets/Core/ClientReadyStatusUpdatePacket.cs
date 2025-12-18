@@ -29,7 +29,7 @@ namespace ONI_MP.Networking.Packets.Core
 
 		public void OnDispatched()
 		{
-			// Host updates theirs on each ready status packet so we dont do anythingh here
+			// Host updates theirs on each ready status packet so we dont do anything here
 			if (MultiplayerSession.IsHost)
 				return;
 

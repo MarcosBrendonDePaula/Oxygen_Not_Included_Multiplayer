@@ -18,7 +18,7 @@ namespace ONI_MP.Networking.Packets.Architecture
 			{
 				using (var reader = new BinaryReader(ms))
 				{
-					PacketType type = (PacketType)reader.ReadByte();
+					PacketType type = (PacketType)reader.ReadInt32();
 					var packet = PacketRegistry.Create(type);
 					packet.Deserialize(reader);
 					Dispatch(packet);

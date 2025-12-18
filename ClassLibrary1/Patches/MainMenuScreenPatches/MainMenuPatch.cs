@@ -26,16 +26,18 @@ internal static class MainMenuPatch
 
 		// Host Game
 
-		string host_text = GoogleDrive.Instance.IsInitialized ? "Host Game" : "Host Game [Setup]";
+		//string host_text = GoogleDrive.Instance.IsInitialized ? "Host Game" : "Host Game [Setup]";
 		var hostInfo = CreateButtonInfo(
-				host_text,
+				"Host Game",
 				new System.Action(() =>
 				{
+					/*
 					if (!GoogleDrive.Instance.IsInitialized)
 					{
 						Application.OpenURL("https://github.com/Lyraedan/Oxygen_Not_Included_Multiplayer/wiki/Google-Drive-Setup-Guide");
 						return;
 					}
+					*/
 
 					MultiplayerSession.ShouldHostAfterLoad = true;
 					__instance.Button_ResumeGame.SignalClick(KKeyCode.Mouse0);
@@ -59,11 +61,12 @@ internal static class MainMenuPatch
 		);
 		makeButton.Invoke(__instance, new object[] { joinInfo });
 
+		/* I don't like this anymore - Luke
 		bool useCustomMenu = Configuration.GetClientProperty<bool>("UseCustomMainMenu");
 		if (useCustomMenu)
 		{
 			InsertStaticBackground(__instance);
-		}
+		}*/
 		UpdatePromos();
 		UpdateDLC();
 		UpdateBuildNumber();
@@ -291,10 +294,12 @@ internal static class MainMenuPatch
 		var discordSprite = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.discord.png");
 		AddSocialButton(socialsContainer.transform, "Join ONI Together\non Discord", "https://discord.gg/jpxveK6mmY", discordSprite);
 
+		/*
 		var statusSprite = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.cloud_status.png");
 		AddStatusIndicator(socialsContainer.transform, "cloud_indicator", GoogleDrive.Instance.IsInitialized, statusSprite,
 				new string[] { "Multiplayer Hosting: Not Ready!\n<color=#FFFF00>Click to view guide</color>", "Multiplayer Hosting: Ready!" },
 				new string[] { "https://github.com/Lyraedan/Oxygen_Not_Included_Multiplayer/wiki/Google-Drive-Setup-Guide ", "" });
+		*/
 
 		// Automatically resize the container to properly fit the buttons
 		int buttonCount = socialsContainer.transform.childCount;

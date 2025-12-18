@@ -23,6 +23,7 @@
 	<Reference Include="UnityEngine.UIModule" HintPath="$(ManagedPath)\UnityEngine.UIModule.dll" Private="false" />
 	<Reference Include="UnityEngine.TextRenderingModule" HintPath="$(ManagedPath)\UnityEngine.TextRenderingModule.dll" Private="false" />
 	<Reference Include="ImGui.NET" HintPath="$(ManagedPath)\ImGui.NET.dll" Private="false" />
+	<Reference Include="FMODUnity" HintPath="$(ManagedPath)\FMODUnity.dll" Private="false" />
   </ItemGroup>
 
   <ItemGroup>

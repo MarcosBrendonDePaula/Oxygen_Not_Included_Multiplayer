@@ -1,6 +1,6 @@
 ﻿namespace ONI_MP.Networking.Packets.Architecture
 {
-	public enum PacketType : byte
+	public enum PacketType : int
 	{
 		ChatMessage = 1,
 		EntityPosition = 2,

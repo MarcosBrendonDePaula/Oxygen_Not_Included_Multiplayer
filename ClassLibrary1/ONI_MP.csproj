@@ -6,7 +6,20 @@
     <ManagedPath Condition="'$(GAME_DIR)' == ''">E:\SteamLibrary\steamapps\common\OxygenNotIncluded\OxygenNotIncluded_Data\Managed</ManagedPath>
   </PropertyGroup>
 
-  <ItemGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<DefineConstants>OS_WINDOWS</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+		<DefineConstants>OS_LINUX</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('FreeBSD'))">
+		<DefineConstants>OS_FREEBSD</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+		<DefineConstants>OS_MAC</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
     <Reference Include="Assembly-CSharp" HintPath="$(ManagedPath)\Assembly-CSharp.dll" Private="false" />
     <Reference Include="Assembly-CSharp-firstpass" HintPath="$(ManagedPath)\Assembly-CSharp-firstpass.dll" Private="false" />
     <Reference Include="UnityEngine.CoreModule" HintPath="$(ManagedPath)\UnityEngine.CoreModule.dll" Private="false" />
@@ -28,7 +41,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\oni_together_logo.png" />
-	<EmbeddedResource Include="Assets\background-static.png" />
+	<!--<EmbeddedResource Include="Assets\background-static.png" />-->
 	<EmbeddedResource Include="Assets\discord.png" />
 	<EmbeddedResource Include="Assets\bundles\playercursor_win.bundle" />
 	<EmbeddedResource Include="Assets\bundles\playercursor_mac.bundle" />

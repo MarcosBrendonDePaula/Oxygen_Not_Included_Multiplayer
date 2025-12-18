@@ -352,9 +352,6 @@ namespace ONI_MP.Networking.Components
 		/// <summary>
 		/// Called when receiving a DuplicantStatePacket from the host
 		/// </summary>
-		/// <summary>
-		/// Called when receiving a DuplicantStatePacket from the host
-		/// </summary>
 		public void OnStateReceived(DuplicantActionState state, int targetCell, string animName, float animElapsedTime, bool isWorking, string heldSymbol)
 		{
 			currentActionState = state;

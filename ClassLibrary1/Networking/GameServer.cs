@@ -167,7 +167,8 @@ namespace ONI_MP.Networking
 			if (!MultiplayerSession.ConnectedPlayers.TryGetValue(clientId, out player))
 			{
 				player = new MultiplayerPlayer(clientId);
-				MultiplayerSession.ConnectedPlayers[clientId] = player;
+				MultiplayerSession.ConnectedPlayers.Add(clientId, player);
+				//MultiplayerSession.ConnectedPlayers[clientId] = player;
 			}
 			player.Connection = conn;
 

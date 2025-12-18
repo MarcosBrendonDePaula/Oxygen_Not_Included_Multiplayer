@@ -1,4 +1,5 @@
 using HarmonyLib;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Packets.Social;
 using System.Collections.Generic;
@@ -14,10 +15,18 @@ namespace ONI_MP.Patches.GamePatches
 
 		public static void ApplyOptionsToScreen(ImmigrantScreen screen)
 		{
-			if (AvailableOptions == null || AvailableOptions.Count == 0 || screen == null) return;
+			if (AvailableOptions == null || AvailableOptions.Count == 0 || screen == null)
+			{
+				DebugConsole.LogWarning($"[ImmigrantScreen] ApplyOptionsToScreen: Cannot apply - Options:{AvailableOptions?.Count ?? 0}, Screen:{(screen != null ? "valid" : "null")}");
+				return;
+			}
 
 			var containersObj = Traverse.Create(screen).Field("containers").GetValue();
-			if (containersObj == null) return;
+			if (containersObj == null)
+			{
+				DebugConsole.LogWarning("[ImmigrantScreen] ApplyOptionsToScreen: containers field is null!");
+				return;
+			}
 
 			var containers = new List<CharacterContainer>();
 			if (containersObj is System.Collections.IEnumerable enumerable)
@@ -28,7 +37,13 @@ namespace ONI_MP.Patches.GamePatches
 				}
 			}
 
-			if (containers.Count == 0) return;
+			if (containers.Count == 0)
+			{
+				DebugConsole.LogWarning("[ImmigrantScreen] ApplyOptionsToScreen: No containers found!");
+				return;
+			}
+
+			DebugConsole.Log($"[ImmigrantScreen] ApplyOptionsToScreen: Applying {AvailableOptions.Count} options to {containers.Count} containers");
 
 			for (int i = 0; i < containers.Count; i++)
 			{
@@ -42,24 +57,33 @@ namespace ONI_MP.Patches.GamePatches
 				var container = containers[i];
 				container.gameObject.SetActive(true);
 
-				if (opt.IsDuplicant)
+				try
 				{
-					var personality = Db.Get().Personalities.TryGet(opt.PersonalityId);
-					if (personality == null) personality = Db.Get().Personalities.TryGet("Hassan");
-
-					var stats = new MinionStartingStats(personality);
-					stats.Name = opt.Name;
-					if (!string.IsNullOrEmpty(opt.Gender))
+					if (opt.IsDuplicant)
 					{
-						Traverse.Create(stats).Field("genderString").SetValue(opt.Gender);
-					}
+						var personality = Db.Get().Personalities.TryGet(opt.PersonalityId);
+						if (personality == null) personality = Db.Get().Personalities.TryGet("Hassan");
 
-					Traverse.Create(container).Method("SetInfo", new object[] { stats }).GetValue();
+						var stats = new MinionStartingStats(personality);
+						stats.Name = opt.Name;
+						if (!string.IsNullOrEmpty(opt.Gender))
+						{
+							Traverse.Create(stats).Field("genderString").SetValue(opt.Gender);
+						}
+
+						Traverse.Create(container).Method("SetInfo", new object[] { stats }).GetValue();
+						DebugConsole.Log($"[ImmigrantScreen]   Applied Duplicant {i}: {opt.Name}");
+					}
+					else
+					{
+						var pkg = new CarePackageInfo(opt.CarePackageId, opt.Quantity, null);
+						Traverse.Create(container).Method("SetInfo", new object[] { pkg }).GetValue();
+						DebugConsole.Log($"[ImmigrantScreen]   Applied CarePackage {i}: {opt.CarePackageId}");
+					}
 				}
-				else
+				catch (System.Exception ex)
 				{
-					var pkg = new CarePackageInfo(opt.CarePackageId, opt.Quantity, null);
-					Traverse.Create(container).Method("SetInfo", new object[] { pkg }).GetValue();
+					DebugConsole.LogError($"[ImmigrantScreen]   Error applying option {i}: {ex.Message}");
 				}
 			}
 		}
@@ -72,8 +96,14 @@ namespace ONI_MP.Patches.GamePatches
 		{
 			if (!MultiplayerSession.InSession) return;
 
+			DebugConsole.Log("[ImmigrantScreen] Initialize postfix triggered");
+
 			var containersObj = Traverse.Create(__instance).Field("containers").GetValue();
-			if (containersObj == null) return;
+			if (containersObj == null)
+			{
+				DebugConsole.LogWarning("[ImmigrantScreen] containers field is null!");
+				return;
+			}
 
 			// Convert to list - containers might be an array or other collection
 			var containers = new List<CharacterContainer>();
@@ -85,10 +115,13 @@ namespace ONI_MP.Patches.GamePatches
 				}
 			}
 
+			DebugConsole.Log($"[ImmigrantScreen] Found {containers.Count} containers");
+
 			if (containers.Count == 0) return;
 
 			if (MultiplayerSession.IsHost)
 			{
+				DebugConsole.Log("[ImmigrantScreen] Host: Capturing options to broadcast...");
 				// Host: Capture options and broadcast
 				var packet = new ImmigrantOptionsPacket();
 				foreach (var container in containers)
@@ -106,15 +139,18 @@ namespace ONI_MP.Patches.GamePatches
 						if (gender == null) gender = "Unknown";
 						entry.Gender = gender;
 						entry.PersonalityId = stats.personality != null ? stats.personality.Id : "Hassan";
+						DebugConsole.Log($"[ImmigrantScreen]   Capturing Duplicant: {entry.Name} ({entry.PersonalityId})");
 					}
 					else if (pkg != null)
 					{
 						entry.IsDuplicant = false;
 						entry.CarePackageId = pkg.id;
 						entry.Quantity = pkg.quantity;
+						DebugConsole.Log($"[ImmigrantScreen]   Capturing CarePackage: {entry.CarePackageId} x{entry.Quantity}");
 					}
 					else
 					{
+						DebugConsole.LogWarning("[ImmigrantScreen]   Container has no stats or carePackageInfo, skipping");
 						continue;
 					}
 					packet.Options.Add(entry);
@@ -122,14 +158,27 @@ namespace ONI_MP.Patches.GamePatches
 
 				if (packet.Options.Count > 0)
 				{
-					ImmigrantScreenPatch.AvailableOptions = packet.Options; // Host also sets local cache? Not strictly needed but consistent.
+					ImmigrantScreenPatch.AvailableOptions = packet.Options;
+					DebugConsole.Log($"[ImmigrantScreen] Host: Broadcasting {packet.Options.Count} options to all clients");
 					PacketSender.SendToAllClients(packet);
+				}
+				else
+				{
+					DebugConsole.LogWarning("[ImmigrantScreen] Host: No options to broadcast!");
 				}
 			}
 			else
 			{
 				// Client: Apply received options if available
-				ImmigrantScreenPatch.ApplyOptionsToScreen(__instance);
+				if (ImmigrantScreenPatch.AvailableOptions != null && ImmigrantScreenPatch.AvailableOptions.Count > 0)
+				{
+					DebugConsole.Log($"[ImmigrantScreen] Client: Applying {ImmigrantScreenPatch.AvailableOptions.Count} cached options");
+					ImmigrantScreenPatch.ApplyOptionsToScreen(__instance);
+				}
+				else
+				{
+					DebugConsole.LogWarning("[ImmigrantScreen] Client: No cached options available yet!");
+				}
 			}
 		}
 	}

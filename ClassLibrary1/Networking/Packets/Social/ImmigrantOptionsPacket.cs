@@ -1,3 +1,4 @@
+using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets.Architecture;
 using System.Collections.Generic;
 using System.IO;
@@ -77,14 +78,35 @@ namespace ONI_MP.Networking.Packets.Social
 		{
 			if (MultiplayerSession.IsHost) return;
 
+			DebugConsole.Log($"[ImmigrantOptionsPacket] Received {Options.Count} options from host");
+
 			// Client received options.
 			// Store them in the Patch class so when ImmigrantScreen opens, we use them.
 			ONI_MP.Patches.GamePatches.ImmigrantScreenPatch.AvailableOptions = Options;
 
+			// Log each option for debugging
+			for (int i = 0; i < Options.Count; i++)
+			{
+				var opt = Options[i];
+				if (opt.IsDuplicant)
+				{
+					DebugConsole.Log($"[ImmigrantOptionsPacket]   Option {i}: Duplicant '{opt.Name}' (Personality: {opt.PersonalityId})");
+				}
+				else
+				{
+					DebugConsole.Log($"[ImmigrantOptionsPacket]   Option {i}: CarePackage '{opt.CarePackageId}' x{opt.Quantity}");
+				}
+			}
+
 			// If the screen is already open, refresh it immediately.
 			if (ImmigrantScreen.instance != null && ImmigrantScreen.instance.gameObject.activeInHierarchy)
 			{
+				DebugConsole.Log("[ImmigrantOptionsPacket] ImmigrantScreen is open, applying options immediately");
 				ONI_MP.Patches.GamePatches.ImmigrantScreenPatch.ApplyOptionsToScreen(ImmigrantScreen.instance);
+			}
+			else
+			{
+				DebugConsole.Log("[ImmigrantOptionsPacket] ImmigrantScreen is not open, options stored for later");
 			}
 		}
 	}

@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using ONI_MP.DebugTools;
 
 namespace ONI_MP.Networking.Packets.Architecture
 {
@@ -19,7 +21,13 @@ namespace ONI_MP.Networking.Packets.Architecture
 				using (var reader = new BinaryReader(ms))
 				{
 					PacketType type = (PacketType)reader.ReadInt32();
-					var packet = PacketRegistry.Create(type);
+                    if (!Enum.IsDefined(typeof(PacketType), type))
+                    {
+                        DebugConsole.LogError($"Invalid PacketType received: {type}", false);
+                        return;
+                    }
+
+                    var packet = PacketRegistry.Create(type);
 					packet.Deserialize(reader);
 					Dispatch(packet);
 				}

@@ -18,7 +18,7 @@ namespace ONI_MP.Networking
 			using (var ms = new System.IO.MemoryStream())
 			using (var writer = new System.IO.BinaryWriter(ms))
 			{
-				writer.Write((byte)packet.Type);
+				writer.Write((int)packet.Type);
 				packet.Serialize(writer);
 				return ms.ToArray();
 			}

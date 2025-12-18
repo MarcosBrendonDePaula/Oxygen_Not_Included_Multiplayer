@@ -31,15 +31,15 @@ namespace ONI_MP.DebugTools
 		private void Awake()
 		{
 			hierarchyViewer = gameObject.AddComponent<HierarchyViewer>();
-			debugConsole = gameObject.AddComponent<DebugConsole>();
+			//debugConsole = gameObject.AddComponent<DebugConsole>();
 		}
 
 		private void Update()
 		{
-			if (Input.GetKeyDown(KeyCode.F1) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-			{
-				showMenu = !showMenu;
-			}
+			//if (Input.GetKeyDown(KeyCode.F1) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
+			//{
+			//	showMenu = !showMenu;
+			//}
 		}
 
 		private void OnGUI()
@@ -57,8 +57,8 @@ namespace ONI_MP.DebugTools
 			if (GUILayout.Button("Toggle Hierarchy Viewer"))
 				hierarchyViewer.Toggle();
 
-			if (GUILayout.Button("Toggle Debug Console"))
-				debugConsole.Toggle();
+			//if (GUILayout.Button("Toggle Debug Console"))
+				//debugConsole.Toggle();
 
 			if (GUILayout.Button("Create Lobby"))
 				SteamLobby.CreateLobby(onSuccess: () =>

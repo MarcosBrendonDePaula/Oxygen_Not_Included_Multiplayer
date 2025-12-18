@@ -157,7 +157,7 @@ namespace ONI_MP.Networking
 
 		private static void RejectConnection(HSteamNetConnection conn, CSteamID clientId, string reason)
 		{
-			DebugConsole.LogError($"[GameServer] Rejecting connection from {clientId}: {reason}");
+			DebugConsole.LogError($"[GameServer] Rejecting connection from {clientId}: {reason}", false);
 			SteamNetworkingSockets.CloseConnection(conn, 0, reason, false);
 		}
 

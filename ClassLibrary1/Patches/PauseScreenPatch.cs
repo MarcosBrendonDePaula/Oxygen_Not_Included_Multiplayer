@@ -44,30 +44,64 @@ namespace ONI_MP.Patches
 		{
 			static void Postfix(PauseScreen __instance)
 			{
-				// Only in multiplayer
-				if (!MultiplayerSession.InSession) return; // Do we want clients to be able to invite people???
+                var buttonsField = AccessTools.Field(typeof(KModalButtonMenu), "buttons");
+                var buttonInfos = ((KModalButtonMenu.ButtonInfo[])buttonsField.GetValue(__instance))?.ToList()
+                                                    ?? new List<KModalButtonMenu.ButtonInfo>();
 
-				var buttonsField = AccessTools.Field(typeof(KModalButtonMenu), "buttons");
-				var buttonInfos = ((KModalButtonMenu.ButtonInfo[])buttonsField.GetValue(__instance))?.ToList()
-													?? new List<KModalButtonMenu.ButtonInfo>();
+                // Only in multiplayer
+                if (!MultiplayerSession.InSession)
+				{
+					AddButton(__instance, "Host Game", () =>
+					{
+                        SteamLobby.CreateLobby(onSuccess: () =>
+                        {
+                            PauseScreen.Instance.Show(false); // Hide pause screen
+                            SpeedControlScreen.Instance?.Unpause(false);
+                        });
+                    });
+                    return;
+				}
 
-				if (buttonInfos.Any(b => b.text == "Invite"))
-					return;
+				if (MultiplayerSession.IsHost)
+				{
+                    AddButton(__instance, "Invite", () =>
+                    {
+                        //SteamFriends.ActivateGameOverlayInviteDialog(MultiplayerSession.HostSteamID); // Whilst the menu opens, sending an invite this way doesn't work
+                        SteamFriends.ActivateGameOverlay("friends");
+                    });
 
-				// Insert after "Resume"
-				int idx = buttonInfos.FindIndex(b => b.text == "Resume") + 1;
-				if (idx <= 0) idx = 1;
+                    AddButton(__instance, "End Multiplayer Session", () =>
+					{
+						SteamLobby.LeaveLobby();
+                        PauseScreen.Instance.Show(false); // Hide pause screen
+                        SpeedControlScreen.Instance?.Unpause(false);
+                    }, "Invite");
+				}
 
-				buttonInfos.Insert(idx, new KModalButtonMenu.ButtonInfo(
-						"Invite",
-						new UnityAction(() =>
-						{
-							SteamFriends.ActivateGameOverlayInviteDialog(MultiplayerSession.HostSteamID);
-						})
-				));
-
-				buttonsField.SetValue(__instance, buttonInfos.ToArray());
-			}
+            }
 		}
+
+		private static void AddButton(PauseScreen __instance, string label, System.Action onClicked, string placeAfter = "Resume")
+		{
+            var buttonsField = AccessTools.Field(typeof(KModalButtonMenu), "buttons");
+            var buttonInfos = ((KModalButtonMenu.ButtonInfo[])buttonsField.GetValue(__instance))?.ToList()
+                                                ?? new List<KModalButtonMenu.ButtonInfo>();
+
+            if (buttonInfos.Any(b => b.text == label))
+                return; // Ignore duplicates
+
+            int id_x = buttonInfos.FindIndex(b => b.text == placeAfter) + 1;
+            if (id_x <= 0) id_x = 1;
+
+            buttonInfos.Insert(id_x, new KModalButtonMenu.ButtonInfo(
+                    label,
+                    new UnityAction(() =>
+                    {
+						onClicked.Invoke();
+                    })
+            ));
+
+            buttonsField.SetValue(__instance, buttonInfos.ToArray());
+        }
 	}
 }

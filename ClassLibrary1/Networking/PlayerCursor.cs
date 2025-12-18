@@ -21,7 +21,7 @@ namespace ONI_MP.Networking
 		private TextMeshProUGUI cursorText = null;
 
 		private CSteamID assignedPlayer;
-		string playerName = string.Empty;
+		public string playerName = string.Empty;
 
 		private CursorState cursorState = CursorState.NONE;
 

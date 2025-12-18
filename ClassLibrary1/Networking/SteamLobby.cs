@@ -161,12 +161,14 @@ namespace ONI_MP.Networking
 				if (MultiplayerSession.IsHost)
 				{
 					if (!MultiplayerSession.ConnectedPlayers.ContainsKey(user))
-						MultiplayerSession.ConnectedPlayers[user] = new MultiplayerPlayer(user);
+						//MultiplayerSession.ConnectedPlayers[user] = new MultiplayerPlayer(user);
+						MultiplayerSession.ConnectedPlayers.Add(user, new MultiplayerPlayer(user));
 				}
 				else if (user == MultiplayerSession.HostSteamID && !MultiplayerSession.ConnectedPlayers.ContainsKey(user))
 				{
-					MultiplayerSession.ConnectedPlayers[user] = new MultiplayerPlayer(user);
-				}
+					//MultiplayerSession.ConnectedPlayers[user] = new MultiplayerPlayer(user);
+                    MultiplayerSession.ConnectedPlayers.Add(user, new MultiplayerPlayer(user));
+                }
 
 				DebugConsole.Log($"[SteamLobby] {name} joined the lobby.");
 				ChatScreen.QueueMessage($"<color=yellow>[System]</color> <b>{name}</b> joined the game.");

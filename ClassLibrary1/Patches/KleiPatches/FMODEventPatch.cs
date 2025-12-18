@@ -5,52 +5,56 @@ using System;
 
 namespace ONI_MP.Patches.KleiPatches
 {
-	/// <summary>
-	/// Patches FMOD audio event lookups to handle cross-platform compatibility issues.
-	/// Mac and Windows clients have different audio bank GUIDs, causing EventNotFoundException
-	/// when a Mac client connects to a Windows host (or vice versa).
-	/// This patch catches the exception and returns a fallback, preventing crashes.
-	/// </summary>
-	[HarmonyPatch(typeof(Assets), nameof(Assets.GetSimpleSoundEventName))]
-	public static class FMODEventPatch
-	{
-		[HarmonyPrefix]
-		public static bool Prefix(FMODUnity.EventReference event_ref, ref string __result)
-		{
-			try
-			{
-				// Attempt the normal lookup - if it fails, we'll catch it
-				var path = KFMOD.GetEventReferencePath(event_ref);
-				if (string.IsNullOrEmpty(path))
-				{
-					__result = string.Empty;
-					return false; // Skip original method
-				}
-				
-				// Let the original method handle it if path is valid
-				return true;
-			}
-			catch (FMODUnity.EventNotFoundException)
-			{
-				// Cross-platform FMOD GUID mismatch - return empty string as fallback
-				DebugConsole.LogWarning($"[Multiplayer] FMOD event not found (cross-platform audio GUID mismatch): {event_ref.Guid}");
-				__result = string.Empty;
-				return false; // Skip original method
-			}
-			catch (Exception ex)
-			{
-				// Catch any other FMOD-related exceptions
-				DebugConsole.LogWarning($"[Multiplayer] FMOD event lookup failed: {ex.Message}");
-				__result = string.Empty;
-				return false;
-			}
-		}
-	}
+    /// <summary>
+    /// Patches FMOD audio event lookups to handle cross-platform compatibility issues.
+    /// Mac and Windows clients have different audio bank GUIDs, causing EventNotFoundException
+    /// when a Mac client connects to a Windows host (or vice versa).
+    /// This patch catches the exception and returns a fallback, preventing crashes.
+    /// </summary>
+    [HarmonyPatch(
+    typeof(Assets),
+    nameof(Assets.GetSimpleSoundEventName),
+    new Type[] { typeof(FMODUnity.EventReference) }
+)]
+    public static class FMODEventPatch
+    {
+        [HarmonyPrefix]
+        public static bool Prefix(FMODUnity.EventReference event_ref, ref string __result)
+        {
+            try
+            {
+                var path = KFMOD.GetEventReferencePath(event_ref);
+                if (string.IsNullOrEmpty(path))
+                {
+                    __result = string.Empty;
+                    return false;
+                }
 
-	/// <summary>
-	/// Patches KFMOD.GetEventReferencePath to handle missing events gracefully.
-	/// </summary>
-	[HarmonyPatch(typeof(KFMOD), nameof(KFMOD.GetEventReferencePath))]
+                return true; // let original run
+            }
+            catch (FMODUnity.EventNotFoundException)
+            {
+                DebugConsole.LogWarning(
+                    $"[Multiplayer] FMOD event not found (cross-platform audio GUID mismatch): {event_ref.Guid}"
+                );
+                __result = string.Empty;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning(
+                    $"[Multiplayer] FMOD event lookup failed: {ex.Message}"
+                );
+                __result = string.Empty;
+                return false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Patches KFMOD.GetEventReferencePath to handle missing events gracefully.
+    /// </summary>
+    [HarmonyPatch(typeof(KFMOD), nameof(KFMOD.GetEventReferencePath))]
 	public static class KFMODEventPathPatch
 	{
 		[HarmonyPrefix]

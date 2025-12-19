@@ -23,7 +23,7 @@ namespace ONI_MP.Networking.Components
 		private string lastSentAnimName;
 		private bool lastSentIsWorking;
 
-		protected override void OnSpawn()
+		public override void OnSpawn()
 		{
 			base.OnSpawn();
 

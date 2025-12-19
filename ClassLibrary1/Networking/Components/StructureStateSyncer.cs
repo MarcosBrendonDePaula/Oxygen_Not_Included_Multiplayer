@@ -17,7 +17,7 @@ namespace ONI_MP.Networking.Components
 		private float lastSentValue;
 		private bool lastSentActive;
 
-		protected override void OnSpawn()
+		public override void OnSpawn()
 		{
 			base.OnSpawn();
 

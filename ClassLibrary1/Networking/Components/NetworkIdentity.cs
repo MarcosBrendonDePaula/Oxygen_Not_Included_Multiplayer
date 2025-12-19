@@ -21,7 +21,7 @@ namespace ONI_MP.Networking.Components
 			//DebugConsole.Log($"[NetworkIdentity] DESERIALIZED: NetId = {NetId} on {gameObject.name}");
 		}
 
-		protected override void OnSpawn()
+		public override void OnSpawn()
 		{
 			base.OnSpawn();
 			RegisterIdentity();
@@ -58,7 +58,7 @@ namespace ONI_MP.Networking.Components
 		}
 
 
-		protected override void OnCleanUp()
+		public override void OnCleanUp()
 		{
 			NetworkIdentityRegistry.Unregister(NetId);
 			DebugConsole.Log($"[NetworkIdentity] Unregistered NetId {NetId} for {gameObject.name}");

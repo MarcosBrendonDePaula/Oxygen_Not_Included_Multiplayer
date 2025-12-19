@@ -51,7 +51,7 @@ namespace ONI_MP.Networking.Components
 			public bool IsQueue;
 		}
 
-		protected override void OnSpawn()
+		public override void OnSpawn()
 		{
 			base.OnSpawn();
 

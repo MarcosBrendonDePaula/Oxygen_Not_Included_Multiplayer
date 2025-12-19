@@ -45,6 +45,7 @@ public class ToggleMinionEffectPacket : IPacket
 		toggler.GetComponentInParent<AnimEventHandler>()?.SetContext(Context);
 
 		var hash = Hash.SDBMLower(Event);
-		toggler.Trigger(hash, Enable);
+		//data gets ignored by subscriptions
+		toggler.Trigger(hash, null);
 	}
 }

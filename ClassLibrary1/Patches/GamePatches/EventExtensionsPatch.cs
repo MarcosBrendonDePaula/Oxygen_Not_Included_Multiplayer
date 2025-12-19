@@ -27,7 +27,26 @@ namespace ONI_MP.Patches.GamePatches
 					NetworkIdentity identity = go.GetComponent<NetworkIdentity>();
 					if (identity != null)
 					{
-						var packet = new EventTriggeredPacket(identity.NetId, hash, data);
+						// Skip syncing events with Unity object data - these cannot be serialized
+						// and attempting to serialize them causes freezes
+						object safeData = data;
+						if (data != null)
+						{
+							var dataType = data.GetType();
+							// Skip UnityEngine.Object types (MonoBehaviour, Component, GameObject, ScriptableObject, etc.)
+							if (typeof(UnityEngine.Object).IsAssignableFrom(dataType))
+							{
+								safeData = null; // Don't try to serialize Unity objects
+							}
+							// Skip any type from Assembly-CSharp that inherits from UnityEngine.Object
+							else if (dataType.Assembly.GetName().Name == "Assembly-CSharp" && 
+									 typeof(UnityEngine.Object).IsAssignableFrom(dataType.BaseType))
+							{
+								safeData = null;
+							}
+						}
+						
+						var packet = new EventTriggeredPacket(identity.NetId, hash, safeData);
 						PacketSender.SendToAllClients(packet, SteamNetworkingSend.Unreliable);
 					}
 				}

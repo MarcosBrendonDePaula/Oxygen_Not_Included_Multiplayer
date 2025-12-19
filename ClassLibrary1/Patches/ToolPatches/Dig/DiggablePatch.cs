@@ -28,7 +28,6 @@ namespace ONI_MP.Patches.ToolPatches.Dig
 			};
 
 			PacketSender.SendToAllClients(packet);
-			DebugConsole.Log($"[Dig Complete] Host sent DigCompletePacket for cell {cell}");
 		}
 	}
 }

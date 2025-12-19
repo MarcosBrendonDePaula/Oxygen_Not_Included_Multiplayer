@@ -35,11 +35,22 @@ public static class KBatchedAnimEventTogglerPatch
 		if (handler == null)
 			return;
 
-		var context = handler.GetContext();
-		if (!context.IsValid)
-			return;
+		try
+		{
+			var context = handler.GetContext();
+			if (!context.IsValid)
+				return;
 
-		var eventName = enable ? toggler.enableEvent : toggler.disableEvent;
-		DuplicantPatch.ToggleEffect(identity.gameObject, eventName, context.ToString(), enable);
+			string contextStr = context.ToString();
+			if (string.IsNullOrEmpty(contextStr))
+				return;
+
+			var eventName = enable ? toggler.enableEvent : toggler.disableEvent;
+			DuplicantPatch.ToggleEffect(identity.gameObject, eventName, contextStr, enable);
+		}
+		catch (System.Exception)
+		{
+			// Silently ignore - animation context may not be ready yet
+		}
 	}
 }

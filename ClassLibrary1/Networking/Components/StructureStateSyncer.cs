@@ -49,36 +49,43 @@ namespace ONI_MP.Networking.Components
 
 		private void HostUpdate()
 		{
-			timer += Time.unscaledDeltaTime;
-			if (timer < sendInterval) return;
-			timer = 0f;
-
-			float currentValue = 0f;
-			bool currentActive = false;
-
-			if (battery != null)
+			try
 			{
-				currentValue = battery.JoulesAvailable;
-			}
+				timer += Time.unscaledDeltaTime;
+				if (timer < sendInterval) return;
+				timer = 0f;
 
-			if (operational != null)
-			{
-				currentActive = operational.IsActive;
-			}
+				float currentValue = 0f;
+				bool currentActive = false;
 
-			// Sync if changed significantly
-			if (Mathf.Abs(currentValue - lastSentValue) > 0.1f || currentActive != lastSentActive)
-			{
-				lastSentValue = currentValue;
-				lastSentActive = currentActive;
-
-				var packet = new StructureStatePacket
+				if (battery != null)
 				{
-					Cell = cell,
-					Value = currentValue,
-					IsActive = currentActive
-				};
-				PacketSender.SendToAllClients(packet, SteamNetworkingSend.Unreliable);
+					currentValue = battery.JoulesAvailable;
+				}
+
+				if (operational != null)
+				{
+					currentActive = operational.IsActive;
+				}
+
+				// Sync if changed significantly
+				if (Mathf.Abs(currentValue - lastSentValue) > 0.1f || currentActive != lastSentActive)
+				{
+					lastSentValue = currentValue;
+					lastSentActive = currentActive;
+
+					var packet = new StructureStatePacket
+					{
+						Cell = cell,
+						Value = currentValue,
+						IsActive = currentActive
+					};
+					PacketSender.SendToAllClients(packet, SteamNetworkingSend.Unreliable);
+				}
+			}
+			catch (System.Exception)
+			{
+				// Silently ignore - structure state may not be ready yet
 			}
 		}
 

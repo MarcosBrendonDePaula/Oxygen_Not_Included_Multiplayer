@@ -39,9 +39,9 @@ namespace ONI_MP.Networking.Packets.Social
 
 		private void Apply()
 		{
-			if (!NetworkIdentityRegistry.TryGet(NetId, out var identity))
+			if (!NetworkIdentityRegistry.TryGet(NetId, out var identity) || identity == null)
 			{
-				DebugConsole.LogWarning($"[ScheduleAssignmentPacket] NetId {NetId} not found.");
+				DebugConsole.LogWarning($"[ScheduleAssignmentPacket] NetId {NetId} not found or identity is null.");
 				return;
 			}
 

@@ -63,7 +63,8 @@
 		ScheduleDelete = 59,
 		ConsumableState = 60,
 		ResearchProgress = 61,
-		ResearchComplete = 62
+		ResearchComplete = 62,
+		EntitySpawn = 63
 	}
 }
 

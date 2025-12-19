@@ -45,57 +45,63 @@ namespace ONI_MP.Networking.Components
 
 		private void SendPositionPacket()
 		{
-			timer += Time.unscaledDeltaTime;
-			if (timer < SendInterval)
-				return;
-
-			float actualDeltaTime = timer;
-			timer = 0f;
-
-			Vector3 currentPosition = transform.position;
-
-			// Calculate velocity
-			velocity = (currentPosition - previousPosition) / actualDeltaTime;
-			previousPosition = currentPosition;
-
-			float deltaX = currentPosition.x - lastSentPosition.x;
-
-			if (Vector3.Distance(currentPosition, lastSentPosition) > 0.01f)
+			try
 			{
-				Vector2 direction = new Vector2(deltaX, 0f);
-				if (direction.sqrMagnitude > 0.01f)
-				{
-					Vector2 right = Vector2.right;
-					float dot = Vector2.Dot(direction.normalized, right);
+				timer += Time.unscaledDeltaTime;
+				if (timer < SendInterval)
+					return;
 
-					bool newFacingLeft = dot < 0;
-					if (newFacingLeft != facingLeft)
+				float actualDeltaTime = timer;
+				timer = 0f;
+
+				Vector3 currentPosition = transform.position;
+
+				// Calculate velocity
+				velocity = (currentPosition - previousPosition) / actualDeltaTime;
+				previousPosition = currentPosition;
+
+				float deltaX = currentPosition.x - lastSentPosition.x;
+
+				if (Vector3.Distance(currentPosition, lastSentPosition) > 0.01f)
+				{
+					Vector2 direction = new Vector2(deltaX, 0f);
+					if (direction.sqrMagnitude > 0.01f)
 					{
-						facingLeft = newFacingLeft;
+						Vector2 right = Vector2.right;
+						float dot = Vector2.Dot(direction.normalized, right);
+
+						bool newFacingLeft = dot < 0;
+						if (newFacingLeft != facingLeft)
+						{
+							facingLeft = newFacingLeft;
+						}
 					}
+
+					lastSentPosition = currentPosition;
+
+					// Get current NavType from navigator if available
+					NavType navType = NavType.Floor;
+					if (navigator != null && navigator.CurrentNavType != NavType.NumNavTypes)
+					{
+						navType = navigator.CurrentNavType;
+					}
+
+					var packet = new EntityPositionPacket
+					{
+						NetId = networkedEntity.NetId,
+						Position = currentPosition,
+						Velocity = velocity,
+						FacingLeft = facingLeft,
+						NavType = navType
+					};
+
+					PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
 				}
-
-				lastSentPosition = currentPosition;
-
-				// Get current NavType from navigator if available
-				NavType navType = NavType.Floor;
-				if (navigator != null && navigator.CurrentNavType != NavType.NumNavTypes)
-				{
-					navType = navigator.CurrentNavType;
-				}
-
-				var packet = new EntityPositionPacket
-				{
-					NetId = networkedEntity.NetId,
-					Position = currentPosition,
-					Velocity = velocity,
-					FacingLeft = facingLeft,
-					NavType = navType
-				};
-
-				PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
+			}
+			catch (System.Exception)
+			{
+				// Silently ignore - entity may not be ready yet
 			}
 		}
 	}
 }
-

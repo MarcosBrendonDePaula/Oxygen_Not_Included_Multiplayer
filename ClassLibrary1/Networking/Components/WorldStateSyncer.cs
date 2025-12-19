@@ -38,22 +38,28 @@ namespace ONI_MP.Networking.Components
 			if (!MultiplayerSession.InSession || !MultiplayerSession.IsHost)
 				return;
 
-			if (Time.unscaledTime - _lastGasSyncTime > GAS_SYNC_INTERVAL)
+			try
 			{
-				_lastGasSyncTime = Time.unscaledTime;
-				SyncGasLiquid();
+				if (Time.unscaledTime - _lastGasSyncTime > GAS_SYNC_INTERVAL)
+				{
+					_lastGasSyncTime = Time.unscaledTime;
+					SyncGasLiquid();
+				}
+
+				if (Time.unscaledTime - _lastSyncTime > SYNC_INTERVAL)
+				{
+					_lastSyncTime = Time.unscaledTime;
+					SyncDigging();
+					SyncChores();
+					SyncResearchProgress();
+					// SyncResearch() - REMOVED: Research is now synced only when selected (via ResearchPatch/ResearchRequestPacket)
+					SyncPriorities();
+					SyncDisinfectImpl();
+				}
 			}
-
-			if (Time.unscaledTime - _lastSyncTime > SYNC_INTERVAL)
-
+			catch (System.Exception)
 			{
-				_lastSyncTime = Time.unscaledTime;
-				SyncDigging();
-				SyncChores();
-				SyncResearchProgress(); // Progress sync only - selection is event-based
-				// SyncResearch() - REMOVED: Research is now synced only when selected (via ResearchPatch/ResearchRequestPacket)
-				SyncPriorities();
-				SyncDisinfectImpl();
+				// Silently ignore - sync may fail on freshly loaded world
 			}
 		}
 

@@ -143,6 +143,24 @@ namespace ONI_MP.Networking
 
 		private static void TryAcceptConnection(HSteamNetConnection conn, CSteamID clientId)
 		{
+			// Get connection info to check actual state
+			SteamNetConnectionInfo_t info = default;
+			if (!SteamNetworkingSockets.GetConnectionInfo(conn, out info))
+			{
+				DebugConsole.LogWarning($"[GameServer] TryAcceptConnection: Could not get connection info for {clientId}");
+			}
+			else
+			{
+				DebugConsole.Log($"[GameServer] TryAcceptConnection: Connection state for {clientId} is {info.m_eState}");
+			}
+
+			// Only accept if in Connecting state
+			if (info.m_eState != ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_Connecting)
+			{
+				DebugConsole.LogWarning($"[GameServer] TryAcceptConnection: Connection {clientId} is not in Connecting state (actual: {info.m_eState}), skipping accept");
+				return;
+			}
+
 			var result = SteamNetworkingSockets.AcceptConnection(conn);
 			if (result == EResult.k_EResultOK)
 			{
@@ -151,7 +169,15 @@ namespace ONI_MP.Networking
 			}
 			else
 			{
-				RejectConnection(conn, clientId, $"Accept failed ({result})");
+				// k_EResultInvalidState means the connection has already transitioned away
+				if (result == EResult.k_EResultInvalidState)
+				{
+					DebugConsole.LogWarning($"[GameServer] AcceptConnection returned InvalidState for {clientId} - connection may have already been handled or closed");
+				}
+				else
+				{
+					RejectConnection(conn, clientId, $"Accept failed ({result})");
+				}
 			}
 		}
 

@@ -422,45 +422,12 @@ namespace ONI_MP.Patches.GamePatches
 			// Host: Clear the lock after printing and notify clients
 			if (MultiplayerSession.IsHost)
 			{
-				int selectedIndex = -1;
+				DebugConsole.Log("[ImmigrantScreen] Host: Selection made via screen, notifying clients to close");
 				
-				// Try to find the selected index from AvailableOptions by matching selectedDeliverables
-				if (ImmigrantScreen.instance != null)
-				{
-					try
-					{
-						var selectedDelis = Traverse.Create(ImmigrantScreen.instance).Field("selectedDeliverables").GetValue() as System.Collections.IList;
-						var containers = Traverse.Create(ImmigrantScreen.instance).Field("containers").GetValue() as System.Collections.IList;
-						
-						if (selectedDelis != null && selectedDelis.Count > 0 && containers != null)
-						{
-							var selectedDeli = selectedDelis[0];
-							for (int i = 0; i < containers.Count; i++)
-							{
-								var container = containers[i];
-								if (container == null) continue;
-								
-								var containerStats = Traverse.Create(container).Field("stats").GetValue();
-								var containerInfo = Traverse.Create(container).Field("info").GetValue();
-								var containerInstanceData = Traverse.Create(container).Field("carePackageInstanceData").GetValue();
-								
-								if ((containerStats != null && object.ReferenceEquals(containerStats, selectedDeli)) ||
-									(containerInfo != null && object.ReferenceEquals(containerInfo, selectedDeli)) ||
-									(containerInstanceData != null && object.ReferenceEquals(containerInstanceData, selectedDeli)))
-								{
-									selectedIndex = i;
-									break;
-								}
-							}
-						}
-					}
-					catch { }
-				}
-				
-				DebugConsole.Log($"[ImmigrantScreen] Host: Selection made (index {selectedIndex}), broadcasting to clients");
-				
-				// Send selection packet to all clients with the actual index so they can spawn too
-				var packet = new ImmigrantSelectionPacket { SelectedIndex = selectedIndex };
+				// Send -2 to close client screens
+				// NOTE: For host's own selections via OnProceed, the game spawns the entity normally
+				// Entity sync will be handled separately (e.g. via EntitySpawnPacket from a different hook)
+				var packet = new ImmigrantSelectionPacket { SelectedIndex = -2 };
 				PacketSender.SendToAllClients(packet);
 				
 				ImmigrantScreenPatch.ClearOptionsLock();

@@ -97,6 +97,7 @@ namespace ONI_MP.Networking.Packets.Architecture
 			try { Register(PacketType.ConsumableState, () => new ONI_MP.Networking.Packets.DuplicantActions.ConsumableStatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ConsumableStatePacket: {e}"); }
 			try { Register(PacketType.ResearchProgress, () => new ONI_MP.Networking.Packets.World.ResearchProgressPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ResearchProgressPacket: {e}"); }
 			try { Register(PacketType.ResearchComplete, () => new ONI_MP.Networking.Packets.World.ResearchCompletePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ResearchCompletePacket: {e}"); }
+			try { Register(PacketType.EntitySpawn, () => new ONI_MP.Networking.Packets.World.EntitySpawnPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register EntitySpawnPacket: {e}"); }
 		}
 	}
 }

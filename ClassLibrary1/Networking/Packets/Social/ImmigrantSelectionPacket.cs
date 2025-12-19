@@ -10,30 +10,31 @@ namespace ONI_MP.Networking.Packets.Social
 	{
 		public PacketType Type => PacketType.ImmigrantSelection;
 
-		public int SelectedIndex; // 0, 1, 2... or -1 for Reject All?
+		public int SelectedDeliverableIndex; // 0, 1, 2... or -1 for Reject All?
+		public int PrintingPodWorldIndex = 0; //defaults to world 0, can be different in spaced out
 
 		public void Serialize(BinaryWriter writer)
 		{
-			writer.Write(SelectedIndex);
+			writer.Write(SelectedDeliverableIndex);
 		}
 
 		public void Deserialize(BinaryReader reader)
 		{
-			SelectedIndex = reader.ReadInt32();
+			SelectedDeliverableIndex = reader.ReadInt32();
 		}
 
 		public void OnDispatched()
 		{
-			DebugConsole.Log($"[ImmigrantSelectionPacket] Received selection: index {SelectedIndex}, IsHost: {MultiplayerSession.IsHost}");
+			DebugConsole.Log($"[ImmigrantSelectionPacket] Received selection: index {SelectedDeliverableIndex}, IsHost: {MultiplayerSession.IsHost}");
 
 			// Handle client receiving notification from host
 			if (!MultiplayerSession.IsHost)
 			{
 				// Host sends -2 when selection is made, or -1 for Reject All
 				// EntitySpawnPacket is sent separately to handle actual spawning with correct NetId
-				if (SelectedIndex == -2 || SelectedIndex == -1)
+				if (SelectedDeliverableIndex == -2 || SelectedDeliverableIndex == -1)
 				{
-					if (SelectedIndex == -1)
+					if (SelectedDeliverableIndex == -1)
 					{
 						DebugConsole.Log("[ImmigrantSelectionPacket] Client: Host rejected all, closing screen and resetting Immigration");
 					}
@@ -75,7 +76,7 @@ namespace ONI_MP.Networking.Packets.Social
 				DebugConsole.Log("[ImmigrantSelectionPacket] Host: Screen is closed, spawning using cached options");
 				
 				// Handle Reject All from client
-				if (SelectedIndex == -1)
+				if (SelectedDeliverableIndex == -1)
 				{
 					DebugConsole.Log("[ImmigrantSelectionPacket] Host: Client rejected all, ending immigration");
 					
@@ -88,24 +89,31 @@ namespace ONI_MP.Networking.Packets.Social
 					ONI_MP.Patches.GamePatches.ImmigrantScreenPatch.ClearOptionsLock();
 					
 					// Notify all clients to close screens
-					var rejectPacket = new ImmigrantSelectionPacket { SelectedIndex = -1 };
+					var rejectPacket = new ImmigrantSelectionPacket { SelectedDeliverableIndex = -1 };
 					PacketSender.SendToAllClients(rejectPacket);
 					return;
 				}
 				
 				var options = ONI_MP.Patches.GamePatches.ImmigrantScreenPatch.AvailableOptions;
-				if (options == null || SelectedIndex < 0 || SelectedIndex >= options.Count)
+				if (options == null || SelectedDeliverableIndex < 0 || SelectedDeliverableIndex >= options.Count)
 				{
-					DebugConsole.LogWarning($"[ImmigrantSelectionPacket] Invalid selection - options: {options?.Count ?? 0}, index: {SelectedIndex}");
+					DebugConsole.LogWarning($"[ImmigrantSelectionPacket] Invalid selection - options: {options?.Count ?? 0}, index: {SelectedDeliverableIndex}");
 					return;
 				}
 				
-				var opt = options[SelectedIndex];
+				var opt = options[SelectedDeliverableIndex];
 				
 				try
 				{
-					// Find the Telepad
-					var telepad = UnityEngine.Object.FindObjectOfType<Telepad>();
+					Telepad telepad = null;
+					foreach (Telepad existing in global::Components.Telepads)
+					{
+						if(existing.GetMyWorldId() == PrintingPodWorldIndex)
+						{
+							telepad = existing;
+							break;
+						}
+					}
 					if (telepad == null)
 					{
 						DebugConsole.LogWarning("[ImmigrantSelectionPacket] Cannot find Telepad");
@@ -205,7 +213,7 @@ namespace ONI_MP.Networking.Packets.Social
 					ONI_MP.Patches.GamePatches.ImmigrantScreenPatch.ClearOptionsLock();
 					
 					// Send close screen notification
-					var notifyPacket = new ImmigrantSelectionPacket { SelectedIndex = -2 };
+					var notifyPacket = new ImmigrantSelectionPacket { SelectedDeliverableIndex = -2 };
 					PacketSender.SendToAllClients(notifyPacket);
 				}
 				catch (System.Exception ex)
@@ -214,7 +222,7 @@ namespace ONI_MP.Networking.Packets.Social
 				}
 			}
 			
-			if (SelectedIndex == -1) // Reject All
+			if (SelectedDeliverableIndex == -1) // Reject All
 			{
 				if (ImmigrantScreen.instance != null)
 				{

@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using KMod;
-using ONI_MP.Cloud;
 using ONI_MP.Components;
 using ONI_MP.DebugTools;
 using ONI_MP.Misc;
@@ -42,16 +41,12 @@ namespace ONI_MP
 				SteamLobby.Initialize();
 
 				// CHECKPOINT 3
-				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 3: Pre-Cloud\n");
-				InitializeCloud();
-
-				// CHECKPOINT 4
-				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 4: Pre-GameObjects\n");
+				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 3: Pre-GameObjects\n");
 				var go = new GameObject("Multiplayer_Modules");
 				UnityEngine.Object.DontDestroyOnLoad(go);
 
-				// CHECKPOINT 5
-				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 5: Pre-Components\n");
+				// CHECKPOINT 4
+				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 4: Pre-Components\n");
 				go.AddComponent<SteamNetworkingComponent>();
 				go.AddComponent<UIVisibilityController>();
 				go.AddComponent<MainThreadExecutor>();
@@ -59,12 +54,12 @@ namespace ONI_MP
 				go.AddComponent<BuildingSyncer>();
 				go.AddComponent<WorldStateSyncer>();
 
-				// CHECKPOINT 6
-				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 6: Pre-Listeners\n");
+				// CHECKPOINT 5
+				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 5: Pre-Listeners\n");
 				SetupListeners();
 
-				// CHECKPOINT 7
-				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 7: Pre-ResLoad\n");
+				// CHECKPOINT 6
+				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 6: Pre-ResLoad\n");
 				LoadAssetBundles();
 
 				foreach (var res in Assembly.GetExecutingAssembly().GetManifestResourceNames())
@@ -72,34 +67,12 @@ namespace ONI_MP
 					DebugConsole.Log("Embedded Resource: " + res);
 				}
 
-				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 8: Success\n");
+				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 7: Success\n");
 			}
 			catch (Exception ex)
 			{
 				DebugConsole.LogError($"[ONI_MP] CRITICAL ERROR IN ONLOAD: {ex.Message}");
 				DebugConsole.LogException(ex);
-			}
-		}
-
-		void InitializeCloud()
-		{
-			try
-			{
-				GoogleDrive.Instance.OnInitialized.AddListener(() =>
-				{
-					GoogleDrive.Instance.Uploader.OnUploadStarted.AddListener(() =>
-									{
-										SpeedControlScreen.Instance?.Pause(false); // Pause the game when uploading starts
-									});
-				});
-
-				GoogleDrive.Instance.Initialize();
-				DebugConsole.Log("GoogleDrive initialized and ready!");
-
-			}
-			catch (Exception ex)
-			{
-				DebugConsole.LogError($"GoogleDrive init failed: {ex.Message}");
 			}
 		}
 

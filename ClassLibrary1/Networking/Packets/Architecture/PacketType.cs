@@ -38,7 +38,7 @@
 		Disinfect = 34,
 		SpeedChange = 35,
 		PlayerCursor = 36,
-		GoogleDriveFileShare = 37,
+		// ID 37 is unused! (Replace this with something else)
 		BuildingState = 38,
 		DiggingState = 39,
 		ChoreState = 40,

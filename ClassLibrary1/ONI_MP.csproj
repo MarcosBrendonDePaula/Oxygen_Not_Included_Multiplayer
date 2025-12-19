@@ -49,10 +49,6 @@
 		<EmbeddedResource Include="Assets\bundles\playercursor_win.bundle" />
 		<EmbeddedResource Include="Assets\bundles\playercursor_mac.bundle" />
 		<EmbeddedResource Include="Assets\bundles\playercursor_lin.bundle" />
-		<EmbeddedResource Include="Assets\cloud_status.png" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Google.Apis.Drive.v3" Version="*"/>
+		<!--<EmbeddedResource Include="Assets\cloud_status.png" />-->
 	</ItemGroup>
 </Project>

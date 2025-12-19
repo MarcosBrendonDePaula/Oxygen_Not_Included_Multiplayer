@@ -1,5 +1,4 @@
 ﻿using ONI_MP.DebugTools;
-using ONI_MP.Networking.Packets.Cloud;
 using ONI_MP.Networking.Packets.Core;
 using ONI_MP.Networking.Packets.DuplicantActions;
 using ONI_MP.Networking.Packets.Events;
@@ -71,7 +70,6 @@ namespace ONI_MP.Networking.Packets.Architecture
             TryRegister(PacketType.Disinfect, () => new DisinfectPacket());
             TryRegister(PacketType.SpeedChange, () => new SpeedChangePacket());
             TryRegister(PacketType.PlayerCursor, () => new PlayerCursorPacket());
-            TryRegister(PacketType.GoogleDriveFileShare, () => new GoogleDriveFileSharePacket());
             TryRegister(PacketType.BuildingState, () => new BuildingStatePacket());
             TryRegister(PacketType.DiggingState, () => new DiggingStatePacket());
             TryRegister(PacketType.ChoreState, () => new ChoreStatePacket());

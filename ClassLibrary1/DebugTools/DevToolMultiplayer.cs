@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using ImGuiNET;
-using ONI_MP.Cloud;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Packets.World;
 using ONI_MP.Networking.Packets.Architecture;
@@ -171,19 +170,7 @@ namespace ONI_MP.DebugTools
                     }
 
                     ImGui.Separator();
-                    ImGui.Text("Google Drive");
-
-                    if (GoogleDrive.Instance.IsInitialized)
-                    {
-                        if (MultiplayerSession.IsHost && ImGui.Button("Test Upload"))
-                        {
-                            GoogleDriveUtils.UploadSaveFile();
-                        }
-                    } else
-                    {
-                        ImGui.TextColored(new Vector4(1f, 0.3f, 0.3f, 1f), "Google Drive not in use!");
-                    }
-
+                    
                     DrawPlayerList();
                 }
                 else

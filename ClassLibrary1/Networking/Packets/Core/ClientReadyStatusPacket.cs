@@ -1,5 +1,4 @@
-﻿using ONI_MP.Cloud;
-using ONI_MP.DebugTools;
+﻿using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.States;
@@ -62,7 +61,10 @@ namespace ONI_MP.Networking.Packets.Core
 				if (allReady)
 				{
 					ReadyManager.MarkAllAsUnready(); // Reset player ready states
-					GoogleDriveUtils.UploadAndSendToAllClients();
+					//GoogleDriveUtils.UploadAndSendToAllClients();
+					// Replace with ability to send new save to all clients without them requesting
+					//SaveFileRequestPacket.SendSaveFile(clientId); // Need this method but all clients
+
 				}
 				return;
 			}

@@ -22,7 +22,7 @@ namespace ONI_MP.Networking.Packets.Architecture
 	{
 		private static readonly Dictionary<PacketType, Func<IPacket>> _constructors = new Dictionary<PacketType, Func<IPacket>>();
 
-		public static void Register(PacketType type, Func<IPacket> constructor)
+		private static void Register(PacketType type, Func<IPacket> constructor)
 		{
 			_constructors[type] = constructor;
 		}
@@ -36,68 +36,81 @@ namespace ONI_MP.Networking.Packets.Architecture
 
 		public static void RegisterDefaults()
 		{
-			try { Register(PacketType.ChoreAssignment, () => new ChoreAssignmentPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ChoreAssignmentPacket: {e}"); }
-			try { Register(PacketType.EntityPosition, () => new EntityPositionPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register EntityPositionPacket: {e}"); }
-			try { Register(PacketType.ChatMessage, () => new ChatMessagePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ChatMessagePacket: {e}"); }
-			try { Register(PacketType.WorldData, () => new WorldDataPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register WorldDataPacket: {e}"); }
-			try { Register(PacketType.WorldDataRequest, () => new WorldDataRequestPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register WorldDataRequestPacket: {e}"); }
-			try { Register(PacketType.WorldUpdate, () => new WorldUpdatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register WorldUpdatePacket: {e}"); }
-			try { Register(PacketType.NavigatorPath, () => new NavigatorPathPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register NavigatorPathPacket: {e}"); }
-			try { Register(PacketType.SaveFileRequest, () => new SaveFileRequestPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register SaveFileRequestPacket: {e}"); }
-			try { Register(PacketType.SaveFileChunk, () => new SaveFileChunkPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register SaveFileChunkPacket: {e}"); }
-			try { Register(PacketType.Diggable, () => new DiggablePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register DiggablePacket: {e}"); }
-			try { Register(PacketType.DigComplete, () => new DigCompletePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register DigCompletePacket: {e}"); }
-			try { Register(PacketType.PlayAnim, () => new PlayAnimPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register PlayAnimPacket: {e}"); }
-			try { Register(PacketType.Build, () => new BuildPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register BuildPacket: {e}"); }
-			try { Register(PacketType.BuildComplete, () => new BuildCompletePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register BuildCompletePacket: {e}"); }
-			try { Register(PacketType.WorldDamageSpawnResource, () => new WorldDamageSpawnResourcePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register WorldDamageSpawnResourcePacket: {e}"); }
-			try { Register(PacketType.WorldCycle, () => new WorldCyclePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register WorldCyclePacket: {e}"); }
-			try { Register(PacketType.Cancel, () => new CancelPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register CancelPacket: {e}"); }
-			try { Register(PacketType.Deconstruct, () => new DeconstructPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register DeconstructPacket: {e}"); }
-			try { Register(PacketType.DeconstructComplete, () => new DeconstructCompletePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register DeconstructCompletePacket: {e}"); }
-			try { Register(PacketType.WireBuild, () => new UtilityBuildPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register UtilityBuildPacket (WireBuild): {e}"); }
-			try { Register(PacketType.ToggleMinionEffect, () => new ToggleMinionEffectPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ToggleMinionEffectPacket: {e}"); }
-			try { Register(PacketType.ToolEquip, () => new ToolEquipPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ToolEquipPacket: {e}"); }
-			try { Register(PacketType.DuplicantCondition, () => new DuplicantConditionPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register DuplicantConditionPacket: {e}"); }
-			try { Register(PacketType.MoveToLocation, () => new MoveToLocationPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register MoveToLocationPacket: {e}"); }
-			try { Register(PacketType.Prioritize, () => new PrioritizePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register PrioritizePacket: {e}"); }
-			try { Register(PacketType.Clear, () => new ClearPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ClearPacket: {e}"); }
-			try { Register(PacketType.ClientReadyStatus, () => new ClientReadyStatusPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ClientReadyStatusPacket: {e}"); }
-			try { Register(PacketType.ClientReadyStatusUpdate, () => new ClientReadyStatusUpdatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ClientReadyStatusUpdatePacket: {e}"); }
-			try { Register(PacketType.AllClientsReady, () => new AllClientsReadyPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register AllClientsReadyPacket: {e}"); }
-			try { Register(PacketType.EventTriggered, () => new EventTriggeredPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register EventTriggeredPacket: {e}"); }
-			try { Register(PacketType.HardSync, () => new HardSyncPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register HardSyncPacket: {e}"); }
-			try { Register(PacketType.HardSyncComplete, () => new HardSyncCompletePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register HardSyncCompletePacket: {e}"); }
-			try { Register(PacketType.Disinfect, () => new DisinfectPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register DisinfectPacket: {e}"); }
-			try { Register(PacketType.SpeedChange, () => new SpeedChangePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register SpeedChangePacket: {e}"); }
-			try { Register(PacketType.PlayerCursor, () => new PlayerCursorPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register PlayerCursorPacket: {e}"); }
-			try { Register(PacketType.GoogleDriveFileShare, () => new GoogleDriveFileSharePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register GoogleDriveFileSharePacket: {e}"); }
-			try { Register(PacketType.BuildingState, () => new BuildingStatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register BuildingStatePacket: {e}"); }
-			try { Register(PacketType.DiggingState, () => new DiggingStatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register DiggingStatePacket: {e}"); }
-			try { Register(PacketType.ChoreState, () => new ChoreStatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ChoreStatePacket: {e}"); }
-			try { Register(PacketType.ResearchState, () => new ResearchStatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ResearchStatePacket: {e}"); }
-			try { Register(PacketType.PrioritizeState, () => new PrioritizeStatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register PrioritizeStatePacket: {e}"); }
-			try { Register(PacketType.DisinfectState, () => new DisinfectStatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register DisinfectStatePacket: {e}"); }
-			try { Register(PacketType.DuplicantState, () => new DuplicantStatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register DuplicantStatePacket: {e}"); }
-			try { Register(PacketType.StructureState, () => new StructureStatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register StructureStatePacket: {e}"); }
-			try { Register(PacketType.ResearchRequest, () => new ResearchRequestPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ResearchRequestPacket: {e}"); }
-			try { Register(PacketType.BuildingConfig, () => new BuildingConfigPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register BuildingConfigPacket: {e}"); }
-			try { Register(PacketType.ImmigrantOptions, () => new ImmigrantOptionsPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ImmigrantOptionsPacket: {e}"); }
-			try { Register(PacketType.ImmigrantSelection, () => new ImmigrantSelectionPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ImmigrantSelectionPacket: {e}"); }
-			try { Register(PacketType.DuplicantPriority, () => new DuplicantPriorityPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register DuplicantPriorityPacket: {e}"); }
-			try { Register(PacketType.SkillMastery, () => new SkillMasteryPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register SkillMasteryPacket: {e}"); }
-			try { Register(PacketType.ScheduleUpdate, () => new ScheduleUpdatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ScheduleUpdatePacket: {e}"); }
-			try { Register(PacketType.ScheduleAssignment, () => new ScheduleAssignmentPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ScheduleAssignmentPacket: {e}"); }
-			try { Register(PacketType.FallingObject, () => new FallingObjectPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register FallingObjectPacket: {e}"); }
-			try { Register(PacketType.ConsumablePermission, () => new ConsumablePermissionPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ConsumablePermissionPacket: {e}"); }
-			try { Register(PacketType.VitalStats, () => new VitalStatsPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register VitalStatsPacket: {e}"); }
-			try { Register(PacketType.ResourceCount, () => new ResourceCountPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ResourceCountPacket: {e}"); }
-			try { Register(PacketType.Notification, () => new ONI_MP.Networking.Packets.Events.NotificationPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register NotificationPacket: {e}"); }
-			try { Register(PacketType.ScheduleDelete, () => new ScheduleDeletePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ScheduleDeletePacket: {e}"); }
-			try { Register(PacketType.ConsumableState, () => new ONI_MP.Networking.Packets.DuplicantActions.ConsumableStatePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ConsumableStatePacket: {e}"); }
-			try { Register(PacketType.ResearchProgress, () => new ONI_MP.Networking.Packets.World.ResearchProgressPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ResearchProgressPacket: {e}"); }
-			try { Register(PacketType.ResearchComplete, () => new ONI_MP.Networking.Packets.World.ResearchCompletePacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register ResearchCompletePacket: {e}"); }
-			try { Register(PacketType.EntitySpawn, () => new ONI_MP.Networking.Packets.World.EntitySpawnPacket()); } catch (Exception e) { DebugConsole.LogError($"Failed to register EntitySpawnPacket: {e}"); }
+            TryRegister(PacketType.ChoreAssignment, () => new ChoreAssignmentPacket());
+            TryRegister(PacketType.EntityPosition, () => new EntityPositionPacket());
+            TryRegister(PacketType.ChatMessage, () => new ChatMessagePacket());
+            TryRegister(PacketType.WorldData, () => new WorldDataPacket());
+            TryRegister(PacketType.WorldDataRequest, () => new WorldDataRequestPacket());
+            TryRegister(PacketType.WorldUpdate, () => new WorldUpdatePacket());
+            TryRegister(PacketType.NavigatorPath, () => new NavigatorPathPacket());
+            TryRegister(PacketType.SaveFileRequest, () => new SaveFileRequestPacket());
+            TryRegister(PacketType.SaveFileChunk, () => new SaveFileChunkPacket());
+            TryRegister(PacketType.Diggable, () => new DiggablePacket());
+            TryRegister(PacketType.DigComplete, () => new DigCompletePacket());
+            TryRegister(PacketType.PlayAnim, () => new PlayAnimPacket());
+            TryRegister(PacketType.Build, () => new BuildPacket());
+            TryRegister(PacketType.BuildComplete, () => new BuildCompletePacket());
+            TryRegister(PacketType.WorldDamageSpawnResource, () => new WorldDamageSpawnResourcePacket());
+            TryRegister(PacketType.WorldCycle, () => new WorldCyclePacket());
+            TryRegister(PacketType.Cancel, () => new CancelPacket());
+            TryRegister(PacketType.Deconstruct, () => new DeconstructPacket());
+            TryRegister(PacketType.DeconstructComplete, () => new DeconstructCompletePacket());
+            TryRegister(PacketType.WireBuild, () => new UtilityBuildPacket(), "UtilityBuildPacket (WireBuild)");
+            TryRegister(PacketType.ToggleMinionEffect, () => new ToggleMinionEffectPacket());
+            TryRegister(PacketType.ToolEquip, () => new ToolEquipPacket());
+            TryRegister(PacketType.DuplicantCondition, () => new DuplicantConditionPacket());
+            TryRegister(PacketType.MoveToLocation, () => new MoveToLocationPacket());
+            TryRegister(PacketType.Prioritize, () => new PrioritizePacket());
+            TryRegister(PacketType.Clear, () => new ClearPacket());
+            TryRegister(PacketType.ClientReadyStatus, () => new ClientReadyStatusPacket());
+            TryRegister(PacketType.ClientReadyStatusUpdate, () => new ClientReadyStatusUpdatePacket());
+            TryRegister(PacketType.AllClientsReady, () => new AllClientsReadyPacket());
+            TryRegister(PacketType.EventTriggered, () => new EventTriggeredPacket());
+            TryRegister(PacketType.HardSync, () => new HardSyncPacket());
+            TryRegister(PacketType.HardSyncComplete, () => new HardSyncCompletePacket());
+            TryRegister(PacketType.Disinfect, () => new DisinfectPacket());
+            TryRegister(PacketType.SpeedChange, () => new SpeedChangePacket());
+            TryRegister(PacketType.PlayerCursor, () => new PlayerCursorPacket());
+            TryRegister(PacketType.GoogleDriveFileShare, () => new GoogleDriveFileSharePacket());
+            TryRegister(PacketType.BuildingState, () => new BuildingStatePacket());
+            TryRegister(PacketType.DiggingState, () => new DiggingStatePacket());
+            TryRegister(PacketType.ChoreState, () => new ChoreStatePacket());
+            TryRegister(PacketType.ResearchState, () => new ResearchStatePacket());
+            TryRegister(PacketType.PrioritizeState, () => new PrioritizeStatePacket());
+            TryRegister(PacketType.DisinfectState, () => new DisinfectStatePacket());
+            TryRegister(PacketType.DuplicantState, () => new DuplicantStatePacket());
+            TryRegister(PacketType.StructureState, () => new StructureStatePacket());
+            TryRegister(PacketType.ResearchRequest, () => new ResearchRequestPacket());
+            TryRegister(PacketType.BuildingConfig, () => new BuildingConfigPacket());
+            TryRegister(PacketType.ImmigrantOptions, () => new ImmigrantOptionsPacket());
+            TryRegister(PacketType.ImmigrantSelection, () => new ImmigrantSelectionPacket());
+            TryRegister(PacketType.DuplicantPriority, () => new DuplicantPriorityPacket());
+            TryRegister(PacketType.SkillMastery, () => new SkillMasteryPacket());
+            TryRegister(PacketType.ScheduleUpdate, () => new ScheduleUpdatePacket());
+            TryRegister(PacketType.ScheduleAssignment, () => new ScheduleAssignmentPacket());
+            TryRegister(PacketType.FallingObject, () => new FallingObjectPacket());
+            TryRegister(PacketType.ConsumablePermission, () => new ConsumablePermissionPacket());
+            TryRegister(PacketType.VitalStats, () => new VitalStatsPacket());
+            TryRegister(PacketType.ResourceCount, () => new ResourceCountPacket());
+            TryRegister(PacketType.Notification, () => new NotificationPacket());
+            TryRegister(PacketType.ScheduleDelete, () => new ScheduleDeletePacket());
+            TryRegister(PacketType.ConsumableState, () => new ConsumableStatePacket());
+            TryRegister(PacketType.ResearchProgress, () => new ResearchProgressPacket());
+            TryRegister(PacketType.ResearchComplete, () => new ResearchCompletePacket());
+            TryRegister(PacketType.EntitySpawn, () => new EntitySpawnPacket());
+		}
+
+		public static void TryRegister(PacketType type, Func<IPacket> constructor, string nameOverride = "")
+		{
+			try
+			{
+				Register(type, constructor);
+			}
+			catch (Exception e)
+			{
+				string name = string.IsNullOrEmpty(nameOverride) ? constructor.GetType().Name : nameOverride;
+				DebugConsole.LogError($"Failed to register {name}: {e}");
+			}
 		}
 	}
 }

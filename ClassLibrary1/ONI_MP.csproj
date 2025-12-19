@@ -11,7 +11,7 @@
 
 	<!-- Mod Info, used to generate yaml files on the fly -->
 	<PropertyGroup>
-		<ModName>ItsLuke´s Multiplayer Mod</ModName>
+		<ModName>Oxygen Not Included Together</ModName>
 		<ModDescription>Play Oxygen Not Included together!</ModDescription>
 		<MinimumSupportedBuild>$(TargetGameVersion)</MinimumSupportedBuild>
 		<APIVersion>2</APIVersion>

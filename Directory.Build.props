@@ -10,7 +10,6 @@
 		<!--gives access to fun newer c# syntax sugar-->
 		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
-	<!--<UsingTask TaskName="RecursiveFolderHashing" AssemblyFile="HashService.dll"/>-->
 
 	<PropertyGroup>
 		<!--Marks Deprecated warnings as errors, recommended by Klei-->
@@ -52,9 +51,6 @@
 		<CurrentYear>$([System.DateTime]::Now.ToString(`yyyy`))</CurrentYear>
 		<Author>ItsLuke</Author> <!---->
 		<AssemblyCopyright>Copyright �$(Author) $(CurrentYear)</AssemblyCopyright>
-		<RetroOniCopyright>Copyright �$(AuthorWith3GuB) $(CurrentYear)</RetroOniCopyright>
-		<RonivanCopyright>Copyright �$(AuthorWithRonivan) $(CurrentYear)</RonivanCopyright>
-		<AkiCopyright>Copyright �$(AuthorWithAki) $(CurrentYear)</AkiCopyright>
 	</PropertyGroup>
 
 	<PropertyGroup>

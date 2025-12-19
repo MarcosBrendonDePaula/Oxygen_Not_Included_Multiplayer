@@ -254,8 +254,11 @@ namespace ONI_MP.Networking
 			{
 				case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ClosedByPeer:
                 case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
-                    CoroutineRunner.RunOne(ShowMessageAndReturnToTitle()); // Client lost connection to the host, display the message
-                    break;
+                    if (!userTriggeredDisconnect && remote == MultiplayerSession.HostSteamID) 
+					{
+                        CoroutineRunner.RunOne(ShowMessageAndReturnToTitle()); // Client lost connection to the host, display the message
+					}
+					break;
 			}
 
 			userTriggeredDisconnect = false;

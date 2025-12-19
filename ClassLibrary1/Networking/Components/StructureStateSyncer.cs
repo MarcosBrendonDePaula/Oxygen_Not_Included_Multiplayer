@@ -49,36 +49,51 @@ namespace ONI_MP.Networking.Components
 
 		private void HostUpdate()
 		{
-			timer += Time.unscaledDeltaTime;
-			if (timer < sendInterval) return;
-			timer = 0f;
-
-			float currentValue = 0f;
-			bool currentActive = false;
-
-			if (battery != null)
+			try
 			{
-				currentValue = battery.JoulesAvailable;
-			}
+				timer += Time.unscaledDeltaTime;
+				if (timer < sendInterval) return;
+				timer = 0f;
 
-			if (operational != null)
-			{
-				currentActive = operational.IsActive;
-			}
+				DebugConsole.Log($"[StructureStateSyncer] HostUpdate at cell {cell}");
 
-			// Sync if changed significantly
-			if (Mathf.Abs(currentValue - lastSentValue) > 0.1f || currentActive != lastSentActive)
-			{
-				lastSentValue = currentValue;
-				lastSentActive = currentActive;
+				float currentValue = 0f;
+				bool currentActive = false;
 
-				var packet = new StructureStatePacket
+				if (battery != null)
 				{
-					Cell = cell,
-					Value = currentValue,
-					IsActive = currentActive
-				};
-				PacketSender.SendToAllClients(packet, SteamNetworkingSend.Unreliable);
+					DebugConsole.Log("[StructureStateSyncer] Reading battery.JoulesAvailable");
+					currentValue = battery.JoulesAvailable;
+					DebugConsole.Log("[StructureStateSyncer] Battery read complete");
+				}
+
+				if (operational != null)
+				{
+					DebugConsole.Log("[StructureStateSyncer] Reading operational.IsActive");
+					currentActive = operational.IsActive;
+					DebugConsole.Log("[StructureStateSyncer] Operational read complete");
+				}
+
+				// Sync if changed significantly
+				if (Mathf.Abs(currentValue - lastSentValue) > 0.1f || currentActive != lastSentActive)
+				{
+					lastSentValue = currentValue;
+					lastSentActive = currentActive;
+
+					var packet = new StructureStatePacket
+					{
+						Cell = cell,
+						Value = currentValue,
+						IsActive = currentActive
+					};
+					DebugConsole.Log("[StructureStateSyncer] Sending packet");
+					PacketSender.SendToAllClients(packet, SteamNetworkingSend.Unreliable);
+					DebugConsole.Log("[StructureStateSyncer] Packet sent");
+				}
+			}
+			catch (System.Exception ex)
+			{
+				DebugConsole.LogError($"[StructureStateSyncer] Exception: {ex}");
 			}
 		}
 

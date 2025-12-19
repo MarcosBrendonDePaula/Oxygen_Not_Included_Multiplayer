@@ -15,29 +15,31 @@ namespace ONI_MP.Patches.KleiPatches
 				})]
 		static void Play_Single_Prefix(KAnimControllerBase __instance, HashedString anim_name, KAnim.PlayMode mode, float speed, float time_offset)
 		{
-			if (__instance == null || !__instance.enabled)
-				return;
-
-			var go = __instance.gameObject;
-			if (go.TryGetComponent<KPrefabID>(out var id) &&
-					id.HasTag(GameTags.Minions.Models.Standard) &&
-					MultiplayerSession.IsHost &&
-					go.TryGetComponent<NetworkIdentity>(out var netIdentity))
+			try
 			{
-				//DebugConsole.Log($"[ONI_MP] Dupe '{go.name}' playing anim '{anim_name}' | Mode: {mode}, Speed: {speed}, Offset: {time_offset}");
+				if (__instance == null || !__instance.enabled)
+					return;
 
-				var packet = new PlayAnimPacket
+				var go = __instance.gameObject;
+				if (go.TryGetComponent<KPrefabID>(out var id) &&
+						id.HasTag(GameTags.Minions.Models.Standard) &&
+						MultiplayerSession.IsHost &&
+						go.TryGetComponent<NetworkIdentity>(out var netIdentity))
 				{
-					NetId = netIdentity.NetId,
-					IsMulti = false,
-					SingleAnimHash = anim_name.HashValue,
-					Mode = mode,
-					Speed = speed,
-					Offset = time_offset
-				};
+					var packet = new PlayAnimPacket
+					{
+						NetId = netIdentity.NetId,
+						IsMulti = false,
+						SingleAnimHash = anim_name.HashValue,
+						Mode = mode,
+						Speed = speed,
+						Offset = time_offset
+					};
 
-				PacketSender.SendToAllClients(packet);
+					PacketSender.SendToAllClients(packet);
+				}
 			}
+			catch (System.Exception) { }
 		}
 
 		// Patch: Play(HashedString[], KAnim.PlayMode)
@@ -47,30 +49,34 @@ namespace ONI_MP.Patches.KleiPatches
 				})]
 		static void Play_Multi_Prefix(KAnimControllerBase __instance, HashedString[] anim_names, KAnim.PlayMode mode)
 		{
-			if (__instance == null || anim_names == null || anim_names.Length == 0 || !__instance.enabled)
-				return;
-
-			var go = __instance.gameObject;
-			if (go.TryGetComponent<KPrefabID>(out var id) &&
-					id.HasTag(GameTags.Minions.Models.Standard) &&
-					MultiplayerSession.IsHost &&
-					go.TryGetComponent<NetworkIdentity>(out var netIdentity))
+			try
 			{
-				string allAnims = string.Join(", ", anim_names.Select(a => a.ToString()));
-				//DebugConsole.Log($"[ONI_MP] Dupe '{go.name}' playing anims [{allAnims}] | Mode: {mode}");
+				if (__instance == null || anim_names == null || anim_names.Length == 0 || !__instance.enabled)
+					return;
 
-				var packet = new PlayAnimPacket
+				var go = __instance.gameObject;
+				if (go.TryGetComponent<KPrefabID>(out var id) &&
+						id.HasTag(GameTags.Minions.Models.Standard) &&
+						MultiplayerSession.IsHost &&
+						go.TryGetComponent<NetworkIdentity>(out var netIdentity))
 				{
-					NetId = netIdentity.NetId,
-					IsMulti = true,
-					AnimHashes = anim_names.Select(a => a.HashValue).ToList(),
-					Mode = mode,
-					Speed = 1f,   // Defaults, Play(string[]) doesn’t use them
-					Offset = 0f
-				};
+					string allAnims = string.Join(", ", anim_names.Select(a => a.ToString()));
+					//DebugConsole.Log($"[ONI_MP] Dupe '{go.name}' playing anims [{allAnims}] | Mode: {mode}");
 
-				PacketSender.SendToAllClients(packet);
+					var packet = new PlayAnimPacket
+					{
+						NetId = netIdentity.NetId,
+						IsMulti = true,
+						AnimHashes = anim_names.Select(a => a.HashValue).ToList(),
+						Mode = mode,
+						Speed = 1f,   // Defaults, Play(string[]) doesn’t use them
+						Offset = 0f
+					};
+
+					PacketSender.SendToAllClients(packet);
+				}
 			}
+			catch (System.Exception) { }
 		}
 		// Patch: Queue(HashedString, KAnim.PlayMode, float, float)
 		[HarmonyPrefix]
@@ -79,31 +85,31 @@ namespace ONI_MP.Patches.KleiPatches
 				})]
 		static void Queue_Single_Prefix(KAnimControllerBase __instance, HashedString anim_name, KAnim.PlayMode mode, float speed, float time_offset)
 		{
-			if (__instance == null || !__instance.enabled) return;
-
-			var go = __instance.gameObject;
-			if (go.TryGetComponent<KPrefabID>(out var id) &&
-					id.HasTag(GameTags.Minions.Models.Standard) &&
-					MultiplayerSession.IsHost &&
-					go.TryGetComponent<NetworkIdentity>(out var netIdentity))
+			try
 			{
-				// Reuse PlayAnimPacket but we might need a flag for "Queue"? 
-				// Currently PlayAnimPacket calls .Play(). We need it to call .Queue().
-				// Let's modify PlayAnimPacket to support Queueing.
+				if (__instance == null || !__instance.enabled) return;
 
-				var packet = new PlayAnimPacket
+				var go = __instance.gameObject;
+				if (go.TryGetComponent<KPrefabID>(out var id) &&
+						id.HasTag(GameTags.Minions.Models.Standard) &&
+						MultiplayerSession.IsHost &&
+						go.TryGetComponent<NetworkIdentity>(out var netIdentity))
 				{
-					NetId = netIdentity.NetId,
-					IsMulti = false,
-					SingleAnimHash = anim_name.HashValue,
-					Mode = mode,
-					Speed = speed,
-					Offset = time_offset,
-					IsQueue = true // New flag
-				};
+					var packet = new PlayAnimPacket
+					{
+						NetId = netIdentity.NetId,
+						IsMulti = false,
+						SingleAnimHash = anim_name.HashValue,
+						Mode = mode,
+						Speed = speed,
+						Offset = time_offset,
+						IsQueue = true
+					};
 
-				PacketSender.SendToAllClients(packet);
+					PacketSender.SendToAllClients(packet);
+				}
 			}
+			catch (System.Exception) { }
 		}
 	}
 }

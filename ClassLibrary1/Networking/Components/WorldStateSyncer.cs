@@ -38,22 +38,41 @@ namespace ONI_MP.Networking.Components
 			if (!MultiplayerSession.InSession || !MultiplayerSession.IsHost)
 				return;
 
-			if (Time.unscaledTime - _lastGasSyncTime > GAS_SYNC_INTERVAL)
+			try
 			{
-				_lastGasSyncTime = Time.unscaledTime;
-				SyncGasLiquid();
+				if (Time.unscaledTime - _lastGasSyncTime > GAS_SYNC_INTERVAL)
+				{
+					_lastGasSyncTime = Time.unscaledTime;
+					DebugConsole.Log("[WorldStateSyncer] SyncGasLiquid START");
+					SyncGasLiquid();
+					DebugConsole.Log("[WorldStateSyncer] SyncGasLiquid END");
+				}
+
+				if (Time.unscaledTime - _lastSyncTime > SYNC_INTERVAL)
+
+				{
+					_lastSyncTime = Time.unscaledTime;
+					DebugConsole.Log("[WorldStateSyncer] SyncDigging START");
+					SyncDigging();
+					DebugConsole.Log("[WorldStateSyncer] SyncDigging END");
+					DebugConsole.Log("[WorldStateSyncer] SyncChores START");
+					SyncChores();
+					DebugConsole.Log("[WorldStateSyncer] SyncChores END");
+					DebugConsole.Log("[WorldStateSyncer] SyncResearchProgress START");
+					SyncResearchProgress();
+					DebugConsole.Log("[WorldStateSyncer] SyncResearchProgress END");
+					// SyncResearch() - REMOVED: Research is now synced only when selected (via ResearchPatch/ResearchRequestPacket)
+					DebugConsole.Log("[WorldStateSyncer] SyncPriorities START");
+					SyncPriorities();
+					DebugConsole.Log("[WorldStateSyncer] SyncPriorities END");
+					DebugConsole.Log("[WorldStateSyncer] SyncDisinfectImpl START");
+					SyncDisinfectImpl();
+					DebugConsole.Log("[WorldStateSyncer] SyncDisinfectImpl END");
+				}
 			}
-
-			if (Time.unscaledTime - _lastSyncTime > SYNC_INTERVAL)
-
+			catch (System.Exception ex)
 			{
-				_lastSyncTime = Time.unscaledTime;
-				SyncDigging();
-				SyncChores();
-				SyncResearchProgress(); // Progress sync only - selection is event-based
-				// SyncResearch() - REMOVED: Research is now synced only when selected (via ResearchPatch/ResearchRequestPacket)
-				SyncPriorities();
-				SyncDisinfectImpl();
+				DebugConsole.LogError($"[WorldStateSyncer] Exception in Update: {ex}");
 			}
 		}
 

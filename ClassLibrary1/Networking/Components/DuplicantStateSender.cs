@@ -67,46 +67,65 @@ namespace ONI_MP.Networking.Components
 
 		private void SendStatePacket()
 		{
-			var state = DetermineCurrentState();
-			int targetCell = DetermineTargetCell();
-			string animName = GetCurrentAnimName();
-			bool isWorking = IsCurrentlyWorking();
-			string heldSymbol = DetermineHeldItemSymbol();
-			float animElapsedTime = animController != null ? animController.GetElapsedTime() : 0f;
-
-			// Only send if something changed (or periodically for sync)
-			bool stateChanged = state != lastSentState ||
-													targetCell != lastSentTargetCell ||
-													animName != lastSentAnimName ||
-													isWorking != lastSentIsWorking ||
-													heldSymbol != lastSentHeldSymbol;
-
-			// Heartbeat: Force send if enough time passed, even if no change
-			bool isHeartbeat = heartbeatTimer >= heartbeatInterval;
-
-			if (!stateChanged && !isHeartbeat)
-				return;
-
-			if (isHeartbeat) heartbeatTimer = 0f;
-
-			lastSentState = state;
-			lastSentTargetCell = targetCell;
-			lastSentAnimName = animName;
-			lastSentIsWorking = isWorking;
-			lastSentHeldSymbol = heldSymbol;
-
-			var packet = new DuplicantStatePacket
+			try
 			{
-				NetId = networkIdentity.NetId,
-				ActionState = state,
-				TargetCell = targetCell,
-				CurrentAnimName = animName,
-				AnimElapsedTime = animElapsedTime,
-				IsWorking = isWorking,
-				HeldItemSymbol = heldSymbol
-			};
+				DebugConsole.Log($"[DuplicantStateSender] SendStatePacket START for {gameObject.name}");
+				DebugConsole.Log("[DuplicantStateSender] DetermineCurrentState");
+				var state = DetermineCurrentState();
+				DebugConsole.Log("[DuplicantStateSender] DetermineTargetCell");
+				int targetCell = DetermineTargetCell();
+				DebugConsole.Log("[DuplicantStateSender] GetCurrentAnimName");
+				string animName = GetCurrentAnimName();
+				DebugConsole.Log("[DuplicantStateSender] IsCurrentlyWorking");
+				bool isWorking = IsCurrentlyWorking();
+				DebugConsole.Log("[DuplicantStateSender] DetermineHeldItemSymbol");
+				string heldSymbol = DetermineHeldItemSymbol();
+				DebugConsole.Log("[DuplicantStateSender] GetElapsedTime");
+				float animElapsedTime = animController != null ? animController.GetElapsedTime() : 0f;
 
-			PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
+				// Only send if something changed (or periodically for sync)
+				bool stateChanged = state != lastSentState ||
+														targetCell != lastSentTargetCell ||
+														animName != lastSentAnimName ||
+														isWorking != lastSentIsWorking ||
+														heldSymbol != lastSentHeldSymbol;
+
+				// Heartbeat: Force send if enough time passed, even if no change
+				bool isHeartbeat = heartbeatTimer >= heartbeatInterval;
+
+				if (!stateChanged && !isHeartbeat)
+				{
+					DebugConsole.Log("[DuplicantStateSender] No change, skipping");
+					return;
+				}
+
+				if (isHeartbeat) heartbeatTimer = 0f;
+
+				lastSentState = state;
+				lastSentTargetCell = targetCell;
+				lastSentAnimName = animName;
+				lastSentIsWorking = isWorking;
+				lastSentHeldSymbol = heldSymbol;
+
+				var packet = new DuplicantStatePacket
+				{
+					NetId = networkIdentity.NetId,
+					ActionState = state,
+					TargetCell = targetCell,
+					CurrentAnimName = animName,
+					AnimElapsedTime = animElapsedTime,
+					IsWorking = isWorking,
+					HeldItemSymbol = heldSymbol
+				};
+
+				DebugConsole.Log("[DuplicantStateSender] Sending packet");
+				PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
+				DebugConsole.Log("[DuplicantStateSender] SendStatePacket END");
+			}
+			catch (System.Exception ex)
+			{
+				DebugConsole.LogError($"[DuplicantStateSender] Exception: {ex}");
+			}
 		}
 
 		private string lastSentHeldSymbol;

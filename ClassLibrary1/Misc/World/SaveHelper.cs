@@ -72,9 +72,24 @@ public static class SaveHelper
 	}
 
 	/// <summary>
-	/// Downloads a save file from a Google Drive share link to a known location. GOOGLE DRIVE DOES NOT NEED TO BE INITIALIZED HERE
+	/// Saves the current world snapshot
 	/// </summary>
-	public static async Task DownloadSaveAsync(
+    public static void CaptureWorldSnapshot()
+    {
+		if(Utils.IsInMenu())
+		{
+			// We are not in game, ignore
+			return;
+		}
+
+        var path = SaveLoader.GetActiveSaveFilePath();
+        SaveLoader.Instance.Save(path); // Saves current state to that file
+    }
+
+    /// <summary>
+    /// Downloads a save file from a Google Drive share link to a known location. GOOGLE DRIVE DOES NOT NEED TO BE INITIALIZED HERE
+    /// </summary>
+    public static async Task DownloadSaveAsync(
 	string shareLink,
 	string fileName,
 	System.Action OnCompleted,

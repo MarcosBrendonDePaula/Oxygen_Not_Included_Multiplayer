@@ -27,8 +27,6 @@ namespace ONI_MP.Networking
 
 		public static bool IsHardSyncInProgress = false;
 
-		private static bool userTriggeredDisconnect = false;
-
 		private struct CachedConnectionInfo
 		{
 			public CSteamID HostSteamID;
@@ -78,7 +76,6 @@ namespace ONI_MP.Networking
 		{
 			if (Connection.HasValue)
 			{
-				userTriggeredDisconnect = true;
 				DebugConsole.Log("[GameClient] Disconnecting from host...");
 
 				bool result = SteamNetworkingSockets.CloseConnection(
@@ -92,6 +89,7 @@ namespace ONI_MP.Networking
 				Connection = null;
 				SetState(ClientState.Disconnected);
 				MultiplayerSession.InSession = false;
+				SaveHelper.CaptureWorldSnapshot();
 			}
 			else
 			{
@@ -242,13 +240,13 @@ namespace ONI_MP.Networking
 
 		private static void OnDisconnected(string reason, CSteamID remote, ESteamNetworkingConnectionState state)
 		{
-			DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
-			MultiplayerSession.InSession = false;
-			SetState(ClientState.Disconnected);
-			//if (!userTriggeredDisconnect && remote == MultiplayerSession.HostSteamID)
-			//{
-				
-			//}
+            DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
+   //         if (remote == MultiplayerSession.LocalSteamID)
+  //		  {
+				// We disconnected
+   //             MultiplayerSession.InSession = false;
+   //             SetState(ClientState.Disconnected);
+   //         }
 
 			switch(state)
 			{
@@ -264,15 +262,13 @@ namespace ONI_MP.Networking
                     CoroutineRunner.RunOne(ShowMessageAndReturnToTitle());
 					break;
 			}
-
-			userTriggeredDisconnect = false;
-			Connection = null;
 		}
 
 		private static IEnumerator ShowMessageAndReturnToTitle()
 		{
 			MultiplayerOverlay.Show("Connection to the host was lost!");
-			yield return new WaitForSeconds(3f);
+            SaveHelper.CaptureWorldSnapshot();
+            yield return new WaitForSeconds(3f);
             //PauseScreen.TriggerQuitGame(); // Force exit to frontend, getting a crash here
 
             Game.Instance.SetIsLoading();

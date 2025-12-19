@@ -66,7 +66,7 @@ namespace ONI_MP.DebugTools
 
         }
 
-        protected override void RenderTo(DevPanel panel)
+		public override void RenderTo(DevPanel panel)
         {
             // Begin scroll region
             ImGui.BeginChild("ScrollRegion", new Vector2(0, 0), true, ImGuiWindowFlags.HorizontalScrollbar);

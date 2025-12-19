@@ -56,7 +56,7 @@ namespace ONI_MP.Networking
 				};
 
 
-		protected override void OnSpawn()
+		public override void OnSpawn()
 		{
 			base.OnSpawn();
 		}

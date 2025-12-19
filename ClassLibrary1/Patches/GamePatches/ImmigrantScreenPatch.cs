@@ -435,6 +435,55 @@ namespace ONI_MP.Patches.GamePatches
 		}
 	}
 
+	// Patch for Reject All button
+	[HarmonyPatch(typeof(ImmigrantScreen), "OnRejectAll")]
+	public static class ImmigrantScreenRejectPatch
+	{
+		public static bool Prefix(ImmigrantScreen __instance)
+		{
+			if (!MultiplayerSession.InSession) return true;
+			
+			DebugConsole.Log("[ImmigrantScreen] Reject All clicked");
+			
+			if (MultiplayerSession.IsClient)
+			{
+				// Client: Send reject to host
+				DebugConsole.Log("[ImmigrantScreen] Client: Sending Reject All to host");
+				var packet = new ImmigrantSelectionPacket { SelectedIndex = -1 };
+				PacketSender.SendToHost(packet);
+				
+				// Clear local options and close screen
+				ImmigrantScreenPatch.ClearOptionsLock();
+				if (ImmigrantScreen.instance != null)
+				{
+					ImmigrantScreen.instance.Deactivate();
+				}
+				
+				return false; // Don't execute original
+			}
+			
+			// Host: Let original execute, Postfix will notify clients
+			return true;
+		}
+		
+		public static void Postfix()
+		{
+			if (!MultiplayerSession.InSession) return;
+			
+			if (MultiplayerSession.IsHost)
+			{
+				DebugConsole.Log("[ImmigrantScreen] Host: Reject All, notifying clients");
+				
+				// Notify clients to close their screens
+				var packet = new ImmigrantSelectionPacket { SelectedIndex = -1 };
+				PacketSender.SendToAllClients(packet);
+				
+				ImmigrantScreenPatch.ClearOptionsLock();
+			}
+		}
+	}
+
+
 	// Patch InitializeContainers to create correct container types based on cached options
 	[HarmonyPatch(typeof(CharacterSelectionController), "InitializeContainers")]
 	public static class InitializeContainersPatch

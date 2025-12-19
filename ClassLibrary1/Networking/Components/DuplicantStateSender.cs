@@ -69,18 +69,11 @@ namespace ONI_MP.Networking.Components
 		{
 			try
 			{
-				DebugConsole.Log($"[DuplicantStateSender] SendStatePacket START for {gameObject.name}");
-				DebugConsole.Log("[DuplicantStateSender] DetermineCurrentState");
 				var state = DetermineCurrentState();
-				DebugConsole.Log("[DuplicantStateSender] DetermineTargetCell");
 				int targetCell = DetermineTargetCell();
-				DebugConsole.Log("[DuplicantStateSender] GetCurrentAnimName");
 				string animName = GetCurrentAnimName();
-				DebugConsole.Log("[DuplicantStateSender] IsCurrentlyWorking");
 				bool isWorking = IsCurrentlyWorking();
-				DebugConsole.Log("[DuplicantStateSender] DetermineHeldItemSymbol");
 				string heldSymbol = DetermineHeldItemSymbol();
-				DebugConsole.Log("[DuplicantStateSender] GetElapsedTime");
 				float animElapsedTime = animController != null ? animController.GetElapsedTime() : 0f;
 
 				// Only send if something changed (or periodically for sync)
@@ -94,10 +87,7 @@ namespace ONI_MP.Networking.Components
 				bool isHeartbeat = heartbeatTimer >= heartbeatInterval;
 
 				if (!stateChanged && !isHeartbeat)
-				{
-					DebugConsole.Log("[DuplicantStateSender] No change, skipping");
 					return;
-				}
 
 				if (isHeartbeat) heartbeatTimer = 0f;
 
@@ -118,13 +108,11 @@ namespace ONI_MP.Networking.Components
 					HeldItemSymbol = heldSymbol
 				};
 
-				DebugConsole.Log("[DuplicantStateSender] Sending packet");
 				PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable);
-				DebugConsole.Log("[DuplicantStateSender] SendStatePacket END");
 			}
-			catch (System.Exception ex)
+			catch (System.Exception)
 			{
-				DebugConsole.LogError($"[DuplicantStateSender] Exception: {ex}");
+				// Silently ignore - state may not be ready yet
 			}
 		}
 

@@ -14,12 +14,8 @@ namespace ONI_MP.Patches.GamePatches
 		{
 			if (MultiplayerSession.IsHost)
 			{
-				ONI_MP.DebugTools.DebugConsole.Log("[GamePatch] UpdatePostfix START");
-				ONI_MP.DebugTools.DebugConsole.Log("[GamePatch] InstantiationBatcher.Update");
 				InstantiationBatcher.Update();
-				ONI_MP.DebugTools.DebugConsole.Log("[GamePatch] WorldUpdateBatcher.Update");
 				WorldUpdateBatcher.Update();
-				ONI_MP.DebugTools.DebugConsole.Log("[GamePatch] UpdatePostfix END");
 			}
 		}
 

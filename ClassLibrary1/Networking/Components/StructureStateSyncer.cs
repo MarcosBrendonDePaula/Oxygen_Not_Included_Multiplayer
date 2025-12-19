@@ -55,23 +55,17 @@ namespace ONI_MP.Networking.Components
 				if (timer < sendInterval) return;
 				timer = 0f;
 
-				DebugConsole.Log($"[StructureStateSyncer] HostUpdate at cell {cell}");
-
 				float currentValue = 0f;
 				bool currentActive = false;
 
 				if (battery != null)
 				{
-					DebugConsole.Log("[StructureStateSyncer] Reading battery.JoulesAvailable");
 					currentValue = battery.JoulesAvailable;
-					DebugConsole.Log("[StructureStateSyncer] Battery read complete");
 				}
 
 				if (operational != null)
 				{
-					DebugConsole.Log("[StructureStateSyncer] Reading operational.IsActive");
 					currentActive = operational.IsActive;
-					DebugConsole.Log("[StructureStateSyncer] Operational read complete");
 				}
 
 				// Sync if changed significantly
@@ -86,14 +80,12 @@ namespace ONI_MP.Networking.Components
 						Value = currentValue,
 						IsActive = currentActive
 					};
-					DebugConsole.Log("[StructureStateSyncer] Sending packet");
 					PacketSender.SendToAllClients(packet, SteamNetworkingSend.Unreliable);
-					DebugConsole.Log("[StructureStateSyncer] Packet sent");
 				}
 			}
-			catch (System.Exception ex)
+			catch (System.Exception)
 			{
-				DebugConsole.LogError($"[StructureStateSyncer] Exception: {ex}");
+				// Silently ignore - structure state may not be ready yet
 			}
 		}
 

@@ -29,11 +29,19 @@ namespace ONI_MP.Networking.Packets.Social
 			// Handle client receiving notification from host
 			if (!MultiplayerSession.IsHost)
 			{
-				// Host sends -2 when selection is made
+				// Host sends -2 when selection is made, or -1 for Reject All
 				// EntitySpawnPacket is sent separately to handle actual spawning with correct NetId
-				if (SelectedIndex == -2)
+				if (SelectedIndex == -2 || SelectedIndex == -1)
 				{
-					DebugConsole.Log("[ImmigrantSelectionPacket] Client: Host made selection, closing screen and resetting Immigration");
+					if (SelectedIndex == -1)
+					{
+						DebugConsole.Log("[ImmigrantSelectionPacket] Client: Host rejected all, closing screen and resetting Immigration");
+					}
+					else
+					{
+						DebugConsole.Log("[ImmigrantSelectionPacket] Client: Host made selection, closing screen and resetting Immigration");
+					}
+					
 					ONI_MP.Patches.GamePatches.ImmigrantScreenPatch.ClearOptionsLock();
 					
 					if (ImmigrantScreen.instance != null && ImmigrantScreen.instance.gameObject.activeInHierarchy)
@@ -65,6 +73,25 @@ namespace ONI_MP.Networking.Packets.Social
 			{
 				// Screen is closed - spawn directly using cached options
 				DebugConsole.Log("[ImmigrantSelectionPacket] Host: Screen is closed, spawning using cached options");
+				
+				// Handle Reject All from client
+				if (SelectedIndex == -1)
+				{
+					DebugConsole.Log("[ImmigrantSelectionPacket] Host: Client rejected all, ending immigration");
+					
+					// End immigration cycle
+					if (Immigration.Instance != null)
+					{
+						Traverse.Create(Immigration.Instance).Method("EndImmigration").GetValue();
+					}
+					
+					ONI_MP.Patches.GamePatches.ImmigrantScreenPatch.ClearOptionsLock();
+					
+					// Notify all clients to close screens
+					var rejectPacket = new ImmigrantSelectionPacket { SelectedIndex = -1 };
+					PacketSender.SendToAllClients(rejectPacket);
+					return;
+				}
 				
 				var options = ONI_MP.Patches.GamePatches.ImmigrantScreenPatch.AvailableOptions;
 				if (options == null || SelectedIndex < 0 || SelectedIndex >= options.Count)

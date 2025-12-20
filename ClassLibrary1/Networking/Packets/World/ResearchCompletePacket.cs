@@ -38,8 +38,9 @@ namespace ONI_MP.Networking.Packets.World
 			{
 				// Mark as complete (Purchased triggers the unlocks)
 				techInstance.Purchased();
-				
-				DebugConsole.Log($"[ResearchCompletePacket] Completed research: {tech.Name}");
+				techInstance.UnlockPOITech(TechId);
+
+        DebugConsole.Log($"[ResearchCompletePacket] Completed research: {tech.Name}");
 				
 				// Refresh the research screen if open
 				try

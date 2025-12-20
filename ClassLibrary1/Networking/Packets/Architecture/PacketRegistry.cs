@@ -35,7 +35,7 @@ namespace ONI_MP.Networking.Packets.Architecture
             _constructors[id] = constructor;
             _typeToId[type] = id;
 
-            DebugConsole.LogSuccess($"[Packets] Registered {type.Name} => {id}");
+            DebugConsole.LogSuccess($"[PacketRegistry] Registered {type.Name} => {id}");
         }
 
         public static IPacket Create(int type)

@@ -12,7 +12,7 @@
 	<!-- Mod Info, used to generate yaml files on the fly -->
 	<PropertyGroup>
 		<ModName>Oxygen Not Included Together</ModName>
-		<ModDescription>Play Oxygen Not Included together!</ModDescription>
+		<ModDescription>Adds multiplayer to Oxygen Not Included! By Lyraedan</ModDescription>
 		<MinimumSupportedBuild>$(TargetGameVersion)</MinimumSupportedBuild>
 		<APIVersion>2</APIVersion>
 		<ForbiddenDlcIds>EXPANSION_1_ID</ForbiddenDlcIds> <!-- Block spaced out. Not supported right now -->

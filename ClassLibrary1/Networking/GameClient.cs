@@ -1,6 +1,7 @@
 ﻿using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Misc;
+using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.World;
 using ONI_MP.Networking.States;
@@ -234,6 +235,8 @@ namespace ONI_MP.Networking
 
 				ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
 				MultiplayerSession.CreateConnectedPlayerCursors();
+
+				//CursorManager.Instance.AssignColor();
 				SelectToolPatch.UpdateColor();
 			}
 		}

@@ -6,8 +6,6 @@ namespace ONI_MP.Networking.Packets.Tools.Disinfect
 {
 	public class DisinfectPacket : IPacket
 	{
-		public PacketType Type => PacketType.Disinfect;
-
 		public int Cell;
 
 		public DisinfectPacket() { }

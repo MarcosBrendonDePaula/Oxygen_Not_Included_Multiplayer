@@ -6,8 +6,6 @@ namespace ONI_MP.Networking.Packets.Core
 {
 	public class HardSyncPacket : IPacket
 	{
-		public PacketType Type => PacketType.HardSync;
-
 		public void Serialize(BinaryWriter writer)
 		{
 			// No payload needed

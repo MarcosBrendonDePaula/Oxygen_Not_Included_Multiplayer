@@ -6,8 +6,6 @@ using System.Linq;
 
 public class ToggleMinionEffectPacket : IPacket
 {
-	public PacketType Type => PacketType.ToggleMinionEffect;
-
 	public int NetId;
 	public bool Enable;
 	public string Context; // e.g. "dig", "sleep", "build"

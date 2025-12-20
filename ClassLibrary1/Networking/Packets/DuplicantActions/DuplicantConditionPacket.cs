@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 {
 	public class DuplicantConditionPacket : IPacket
 	{
-		public PacketType Type => PacketType.DuplicantCondition;
-
 		public int NetId;
 		public float Health;
 		public float MaxHealth;

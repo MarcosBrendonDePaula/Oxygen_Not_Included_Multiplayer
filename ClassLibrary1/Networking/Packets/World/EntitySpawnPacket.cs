@@ -13,8 +13,6 @@ namespace ONI_MP.Networking.Packets.World
 	/// </summary>
 	public class EntitySpawnPacket : IPacket
 	{
-		public PacketType Type => PacketType.EntitySpawn;
-
 		public int NetId;
 		public bool IsDuplicant;
 		

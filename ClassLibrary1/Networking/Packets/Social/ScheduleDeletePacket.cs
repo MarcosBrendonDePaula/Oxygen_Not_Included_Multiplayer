@@ -8,8 +8,6 @@ namespace ONI_MP.Networking.Packets.Social
 {
 	public class ScheduleDeletePacket : IPacket
 	{
-		public PacketType Type => PacketType.ScheduleDelete;
-
 		public int ScheduleIndex;
 
 		public void Serialize(BinaryWriter writer)

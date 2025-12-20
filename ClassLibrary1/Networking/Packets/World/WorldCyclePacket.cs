@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class WorldCyclePacket : IPacket
 	{
-		public PacketType Type => PacketType.WorldCycle;
-
 		public int Cycle { get; set; }
 		public float CycleTime { get; set; }
 

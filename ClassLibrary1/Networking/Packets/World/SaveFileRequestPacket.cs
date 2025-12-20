@@ -14,8 +14,6 @@ namespace ONI_MP.Networking.Packets.World
 
 		public const float SAVE_DATA_SEND_DELAY = 0.05f;
 
-		public PacketType Type => PacketType.SaveFileRequest;
-
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(Requester.m_SteamID);

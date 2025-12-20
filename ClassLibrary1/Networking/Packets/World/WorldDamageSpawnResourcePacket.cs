@@ -8,8 +8,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class WorldDamageSpawnResourcePacket : IPacket
 	{
-		public PacketType Type => PacketType.WorldDamageSpawnResource;
-
 		public int NetId;
 		public Vector3 Position;
 		public float Mass;

@@ -16,8 +16,6 @@ namespace ONI_MP.Networking.Packets.Tools.Clear
 
 	public class ClearPacket : IPacket
 	{
-		public PacketType Type => PacketType.Clear;
-
 		public List<int> TargetCells = new List<int>();
 		public CSteamID SenderId;
 		public ClearActionType ActionType;

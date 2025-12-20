@@ -39,8 +39,6 @@ namespace ONI_MP.Networking.Packets.Core
 
 		public List<PathStep> Steps = new List<PathStep>();
 
-		public PacketType Type => PacketType.NavigatorPath;
-
 		public void Serialize(BinaryWriter writer)
 		{
 			using (var memStream = new MemoryStream())

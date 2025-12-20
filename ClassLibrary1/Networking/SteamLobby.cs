@@ -41,7 +41,6 @@ namespace ONI_MP.Networking
 
 			try
 			{
-				PacketRegistry.RegisterDefaults();
 				_lobbyCreated = Callback<LobbyCreated_t>.Create(OnLobbyCreated);
 				_lobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnLobbyJoinRequested);
 				_lobbyEntered = Callback<LobbyEnter_t>.Create(OnLobbyEntered);

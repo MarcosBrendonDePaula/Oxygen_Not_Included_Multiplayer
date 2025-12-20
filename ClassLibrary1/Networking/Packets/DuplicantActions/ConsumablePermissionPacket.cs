@@ -6,8 +6,6 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 {
 	public class ConsumablePermissionPacket : IPacket
 	{
-		public PacketType Type => PacketType.ConsumablePermission;
-
 		public int NetId;
 		public string ConsumableId;
 		public bool IsAllowed;

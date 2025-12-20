@@ -5,6 +5,7 @@ using ONI_MP.DebugTools;
 using ONI_MP.Misc;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
+using ONI_MP.Networking.Packets.Architecture;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -24,16 +25,17 @@ namespace ONI_MP
 		public override void OnLoad(Harmony harmony)
 		{
 			base.OnLoad(harmony);
-
-			string logPath = System.IO.Path.Combine(Application.dataPath, "../ONI_MP_Log.txt");
+            string logPath = System.IO.Path.Combine(Application.dataPath, "../ONI_MP_Log.txt");
 
 			try
 			{
 				DebugConsole.Init(); // Init console first to catch logs
 				DebugConsole.Log("[ONI_MP] Loaded Oxygen Not Included Together Multiplayer Mod.");
 
-				// CHECKPOINT 1
-				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 1: Pre-DebugMenu\n");
+                PacketRegistry.RegisterDefaults();
+
+                // CHECKPOINT 1
+                System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 1: Pre-DebugMenu\n");
 				DebugMenu.Init();
 
 				// CHECKPOINT 2

@@ -6,8 +6,6 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 {
 	public class SkillMasteryPacket : IPacket
 	{
-		public PacketType Type => PacketType.SkillMastery;
-
 		public int NetId;
 		public string SkillId;
 

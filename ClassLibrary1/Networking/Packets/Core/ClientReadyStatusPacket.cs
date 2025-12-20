@@ -9,8 +9,6 @@ namespace ONI_MP.Networking.Packets.Core
 {
 	class ClientReadyStatusPacket : IPacket
 	{
-		public PacketType Type => PacketType.ClientReadyStatus;
-
 		public CSteamID SenderId;
 		public ClientReadyState Status = ClientReadyState.Unready;
 

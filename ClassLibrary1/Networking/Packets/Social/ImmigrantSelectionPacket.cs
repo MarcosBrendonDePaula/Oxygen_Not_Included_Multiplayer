@@ -8,8 +8,6 @@ namespace ONI_MP.Networking.Packets.Social
 {
 	public class ImmigrantSelectionPacket : IPacket
 	{
-		public PacketType Type => PacketType.ImmigrantSelection;
-
 		public int SelectedDeliverableIndex; // 0, 1, 2... or -1 for Reject All?
 		public int PrintingPodWorldIndex = 0; //defaults to world 0, can be different in spaced out
 

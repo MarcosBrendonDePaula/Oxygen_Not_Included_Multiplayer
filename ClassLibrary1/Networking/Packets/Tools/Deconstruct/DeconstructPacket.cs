@@ -9,8 +9,6 @@ namespace ONI_MP.Networking.Packets.Tools.Deconstruct
 {
 	public class DeconstructPacket : IPacket
 	{
-		public PacketType Type => PacketType.Deconstruct;
-
 		public int Cell;
 		public CSteamID SenderId;
 

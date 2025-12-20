@@ -11,8 +11,6 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 	/// </summary>
 	public class DuplicantStatePacket : IPacket
 	{
-		public PacketType Type => PacketType.DuplicantState;
-
 		public int NetId;
 		public DuplicantActionState ActionState;
 		public int TargetCell;          // Cell of work target (-1 if none)

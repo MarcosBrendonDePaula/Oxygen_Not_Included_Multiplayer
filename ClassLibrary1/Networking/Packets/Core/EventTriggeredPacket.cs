@@ -12,8 +12,6 @@ namespace ONI_MP.Networking.Packets.Events
 		public string SerializedData;
 		public string DataType;
 
-		public PacketType Type => PacketType.EventTriggered;
-
 		public EventTriggeredPacket() { }
 
 		public EventTriggeredPacket(int netId, int eventHash, object data = null)

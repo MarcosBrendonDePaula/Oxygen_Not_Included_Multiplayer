@@ -12,8 +12,6 @@ namespace ONI_MP.Networking.Packets.World
 		public int TotalSize;
 		public byte[] Chunk;
 
-		public PacketType Type => PacketType.SaveFileChunk;
-
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(FileName);

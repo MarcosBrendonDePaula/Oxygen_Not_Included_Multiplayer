@@ -6,8 +6,6 @@ namespace ONI_MP.Networking.Packets.Core
 {
 	public class ClientReadyStatusUpdatePacket : IPacket
 	{
-		public PacketType Type => PacketType.ClientReadyStatusUpdate;
-
 		public string Message;
 
 		public ClientReadyStatusUpdatePacket() { }

@@ -10,8 +10,6 @@ namespace ONI_MP.Networking.Packets.World
 	{
 		public CSteamID SenderId;
 
-		public PacketType Type => PacketType.WorldDataRequest;
-
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(SenderId.m_SteamID);

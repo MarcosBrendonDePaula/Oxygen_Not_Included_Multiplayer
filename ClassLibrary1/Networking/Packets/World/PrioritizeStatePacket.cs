@@ -46,8 +46,7 @@ namespace ONI_MP.Networking.Packets.World
 
 		public void OnDispatched()
 		{
-			if (MultiplayerSession.IsHost) return;
-
+			// Both host and client need to apply priority changes
 			try
 			{
 				IsApplying = true;
@@ -59,8 +58,7 @@ namespace ONI_MP.Networking.Packets.World
 						if (prioritizable != null)
 						{
 							var newSetting = new PrioritySetting((PriorityScreen.PriorityClass)p.PriorityClass, p.PriorityValue);
-							// Only update if different to avoid event spam?
-							// GetMasterPriority() returns PrioritySetting.
+							// Only update if different to avoid event spam
 							if (!prioritizable.GetMasterPriority().Equals(newSetting))
 							{
 								prioritizable.SetMasterPriority(newSetting);
@@ -72,6 +70,12 @@ namespace ONI_MP.Networking.Packets.World
 			finally
 			{
 				IsApplying = false;
+			}
+
+			// If host received from client, rebroadcast to all other clients
+			if (MultiplayerSession.IsHost && Priorities.Count > 0)
+			{
+				PacketSender.SendToAllClients(this);
 			}
 		}
 	}

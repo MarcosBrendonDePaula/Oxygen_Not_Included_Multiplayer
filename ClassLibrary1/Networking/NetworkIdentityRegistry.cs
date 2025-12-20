@@ -14,7 +14,7 @@ namespace ONI_MP.Networking
 			int id;
 			do
 			{
-				id = rng.Next(100000, int.MaxValue); // Avoid very low IDs
+				id = rng.Next(100000, 1000000000); // Stay below deterministic range (1B+)
 			} while (identities.ContainsKey(id));
 
 			identities[id] = entity;
@@ -57,7 +57,12 @@ namespace ONI_MP.Networking
 
 		public static bool TryGet(int netId, out NetworkIdentity entity)
 		{
-			return identities.TryGetValue(netId, out entity);
+			bool found = identities.TryGetValue(netId, out entity);
+			if (!found)
+			{
+				DebugConsole.LogWarning($"[NetEntityRegistry] ERROR: Requested NetId {netId} NOT FOUND in registry. Current count: {identities.Count}");
+			}
+			return found;
 		}
 
 		public static void Clear()

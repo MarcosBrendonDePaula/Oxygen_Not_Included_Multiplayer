@@ -5,6 +5,10 @@ using ONI_MP.Networking.Packets.World;
 
 namespace ONI_MP.Patches.World
 {
+	// Valve flow synchronization is now handled in BuildingConfigPatch.cs
+	// This file serves as a placeholder for other specific slider implementations if needed.
+	
+	/*
 	[HarmonyPatch(typeof(Valve), "ChangeFlow")]
 	public static class ValveFlowPatch
 	{
@@ -27,19 +31,5 @@ namespace ONI_MP.Patches.World
 			else PacketSender.SendToHost(packet);
 		}
 	}
-
-	// Abstract classes or Interfaces cannot be patched directly easily.
-	// We typically patch the implementations or base classes.
-	// SingleSliderSideScreen invokes ISliderControl.SetSliderValue(val, index).
-	// The implementations are diverse (Door, etc).
-	// Let's try to patch known implementations if necessary, or check if we can patch via interface (Harmony doesn't support interface patch directly).
-	// We should patch the methods that are CALLED by the UI.
-
-	// Door has 'OpenValue' etc?
-	// Door implements ISliderControl? No, usually not.
-	// Let's check typical slider users: 
-	// - Valve (Handled)
-	// - IntSliderSideScreen targets?
-
-	// For now, let's stick to Valve and Thresholds which cover 90% of user config needs.
+	*/
 }

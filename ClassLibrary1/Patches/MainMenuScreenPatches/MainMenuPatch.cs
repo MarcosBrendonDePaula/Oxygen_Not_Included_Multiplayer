@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using ONI_MP;
-using ONI_MP.Cloud;
 using ONI_MP.Misc;
 using ONI_MP.Networking;
 using Steamworks;
@@ -27,30 +26,30 @@ internal static class MainMenuPatch
 		// Host Game
 
 		//string host_text = GoogleDrive.Instance.IsInitialized ? "Host Game" : "Host Game [Setup]";
-		var hostInfo = CreateButtonInfo(
-				"Host Game",
-				new System.Action(() =>
-				{
-					/*
-					if (!GoogleDrive.Instance.IsInitialized)
-					{
-						Application.OpenURL("https://github.com/Lyraedan/Oxygen_Not_Included_Multiplayer/wiki/Google-Drive-Setup-Guide");
-						return;
-					}
-					*/
+		//var hostInfo = CreateButtonInfo(
+		//		"Host Game",
+		//		new System.Action(() =>
+		//		{
+		//			/*
+		//			if (!GoogleDrive.Instance.IsInitialized)
+		//			{
+		//				Application.OpenURL("https://github.com/Lyraedan/Oxygen_Not_Included_Multiplayer/wiki/Google-Drive-Setup-Guide");
+		//				return;
+		//			}
+		//			*/
 
-					MultiplayerSession.ShouldHostAfterLoad = true;
-					__instance.Button_ResumeGame.SignalClick(KKeyCode.Mouse0);
-				}),
-				normalFontSize,
-				normalStyle,
-				buttonInfoType
-		);
-		makeButton.Invoke(__instance, new object[] { hostInfo });
+		//			MultiplayerSession.ShouldHostAfterLoad = true;
+		//			__instance.Button_ResumeGame.SignalClick(KKeyCode.Mouse0);
+		//		}),
+		//		normalFontSize,
+		//		normalStyle,
+		//		buttonInfoType
+		//);
+		//makeButton.Invoke(__instance, new object[] { hostInfo });
 
 		// Join Game
 		var joinInfo = CreateButtonInfo(
-				"Join Game",
+				"JOIN GAME",
 				new System.Action(() =>
 				{
 					SteamFriends.ActivateGameOverlay("friends");
@@ -99,17 +98,17 @@ internal static class MainMenuPatch
 					b.GetComponentInChildren<LocText>().text.ToUpper().Contains("LOAD GAME"));
 
 			// Find your buttons
-			var hostBtn = children.FirstOrDefault(b =>
-					b.GetComponentInChildren<LocText>().text.ToUpper().Contains("HOST GAME"));
+			//var hostBtn = children.FirstOrDefault(b =>
+			//		b.GetComponentInChildren<LocText>().text.ToUpper().Contains("HOST GAME"));
 			var joinBtn = children.FirstOrDefault(b =>
 					b.GetComponentInChildren<LocText>().text.ToUpper().Contains("JOIN GAME"));
 
-			if (loadGameBtn != null && hostBtn != null && joinBtn != null)
+			if (loadGameBtn != null /*&& hostBtn != null*/ && joinBtn != null)
 			{
 				int loadGameIdx = loadGameBtn.transform.GetSiblingIndex();
 				// Move host and join immediately after "Load Game"
-				hostBtn.transform.SetSiblingIndex(loadGameIdx + 1);
-				joinBtn.transform.SetSiblingIndex(loadGameIdx + 2);
+				//hostBtn.transform.SetSiblingIndex(loadGameIdx + 1);
+				joinBtn.transform.SetSiblingIndex(loadGameIdx + 1); // + 2
 			}
 		}
 	}

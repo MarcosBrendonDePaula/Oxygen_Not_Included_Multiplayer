@@ -9,7 +9,6 @@ namespace ONI_MP.Networking.Packets.Core
 {
 	public class AllClientsReadyPacket : IPacket
 	{
-		public PacketType Type => PacketType.AllClientsReady;
 
 		public void Serialize(BinaryWriter writer)
 		{

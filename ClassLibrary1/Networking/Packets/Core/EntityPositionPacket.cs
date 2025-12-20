@@ -13,8 +13,6 @@ public class EntityPositionPacket : IPacket
 	public bool FacingLeft;
 	public NavType NavType;
 
-	public PacketType Type => PacketType.EntityPosition;
-
 	public void Serialize(BinaryWriter writer)
 	{
 		writer.Write(NetId);

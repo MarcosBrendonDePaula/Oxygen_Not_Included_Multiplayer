@@ -9,7 +9,6 @@ namespace ONI_MP.Networking.Packets
 {
 	public class InstantiationsPacket : IPacket
 	{
-		public PacketType Type => PacketType.Instantiations;
 		public List<InstantiationEntry> Entries = new List<InstantiationEntry>();
 
 		public struct InstantiationEntry

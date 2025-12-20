@@ -14,8 +14,6 @@ namespace ONI_MP.Networking.Packets.Social
 		public string Message;
 		public Color PlayerColor;
 
-		public PacketType Type => PacketType.ChatMessage;
-
 		public ChatMessagePacket()
 		{
 		}

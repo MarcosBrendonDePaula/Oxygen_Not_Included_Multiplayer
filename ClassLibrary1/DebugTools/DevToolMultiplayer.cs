@@ -1,11 +1,10 @@
 ﻿// Keep this to only windows, Mac is not built with the Devtool framework so it doesn't have access to the DevTool class and just crashes
-#if OS_WINDOWS //UNITY_STANDALONE_WIN || DEBUG
+#if DEBUG //OS_WINDOWS || DEBUG
 
 using System;
 using System.Diagnostics;
 using System.IO;
 using ImGuiNET;
-using ONI_MP.Cloud;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Packets.World;
 using ONI_MP.Networking.Packets.Architecture;
@@ -27,6 +26,9 @@ namespace ONI_MP.DebugTools
 
         // Alert popup
         private bool showRestartPrompt = false;
+
+        // Open player profile
+        private CSteamID? selectedPlayer = null;
 
         private static readonly string ModDirectory = Path.Combine(
             Path.GetDirectoryName(typeof(DevToolMultiplayer).Assembly.Location),
@@ -63,7 +65,7 @@ namespace ONI_MP.DebugTools
 
         }
 
-        protected override void RenderTo(DevPanel panel)
+		public override void RenderTo(DevPanel panel)
         {
             // Begin scroll region
             ImGui.BeginChild("ScrollRegion", new Vector2(0, 0), true, ImGuiWindowFlags.HorizontalScrollbar);
@@ -139,7 +141,7 @@ namespace ONI_MP.DebugTools
             ImGui.Separator();
 
             ImGui.Text("Session details:");
-            ImGui.Text($"Connected clients: {MultiplayerSession.ConnectedPlayers.Count}");
+            ImGui.Text($"Connected clients: {(MultiplayerSession.InSession ? (MultiplayerSession.PlayerCursors.Count + 1) : 0)}");
             ImGui.Text($"Is Host: {MultiplayerSession.IsHost}");
             ImGui.Text($"Is Client: {MultiplayerSession.IsClient}");
             ImGui.Text($"In Session: {MultiplayerSession.InSession}");
@@ -168,20 +170,8 @@ namespace ONI_MP.DebugTools
                     }
 
                     ImGui.Separator();
-                    ImGui.Text("Google Drive");
-
-                    if (GoogleDrive.Instance.IsInitialized)
-                    {
-                        if (MultiplayerSession.IsHost && ImGui.Button("Test Upload"))
-                        {
-                            GoogleDriveUtils.UploadSaveFile();
-                        }
-                    } else
-                    {
-                        ImGui.Text("Google drive not in use.");
-                    }
-
-                        DrawPlayerList();
+                    
+                    DrawPlayerList();
                 }
                 else
                 {
@@ -198,25 +188,49 @@ namespace ONI_MP.DebugTools
 
         private void DrawPlayerList()
         {
-            var players = MultiplayerSession.ConnectedPlayers;
+            var players = SteamLobby.GetAllLobbyMembers();
 
             ImGui.Separator();
             ImGui.Text("Players in Lobby:");
+
+            string self = $"[YOU] {SteamFriends.GetPersonaName()} ({MultiplayerSession.LocalSteamID})";
+
             if (players.Count == 0)
             {
-                ImGui.Text("<none>");
+                ImGui.TextColored(new Vector4(0.3f, 1f, 0.3f, 1f), self);
+                return;
             }
-            else
-            {
-                foreach (CSteamID playerId in players.Keys)
-                {
-                    var playerName = MultiplayerSession.GetPlayer(playerId).SteamName;
-                    bool isHost = MultiplayerSession.HostSteamID == playerId;
 
-                    if (isHost)
-                        ImGui.TextColored(new Vector4(0.8f, 0.9f, 1f, 1f), $"[HOST] {playerName} ({playerId})");
-                    else
-                        ImGui.Text($"{playerName} ({playerId})");
+            if (MultiplayerSession.HostSteamID == MultiplayerSession.LocalSteamID)
+                self = $"[YOU|HOST] {SteamFriends.GetPersonaName()} ({MultiplayerSession.LocalSteamID})";
+
+            ImGui.TextColored(new Vector4(0.3f, 1f, 0.3f, 1f), self);
+
+            foreach (var playerId in players)
+            {
+                string playerName = SteamFriends.GetFriendPersonaName(playerId);
+                bool isHost = MultiplayerSession.HostSteamID == playerId;
+
+                string label = isHost
+                    ? $"[HOST] {playerName} ({playerId})"
+                    : $"{playerName} ({playerId})";
+
+                bool isSelected = selectedPlayer.HasValue && selectedPlayer.Value == playerId;
+
+                if (ImGui.Selectable(label, isSelected))
+                {
+                    selectedPlayer = playerId;
+                }
+
+                // Right-click context menu
+                if (ImGui.BeginPopupContextItem(playerId.ToString()))
+                {
+                    if (ImGui.MenuItem("Open Steam Profile"))
+                    {
+                        SteamFriends.ActivateGameOverlayToUser("steamid", playerId);
+                    }
+
+                    ImGui.EndPopup();
                 }
             }
         }

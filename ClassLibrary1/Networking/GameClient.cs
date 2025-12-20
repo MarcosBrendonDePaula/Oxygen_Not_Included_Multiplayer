@@ -1,6 +1,7 @@
 ﻿using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Misc;
+using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.World;
 using ONI_MP.Networking.States;
@@ -26,8 +27,6 @@ namespace ONI_MP.Networking
 		private static CachedConnectionInfo? _cachedConnectionInfo = null;
 
 		public static bool IsHardSyncInProgress = false;
-
-		private static bool userTriggeredDisconnect = false;
 
 		private struct CachedConnectionInfo
 		{
@@ -78,7 +77,6 @@ namespace ONI_MP.Networking
 		{
 			if (Connection.HasValue)
 			{
-				userTriggeredDisconnect = true;
 				DebugConsole.Log("[GameClient] Disconnecting from host...");
 
 				bool result = SteamNetworkingSockets.CloseConnection(
@@ -92,6 +90,7 @@ namespace ONI_MP.Networking
 				Connection = null;
 				SetState(ClientState.Disconnected);
 				MultiplayerSession.InSession = false;
+				SaveHelper.CaptureWorldSnapshot();
 			}
 			else
 			{
@@ -236,30 +235,51 @@ namespace ONI_MP.Networking
 
 				ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
 				MultiplayerSession.CreateConnectedPlayerCursors();
+
+				//CursorManager.Instance.AssignColor();
 				SelectToolPatch.UpdateColor();
 			}
 		}
 
 		private static void OnDisconnected(string reason, CSteamID remote, ESteamNetworkingConnectionState state)
 		{
-			DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
-			MultiplayerSession.InSession = false;
-			SetState(ClientState.Disconnected);
-			if (!userTriggeredDisconnect && remote == MultiplayerSession.HostSteamID)
+            DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
+   //         if (remote == MultiplayerSession.LocalSteamID)
+  //		  {
+				// We disconnected
+   //             MultiplayerSession.InSession = false;
+   //             SetState(ClientState.Disconnected);
+   //         }
+
+			switch(state)
 			{
-				CoroutineRunner.RunOne(ShowMessageAndReturnToTitle());
+				case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ClosedByPeer:
+					// The host closed our connection
+					if (remote == MultiplayerSession.HostSteamID)
+					{
+                        CoroutineRunner.RunOne(ShowMessageAndReturnToTitle());
+                    }
+                    break;
+                case ESteamNetworkingConnectionState.k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
+					// Something went wrong locally
+                    CoroutineRunner.RunOne(ShowMessageAndReturnToTitle());
+					break;
 			}
-			userTriggeredDisconnect = false;
-			Connection = null;
 		}
 
 		private static IEnumerator ShowMessageAndReturnToTitle()
 		{
 			MultiplayerOverlay.Show("Connection to the host was lost!");
-			yield return new WaitForSeconds(3f);
-			PauseScreen.TriggerQuitGame(); // Force exit to frontend
+            SaveHelper.CaptureWorldSnapshot();
+            yield return new WaitForSeconds(3f);
+            //PauseScreen.TriggerQuitGame(); // Force exit to frontend, getting a crash here
 
-			MultiplayerOverlay.Close();
+            Game.Instance.SetIsLoading();
+            Grid.CellCount = 0;
+            Sim.Shutdown();
+            App.LoadScene("frontend");
+
+            MultiplayerOverlay.Close();
 			NetworkIdentityRegistry.Clear();
 			SteamLobby.LeaveLobby();
 		}

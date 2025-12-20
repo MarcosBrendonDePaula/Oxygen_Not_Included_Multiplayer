@@ -183,7 +183,7 @@ namespace ONI_MP.Networking
 
 		private static void RejectConnection(HSteamNetConnection conn, CSteamID clientId, string reason)
 		{
-			DebugConsole.LogError($"[GameServer] Rejecting connection from {clientId}: {reason}");
+			DebugConsole.LogError($"[GameServer] Rejecting connection from {clientId}: {reason}", false);
 			SteamNetworkingSockets.CloseConnection(conn, 0, reason, false);
 		}
 
@@ -193,7 +193,8 @@ namespace ONI_MP.Networking
 			if (!MultiplayerSession.ConnectedPlayers.TryGetValue(clientId, out player))
 			{
 				player = new MultiplayerPlayer(clientId);
-				MultiplayerSession.ConnectedPlayers[clientId] = player;
+				MultiplayerSession.ConnectedPlayers.Add(clientId, player);
+				//MultiplayerSession.ConnectedPlayers[clientId] = player;
 			}
 			player.Connection = conn;
 

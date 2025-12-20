@@ -24,7 +24,7 @@ namespace ONI_MP.Networking.Components
 		private float nextSyncTime = 0f;
 		private const float SyncInterval = 1f;
 
-		protected override void OnSpawn()
+		public override void OnSpawn()
 		{
 			base.OnSpawn();
 			minion = GetComponent<MinionIdentity>();

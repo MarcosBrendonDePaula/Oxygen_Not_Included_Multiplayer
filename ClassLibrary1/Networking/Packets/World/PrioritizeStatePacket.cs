@@ -6,8 +6,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class PrioritizeStatePacket : IPacket
 	{
-		public PacketType Type => PacketType.PrioritizeState;
-
 		public struct PriorityData
 		{
 			public int NetId;

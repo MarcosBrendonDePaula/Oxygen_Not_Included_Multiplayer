@@ -1,5 +1,4 @@
-﻿using ONI_MP.Cloud;
-using ONI_MP.Networking;
+﻿using ONI_MP.Networking;
 using Steamworks;
 using System;
 using UnityEngine;
@@ -98,14 +97,6 @@ namespace ONI_MP.DebugTools
 					}
 
 					GUILayout.Space(10);
-					GUILayout.Label($"Google Drive");
-					if (MultiplayerSession.IsHost)
-					{
-						if (GUILayout.Button("Test Upload"))
-						{
-							GoogleDriveUtils.UploadSaveFile();
-						}
-					}
 					//DrawPlayerList();
 				}
 				else

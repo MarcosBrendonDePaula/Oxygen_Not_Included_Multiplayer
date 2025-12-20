@@ -19,8 +19,6 @@ namespace ONI_MP.Networking.Packets.World
 
 	public class ChoreStatePacket : IPacket
 	{
-		public PacketType Type => PacketType.ChoreState;
-
 		public List<ChoreData> Chores = new List<ChoreData>();
 
 		public void Serialize(BinaryWriter writer)

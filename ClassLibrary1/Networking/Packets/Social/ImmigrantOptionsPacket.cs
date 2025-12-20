@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.Social
 {
 	public class ImmigrantOptionsPacket : IPacket
 	{
-		public PacketType Type => PacketType.ImmigrantOptions;
-
 		public struct OptionEntry
 		{
 			public bool IsDuplicant;

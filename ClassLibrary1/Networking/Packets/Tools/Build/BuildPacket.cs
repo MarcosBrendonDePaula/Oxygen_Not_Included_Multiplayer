@@ -10,8 +10,6 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 {
 	public class BuildPacket : IPacket
 	{
-		public PacketType Type => PacketType.Build;
-
 		public string PrefabID;
 		public int Cell;
 		public Orientation Orientation;

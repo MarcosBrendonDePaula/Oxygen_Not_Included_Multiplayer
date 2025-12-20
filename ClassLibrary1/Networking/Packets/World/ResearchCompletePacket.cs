@@ -10,8 +10,6 @@ namespace ONI_MP.Networking.Packets.World
 	/// </summary>
 	public class ResearchCompletePacket : IPacket
 	{
-		public PacketType Type => PacketType.ResearchComplete;
-
 		public string TechId;
 
 		public void Serialize(BinaryWriter writer)

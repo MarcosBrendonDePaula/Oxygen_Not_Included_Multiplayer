@@ -14,8 +14,6 @@ public class ChoreAssignmentPacket : IPacket
 	public int TargetCell = -1;
 	public string TargetPrefabId; // optional
 
-	public PacketType Type => PacketType.ChoreAssignment;
-
 	public void Serialize(BinaryWriter writer)
 	{
 		writer.Write(NetId);

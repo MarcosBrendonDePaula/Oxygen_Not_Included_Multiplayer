@@ -401,7 +401,7 @@ namespace ONI_MP.Patches.GamePatches
 			if (selectedIndex != -1)
 			{
 				DebugConsole.Log($"[ImmigrantScreen] Client: Selected index {selectedIndex}, sending to host");
-				var packet = new ImmigrantSelectionPacket { SelectedIndex = selectedIndex };
+				var packet = new ImmigrantSelectionPacket { SelectedDeliverableIndex = selectedIndex, PrintingPodWorldIndex = __instance.Telepad?.GetMyWorldId() ?? 0 };
 				PacketSender.SendToHost(packet);
 			}
 			else
@@ -427,7 +427,7 @@ namespace ONI_MP.Patches.GamePatches
 				// Send -2 to close client screens
 				// NOTE: For host's own selections via OnProceed, the game spawns the entity normally
 				// Entity sync will be handled separately (e.g. via EntitySpawnPacket from a different hook)
-				var packet = new ImmigrantSelectionPacket { SelectedIndex = -2 };
+				var packet = new ImmigrantSelectionPacket { SelectedDeliverableIndex = -2 };
 				PacketSender.SendToAllClients(packet);
 				
 				ImmigrantScreenPatch.ClearOptionsLock();
@@ -449,7 +449,7 @@ namespace ONI_MP.Patches.GamePatches
 			{
 				// Client: Send reject to host
 				DebugConsole.Log("[ImmigrantScreen] Client: Sending Reject All to host");
-				var packet = new ImmigrantSelectionPacket { SelectedIndex = -1 };
+				var packet = new ImmigrantSelectionPacket { SelectedDeliverableIndex = -1 };
 				PacketSender.SendToHost(packet);
 				
 				// Clear local options and close screen
@@ -475,7 +475,7 @@ namespace ONI_MP.Patches.GamePatches
 				DebugConsole.Log("[ImmigrantScreen] Host: Reject All, notifying clients");
 				
 				// Notify clients to close their screens
-				var packet = new ImmigrantSelectionPacket { SelectedIndex = -1 };
+				var packet = new ImmigrantSelectionPacket { SelectedDeliverableIndex = -1 };
 				PacketSender.SendToAllClients(packet);
 				
 				ImmigrantScreenPatch.ClearOptionsLock();

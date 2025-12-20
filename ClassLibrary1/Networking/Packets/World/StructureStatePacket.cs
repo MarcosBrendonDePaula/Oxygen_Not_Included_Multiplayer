@@ -5,8 +5,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class StructureStatePacket : IPacket
 	{
-		public PacketType Type => PacketType.StructureState;
-
 		public int Cell;
 		public float Value; // Joules for Battery, Progress for others
 		public bool IsActive; // Operational active state

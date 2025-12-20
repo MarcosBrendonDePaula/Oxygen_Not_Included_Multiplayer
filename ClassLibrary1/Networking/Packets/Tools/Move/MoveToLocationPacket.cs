@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.Tools.Move
 {
 	public class MoveToLocationPacket : IPacket
 	{
-		public PacketType Type => PacketType.MoveToLocation;
-
 		public int Cell;
 		public int TargetNetId;
 		public CSteamID SenderId;

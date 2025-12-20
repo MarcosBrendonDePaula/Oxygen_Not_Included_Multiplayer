@@ -9,8 +9,6 @@ namespace ONI_MP.Networking.Packets.Tools.Cancel
 {
 	public class CancelPacket : IPacket
 	{
-		public PacketType Type => PacketType.Cancel;
-
 		public int Cell;
 		public CSteamID SenderId;
 

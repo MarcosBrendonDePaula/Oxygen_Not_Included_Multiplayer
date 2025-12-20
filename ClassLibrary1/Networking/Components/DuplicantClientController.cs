@@ -51,7 +51,7 @@ namespace ONI_MP.Networking.Components
 			public bool IsQueue;
 		}
 
-		protected override void OnSpawn()
+		public override void OnSpawn()
 		{
 			base.OnSpawn();
 
@@ -349,9 +349,6 @@ namespace ONI_MP.Networking.Components
 			currentActionState = DuplicantActionState.Idle;
 		}
 
-		/// <summary>
-		/// Called when receiving a DuplicantStatePacket from the host
-		/// </summary>
 		/// <summary>
 		/// Called when receiving a DuplicantStatePacket from the host
 		/// </summary>

@@ -9,8 +9,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class ResearchStatePacket : IPacket
 	{
-		public PacketType Type => PacketType.ResearchState;
-
 		public List<string> UnlockedTechIds = new List<string>();
 		public List<string> QueuedTechIds = new List<string>(); // Full queue from host
 		public string ActiveTechId; // Current research selection

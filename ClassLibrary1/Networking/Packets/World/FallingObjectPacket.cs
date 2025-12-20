@@ -6,8 +6,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class FallingObjectPacket : IPacket
 	{
-		public PacketType Type => PacketType.FallingObject;
-
 		public int Cell;
 		public ushort ElementIndex;
 		public float Mass;

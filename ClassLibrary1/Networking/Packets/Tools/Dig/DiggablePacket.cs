@@ -9,8 +9,6 @@ namespace ONI_MP.Networking.Packets.Tools.Dig
 {
 	public class DiggablePacket : IPacket
 	{
-		public PacketType Type => PacketType.Diggable;
-
 		public int Cell;
 		public CSteamID SenderId;
 

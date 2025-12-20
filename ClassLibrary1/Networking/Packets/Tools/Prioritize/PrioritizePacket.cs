@@ -9,8 +9,6 @@ namespace ONI_MP.Networking.Packets.Tools.Prioritize
 {
 	public class PrioritizePacket : IPacket
 	{
-		public PacketType Type => PacketType.Prioritize;
-
 		public List<int> TargetCells = new List<int>();
 		public PrioritySetting Priority;
 		public CSteamID SenderId;

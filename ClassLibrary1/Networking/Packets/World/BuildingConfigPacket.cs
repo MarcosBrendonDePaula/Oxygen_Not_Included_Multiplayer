@@ -16,8 +16,6 @@ namespace ONI_MP.Networking.Packets.World
 
 	public class BuildingConfigPacket : IPacket
 	{
-		public PacketType Type => PacketType.BuildingConfig;
-
 		public int NetId;
 		public int Cell; // Deterministic location-based identification
 		public int ConfigHash; // Hash of the property name (e.g. "Threshold", "Logic")

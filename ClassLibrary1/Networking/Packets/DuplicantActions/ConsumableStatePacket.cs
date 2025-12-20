@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 {
 	public class ConsumableStatePacket : IPacket
 	{
-		public PacketType Type => PacketType.ConsumableState;
-
 		public int NetId;
 		public List<string> ForbiddenIds = new List<string>();
 

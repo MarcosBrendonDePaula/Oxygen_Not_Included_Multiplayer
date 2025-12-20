@@ -11,7 +11,6 @@ namespace ONI_MP.Networking.Packets.World
 	/// </summary>
 	public class ResearchProgressPacket : IPacket
 	{
-		public PacketType Type => PacketType.ResearchProgress;
 
 		public string TechId;
 		public float Progress; // 0.0 to 1.0

@@ -6,8 +6,6 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 {
 	public class DuplicantPriorityPacket : IPacket
 	{
-		public PacketType Type => PacketType.DuplicantPriority;
-
 		public int NetId;
 		public string ChoreGroupId;
 		public int Priority;

@@ -8,8 +8,9 @@ namespace ONI_MP
 {
     class Configuration
     {
+        private static string ConfigDirectory = Path.Combine(KMod.Manager.GetDirectory(), "config");
         private static readonly string ConfigPath = Path.Combine(
-            Path.GetDirectoryName(typeof(Configuration).Assembly.Location),
+            ConfigDirectory,
             "multiplayer_settings.json"
         );
         private static Configuration _instance;
@@ -52,6 +53,11 @@ namespace ONI_MP
 
         public static Configuration LoadOrCreate()
         {
+            if (!Directory.Exists(ConfigDirectory))
+            {
+                Directory.CreateDirectory(ConfigDirectory);
+            }
+
             if (!File.Exists(ConfigPath))
             {
                 var defaultConfig = new Configuration();

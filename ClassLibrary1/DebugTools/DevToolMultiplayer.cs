@@ -188,7 +188,7 @@ namespace ONI_MP.DebugTools
 
         private void DrawPlayerList()
         {
-            var players = MultiplayerSession.PlayerCursors;
+            var players = SteamLobby.GetAllLobbyMembers();
 
             ImGui.Separator();
             ImGui.Text("Players in Lobby:");
@@ -206,10 +206,9 @@ namespace ONI_MP.DebugTools
 
             ImGui.TextColored(new Vector4(0.3f, 1f, 0.3f, 1f), self);
 
-            foreach (var kvp in players)
+            foreach (var playerId in players)
             {
-                CSteamID playerId = kvp.Key;
-                var playerName = kvp.Value.playerName;
+                string playerName = SteamFriends.GetFriendPersonaName(playerId);
                 bool isHost = MultiplayerSession.HostSteamID == playerId;
 
                 string label = isHost

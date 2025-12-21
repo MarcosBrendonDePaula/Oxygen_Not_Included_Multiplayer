@@ -3,6 +3,7 @@ using ONI_MP.Menus;
 using ONI_MP.Networking.Packets.Core;
 using ONI_MP.Networking.States;
 using Steamworks;
+using System;
 using System.Collections.Generic;
 
 namespace ONI_MP.Networking
@@ -102,15 +103,42 @@ namespace ONI_MP.Networking
 
 		private static string GetScreenText()
 		{
-            string message = "Waiting for players to be ready!\n";
+			int readyCount = GetReadyCount();
+			int maxPlayers = MultiplayerSession.ConnectedPlayers.Values.Count;
+            string message = $"Waiting for players ({readyCount}/{maxPlayers} ready)...\n";
             foreach (MultiplayerPlayer player in MultiplayerSession.ConnectedPlayers.Values)
             {
-                message += $"{player.SteamName} : {player.readyState}\n";
+                message += $"{player.SteamName} : {GetReadyText(player.readyState)}\n";
             }
 			return message;
         }
 
-		private static void UpdateReadyStateTracking(CSteamID id)
+        private static int GetReadyCount()
+        {
+			int count = 0;
+			foreach(MultiplayerPlayer player in MultiplayerSession.ConnectedPlayers.Values)
+			{
+				if (player.readyState.Equals(ClientReadyState.Ready))
+				{
+					count++;
+				}
+			}
+			return count;
+        }
+
+        private static string GetReadyText(ClientReadyState readyState)
+        {
+            switch (readyState)
+			{
+				case ClientReadyState.Ready:
+					return "Ready";
+				case ClientReadyState.Unready:
+					return "Loading";
+			}
+			return "Unknown";
+        }
+
+        private static void UpdateReadyStateTracking(CSteamID id)
 		{
 			DebugConsole.LogAssert($"Update ready state tracking for {id}");
 		}

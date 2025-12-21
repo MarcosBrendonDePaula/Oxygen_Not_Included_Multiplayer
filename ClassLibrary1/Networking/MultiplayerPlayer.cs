@@ -1,4 +1,5 @@
-﻿using Steamworks;
+﻿using ONI_MP.Networking.States;
+using Steamworks;
 
 public class MultiplayerPlayer
 {
@@ -10,7 +11,9 @@ public class MultiplayerPlayer
 	public HSteamNetConnection? Connection { get; set; } = null;
 	public bool IsConnected => Connection != null;
 
-	public MultiplayerPlayer(CSteamID steamID)
+	public ClientReadyState readyState = ClientReadyState.Ready;
+
+    public MultiplayerPlayer(CSteamID steamID)
 	{
 		SteamID = steamID;
 		SteamName = SteamFriends.GetFriendPersonaName(steamID);

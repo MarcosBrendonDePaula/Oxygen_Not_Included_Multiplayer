@@ -4,6 +4,7 @@ using ONI_MP.Networking.Packets.Architecture;
 using Steamworks;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 namespace ONI_MP.Networking.Packets.World
@@ -54,7 +55,28 @@ namespace ONI_MP.Networking.Packets.World
 			}
 		}
 
-		private static IEnumerator StreamChunks(byte[] data, string fileName, CSteamID steamID)
+        public static void SendSaveFileToAll()
+        {
+            if (!MultiplayerSession.IsHost)
+                return;
+
+            try
+            {
+                string name = SaveHelper.WorldName;
+                byte[] data = SaveHelper.GetWorldSave();
+                string fileName = name + ".sav";
+
+                // Start the streaming coroutine
+                CoroutineRunner.RunOne(StreamChunksToAll(data, fileName));
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogError($"[SaveFileRequest] Failed to send save file: {ex}");
+            }
+        }
+
+
+        private static IEnumerator StreamChunks(byte[] data, string fileName, CSteamID steamID)
 		{
 			int chunkSize = SaveHelper.SAVEFILE_CHUNKSIZE_KB * 1024;
 			int totalChunks = (int)Math.Ceiling((double)data.Length / chunkSize);
@@ -104,5 +126,44 @@ namespace ONI_MP.Networking.Packets.World
 			DebugConsole.Log($"[SaveFileRequest] Transfer complete. Sent {totalChunks} chunks to {steamID}.");
 		}
 
-	}
+        private static IEnumerator StreamChunksToAll(byte[] data, string fileName)
+        {
+            int chunkSize = SaveHelper.SAVEFILE_CHUNKSIZE_KB * 1024;
+            int totalChunks = (int)Math.Ceiling((double)data.Length / chunkSize);
+
+            // Optimization: Send multiple chunks per frame to maximize throughput
+            // 2 chunks * 256KB = 512KB per frame. At 60FPS -> ~30MB/s theoretical max.
+            int chunksPerFrame = 2;
+            int chunksSentThisFrame = 0;
+
+            DebugConsole.Log($"[SaveFileRequest] Starting transfer of '{fileName}' ({Utils.FormatBytes(data.Length)}) to all in {totalChunks} chunks.");
+
+            for (int offset = 0; offset < data.Length; /* increments manually */)
+            {
+                int size = Math.Min(chunkSize, data.Length - offset);
+                byte[] chunk = new byte[size];
+                Buffer.BlockCopy(data, offset, chunk, 0, size);
+
+                var chunkPacket = new SaveFileChunkPacket
+                {
+                    FileName = fileName,
+                    Offset = offset,
+                    TotalSize = data.Length,
+                    Chunk = chunk
+                };
+
+                PacketSender.SendToAllClients(chunkPacket);
+
+                offset += chunkSize;
+                chunksSentThisFrame++;
+                if (chunksSentThisFrame >= chunksPerFrame)
+                {
+					chunksSentThisFrame = 0;
+                    yield return null;
+                }
+                DebugConsole.Log($"[SaveFileRequest] Transfer complete. Sent {totalChunks} chunks to all.");
+
+            }
+        }
+    }
 }

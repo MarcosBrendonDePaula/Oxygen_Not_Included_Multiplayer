@@ -1,4 +1,5 @@
-﻿using ONI_MP.Menus;
+﻿using ONI_MP.DebugTools;
+using ONI_MP.Menus;
 using ONI_MP.Networking.Packets.Core;
 using ONI_MP.Networking.States;
 using Steamworks;
@@ -9,8 +10,6 @@ namespace ONI_MP.Networking
 	public class ReadyManager
 	{
 
-		private static Dictionary<CSteamID, ClientReadyState> ReadyStates = new Dictionary<CSteamID, ClientReadyState>();
-
 		public static void SetupListeners()
 		{
 			SteamLobby.OnLobbyMembersRefreshed += UpdateReadyStateTracking;
@@ -19,12 +18,10 @@ namespace ONI_MP.Networking
 		public static void RunReadyCheck()
 		{
 			string message = "Waiting for players to be ready!\n";
-			bool allReady = ReadyManager.AreAllPlayersReady(
-					OnIteration: () => { MultiplayerOverlay.Show(message); },
-					OnPlayerChecked: (steamName, readyState) =>
-					{
-						message += $"{steamName} : {readyState}\n";
-					});
+			foreach(MultiplayerPlayer player in MultiplayerSession.ConnectedPlayers.Values)
+			{
+				message += $"{player.SteamName} : {player.readyState}";
+			}
 			MultiplayerOverlay.Show(message);
 		}
 
@@ -44,15 +41,16 @@ namespace ONI_MP.Networking
 			PacketSender.SendToAllClients(new AllClientsReadyPacket());
 			AllClientsReadyPacket.ProcessAllReady(); // Host transitions after delay
 		}
-		public static void SendStatusUpdatePacketToClients(string message)
+		public static void SendStatusUpdatePacketToClients()
 		{
 			if (!MultiplayerSession.IsHost)
 				return;
 
+			string text = GetScreenText();
 			var packet = new ClientReadyStatusUpdatePacket
 			{
-				Message = message
-			};
+				Message = text
+            };
 			PacketSender.SendToAllClients(packet);
 		}
 
@@ -70,95 +68,70 @@ namespace ONI_MP.Networking
 			PacketSender.SendToHost(packet);
 		}
 
-		/// <summary>
-		/// HOST ONLY : Checks if all the players in the session are ready TODO Update to SteamLobby?
-		/// </summary>
-		public static bool AreAllPlayersReady(System.Action OnIteration, System.Action<string, string> OnPlayerChecked)
-		{
-			if (!MultiplayerSession.IsHost)
-				return false;
-
-			bool allReady = true;
-
-			foreach (var steamId in SteamLobby.LobbyMembers)
-			{
-				OnIteration?.Invoke();
-
-				if (steamId == MultiplayerSession.HostSteamID)
-					continue;
-
-				var state = GetPlayerReadyState(steamId);
-
-				// get the name
-				string name = SteamFriends.GetFriendPersonaName(steamId);
-
-				// get the readable status
-				string statusStr = state.ToString();
-
-				OnPlayerChecked?.Invoke(name, statusStr);
-
-				if (state != ClientReadyState.Ready)
-					allReady = false;
-			}
-
-			return allReady;
-		}
-
 		public static void MarkAllAsUnready()
 		{
 			if (!MultiplayerSession.IsHost)
 				return;
 
-			foreach (var steamId in SteamLobby.LobbyMembers)
-			{
-				if (steamId == MultiplayerSession.HostSteamID)
-					continue;
+			MultiplayerPlayer host;
+			MultiplayerSession.ConnectedPlayers.TryGetValue(MultiplayerSession.HostSteamID, out host);
+			host.readyState = ClientReadyState.Ready; // Host is always ready
 
-				ReadyStates[steamId] = ClientReadyState.Unready;
+			foreach (MultiplayerPlayer player in MultiplayerSession.ConnectedPlayers.Values)
+			{
+                if (player.SteamID == MultiplayerSession.HostSteamID)
+                    continue;
+
+				player.readyState = ClientReadyState.Unready;
 			}
 		}
 
-		public static void SetPlayerReadyState(CSteamID id, ClientReadyState state)
+		public static void SetPlayerReadyState(MultiplayerPlayer player, ClientReadyState state)
 		{
-			if (id == MultiplayerSession.HostSteamID)
-				return;
+            if (player.SteamID == MultiplayerSession.HostSteamID)
+                return;
 
-			ReadyStates[id] = state;
+			player.readyState = state;
 		}
 
-		public static ClientReadyState GetPlayerReadyState(CSteamID id)
+		public static void RefreshScreen()
 		{
-			if (id == MultiplayerSession.HostSteamID)
-				return ClientReadyState.Ready;
+			string text = GetScreenText();
+            MultiplayerOverlay.Show(text);
+        }
 
-			return ReadyStates.TryGetValue(id, out var state) ? state : ClientReadyState.Unready;
-		}
-
-
-		public static void ClearReadyStates()
+		private static string GetScreenText()
 		{
-			ReadyStates.Clear();
-		}
+            string message = "Waiting for players to be ready!\n";
+            foreach (MultiplayerPlayer player in MultiplayerSession.ConnectedPlayers.Values)
+            {
+                message += $"{player.SteamName} : {player.readyState}\n";
+            }
+			return message;
+        }
 
 		private static void UpdateReadyStateTracking(CSteamID id)
 		{
-			if (!ReadyStates.ContainsKey(id))
-			{
-				ReadyStates[id] = ClientReadyState.Unready;
-			}
+			DebugConsole.LogAssert($"Update ready state tracking for {id}");
+		}
 
-			// Clean up anyone who left
-			var lobbyMembers = SteamLobby.LobbyMembers;
-			var toRemove = new List<CSteamID>();
-			foreach (var existing in ReadyStates.Keys)
+		/// <summary>
+		/// HOST ONLY - Check if all connected clients are ready
+		/// </summary>
+		/// <returns></returns>
+		public static bool IsEveryoneReady()
+		{
+			bool result = true;
+			foreach(MultiplayerPlayer player in MultiplayerSession.ConnectedPlayers.Values)
 			{
-				if (!lobbyMembers.Contains(existing))
-					toRemove.Add(existing);
+				if (player.readyState == ClientReadyState.Unready)
+				{
+					result = false;
+
+                    break;
+				}
 			}
-			foreach (var remove in toRemove)
-			{
-				ReadyStates.Remove(remove);
-			}
+			return result;
 		}
 
 	}

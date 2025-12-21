@@ -208,12 +208,14 @@ namespace ONI_MP.Networking
 			MultiplayerSession.ConnectedPlayers[hostId].Connection = Connection;
 
 			DebugConsole.Log("[GameClient] Connection to host established!");
-			if (Utils.IsInMenu())
+            ReadyManager.SendReadyStatusPacket(ClientReadyState.Unready);
+
+            if (Utils.IsInMenu())
 			{
 				MultiplayerOverlay.Show($"Waiting for {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
 				if (!IsHardSyncInProgress)
 				{
-					var packet = new SaveFileRequestPacket
+                    var packet = new SaveFileRequestPacket
 					{
 						Requester = MultiplayerSession.LocalSteamID
 					};

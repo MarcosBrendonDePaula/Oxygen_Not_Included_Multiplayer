@@ -1,6 +1,7 @@
 ﻿using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.World;
 using ONI_MP.Networking.States;
 using Steamworks;
 using System.IO;
@@ -40,19 +41,20 @@ namespace ONI_MP.Networking.Packets.Core
 				return;
 			}
 
-			ReadyManager.SetPlayerReadyState(SenderId, Status);
+			MultiplayerPlayer player;
+			MultiplayerSession.ConnectedPlayers.TryGetValue(SenderId, out player);
+
+			if (player == null)
+			{
+				DebugConsole.LogError("Tried to update ready state for a null player");
+				return;
+			}
+
+            ReadyManager.SetPlayerReadyState(player, Status);
 			DebugConsole.Log($"[ClientReadyStatusPacket] {SenderId} marked as {Status}");
 
-			// Build the overlay message
-			string message = "Waiting for players to be ready!\n";
-			bool allReady = ReadyManager.AreAllPlayersReady(
-					OnIteration: () => { MultiplayerOverlay.Show(message); },
-					OnPlayerChecked: (steamName, readyState) =>
-					{
-						message += $"{steamName} : {readyState}\n";
-					});
-
-			MultiplayerOverlay.Show(message);
+			ReadyManager.RefreshScreen();
+			bool allReady = ReadyManager.IsEveryoneReady();
 
 			if (GameServerHardSync.IsHardSyncInProgress)
 			{
@@ -62,6 +64,7 @@ namespace ONI_MP.Networking.Packets.Core
 					//GoogleDriveUtils.UploadAndSendToAllClients();
 					// Replace with ability to send new save to all clients without them requesting
 					//SaveFileRequestPacket.SendSaveFile(clientId); // Need this method but all clients
+					SaveFileRequestPacket.SendSaveFileToAll(); // WIP, buggy right now thanks to packet loss
 
 				}
 				return;
@@ -74,7 +77,7 @@ namespace ONI_MP.Networking.Packets.Core
 			else
 			{
 				// Broadcast updated overlay message to all clients
-				ReadyManager.SendStatusUpdatePacketToClients(message);
+				ReadyManager.SendStatusUpdatePacketToClients();
 			}
 		}
 	}

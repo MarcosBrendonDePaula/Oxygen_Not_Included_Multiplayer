@@ -16,8 +16,19 @@ public class MultiplayerPlayer
     public MultiplayerPlayer(CSteamID steamID)
 	{
 		SteamID = steamID;
-		SteamName = SteamFriends.GetFriendPersonaName(steamID);
+		SteamName = TrucatedName(SteamFriends.GetFriendPersonaName(steamID));
 		AvatarImageId = SteamFriends.GetLargeFriendAvatar(steamID);
+	}
+
+	private string TrucatedName(string steamName)
+	{
+		if (steamName.Length > 12)
+		{
+			return steamName.Substring(0, 12) + "...";
+		} else
+		{
+			return steamName;
+		}
 	}
 
 	public override string ToString()

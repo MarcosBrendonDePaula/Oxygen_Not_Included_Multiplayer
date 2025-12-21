@@ -70,12 +70,28 @@ namespace ONI_MP.Patches
                         SteamFriends.ActivateGameOverlay("friends");
                     });
 
-                    AddButton(__instance, "End Multiplayer Session", () =>
+					if (!GameServerHardSync.hardSyncDoneThisCycle)
+					{
+                        AddButton(__instance, "Perform Hard Sync", () =>
+                        {
+                            PauseScreen.Instance.Show(false); // Hide pause screen
+                            SpeedControlScreen.Instance?.Unpause(false);
+							GameServerHardSync.PerformHardSync(); // Manually trigger the hard sync
+                        });
+                    } else
+					{
+                        AddButton(__instance, "Already hard synced this cycle!", () =>
+                        {
+                            
+                        });
+                    }
+
+					AddButton(__instance, "End Multiplayer Session", () =>
 					{
 						SteamLobby.LeaveLobby();
-                        PauseScreen.Instance.Show(false); // Hide pause screen
-                        SpeedControlScreen.Instance?.Unpause(false);
-                    }, "Invite");
+						PauseScreen.Instance.Show(false); // Hide pause screen
+						SpeedControlScreen.Instance?.Unpause(false);
+					}, "Invite");
 				}
 
             }

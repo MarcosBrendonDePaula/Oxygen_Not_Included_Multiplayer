@@ -9,6 +9,7 @@ namespace ONI_MP.Networking
 {
 	public static class GameServerHardSync
 	{
+		public static bool hardSyncDoneThisCycle = false;
 		private static bool hardSyncInProgress = false;
 		private static int numberOfClientsAtTimeOfSync = 0;
 
@@ -60,7 +61,8 @@ namespace ONI_MP.Networking
 			float estimatedTransferDuration = chunkCount * SaveFileRequestPacket.SAVE_DATA_SEND_DELAY;
 			yield return new WaitForSeconds(estimatedTransferDuration * numberOfClientsAtTimeOfSync);
 
-			hardSyncInProgress = false;
+			hardSyncDoneThisCycle = true;
+            hardSyncInProgress = false;
 			SpeedControlScreen.Instance?.Unpause(false);
 			MultiplayerOverlay.Close();
 		}

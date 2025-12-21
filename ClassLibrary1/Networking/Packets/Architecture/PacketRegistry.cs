@@ -3,6 +3,7 @@ using ONI_MP.Networking.Packets.Cloud;
 using ONI_MP.Networking.Packets.Core;
 using ONI_MP.Networking.Packets.DuplicantActions;
 using ONI_MP.Networking.Packets.Events;
+using ONI_MP.Networking.Packets.Handshake;
 using ONI_MP.Networking.Packets.Social;
 using ONI_MP.Networking.Packets.Tools.Build;
 using ONI_MP.Networking.Packets.Tools.Cancel;
@@ -98,6 +99,11 @@ namespace ONI_MP.Networking.Packets.Architecture
             TryRegister(PacketType.ResearchProgress, () => new ResearchProgressPacket());
             TryRegister(PacketType.ResearchComplete, () => new ResearchCompletePacket());
             TryRegister(PacketType.EntitySpawn, () => new EntitySpawnPacket());
+
+            // Mod compatibility verification packets
+            TryRegister(PacketType.ModVerification, () => new ModVerificationPacket());
+            TryRegister(PacketType.ModVerificationResponse, () => new ModVerificationResponsePacket());
+            TryRegister(PacketType.ModListRequest, () => new ModListRequestPacket());
 		}
 
 		public static void TryRegister(PacketType type, Func<IPacket> constructor, string nameOverride = "")

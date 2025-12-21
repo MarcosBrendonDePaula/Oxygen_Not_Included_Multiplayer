@@ -64,7 +64,10 @@
 		ConsumableState = 60,
 		ResearchProgress = 61,
 		ResearchComplete = 62,
-		EntitySpawn = 63
+		EntitySpawn = 63,
+		ModVerification = 64,
+		ModVerificationResponse = 65,
+		ModListRequest = 66
 	}
 }
 

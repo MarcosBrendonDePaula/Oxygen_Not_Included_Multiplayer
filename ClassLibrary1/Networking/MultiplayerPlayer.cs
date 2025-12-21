@@ -22,9 +22,9 @@ public class MultiplayerPlayer
 
 	private string TrucatedName(string steamName)
 	{
-		if (steamName.Length > 12)
+		if (steamName.Length > 24)
 		{
-			return steamName.Substring(0, 12) + "...";
+			return steamName.Substring(0, 24) + "...";
 		} else
 		{
 			return steamName;

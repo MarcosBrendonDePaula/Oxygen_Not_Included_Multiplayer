@@ -28,9 +28,6 @@ namespace ONI_MP.Networking
 		/// <summary>
 		/// Send to one connection by HSteamNetConnection handle.
 		/// </summary>
-		/// <summary>
-		/// Send to one connection by HSteamNetConnection handle.
-		/// </summary>
 		public static bool SendToConnection(HSteamNetConnection conn, IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.ReliableNoNagle)
 		{
 			var bytes = SerializePacket(packet);

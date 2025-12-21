@@ -63,8 +63,9 @@ namespace ONI_MP.Networking
 
 			hardSyncDoneThisCycle = true;
             hardSyncInProgress = false;
-			SpeedControlScreen.Instance?.Unpause(false);
-			MultiplayerOverlay.Close();
+			// With the ready state I do not think this is needed anymore
+			//SpeedControlScreen.Instance?.Unpause(false);
+			//MultiplayerOverlay.Close();
 		}
 	}
 }

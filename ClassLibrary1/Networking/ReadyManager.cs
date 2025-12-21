@@ -16,16 +16,6 @@ namespace ONI_MP.Networking
 			SteamLobby.OnLobbyMembersRefreshed += UpdateReadyStateTracking;
 		}
 
-		public static void RunReadyCheck()
-		{
-			string message = "Waiting for players to be ready!\n";
-			foreach(MultiplayerPlayer player in MultiplayerSession.ConnectedPlayers.Values)
-			{
-				message += $"{player.SteamName} : {player.readyState}";
-			}
-			MultiplayerOverlay.Show(message);
-		}
-
 		public static void SendAllReadyPacket()
 		{
 			if (!MultiplayerSession.IsHost)
@@ -36,12 +26,6 @@ namespace ONI_MP.Networking
 			AllClientsReadyPacket.ProcessAllReady();
 		}
 
-		private static System.Collections.IEnumerator DelayAllReadyBroadcast()
-		{
-			yield return new UnityEngine.WaitForSeconds(1f);
-			PacketSender.SendToAllClients(new AllClientsReadyPacket());
-			AllClientsReadyPacket.ProcessAllReady(); // Host transitions after delay
-		}
 		public static void SendStatusUpdatePacketToClients()
 		{
 			if (!MultiplayerSession.IsHost)

@@ -92,7 +92,7 @@ namespace ONI_MP.Networking
             string message = $"Waiting for players ({readyCount}/{maxPlayers} ready)...\n";
             foreach (MultiplayerPlayer player in MultiplayerSession.ConnectedPlayers.Values)
             {
-                message += $"{player.SteamName} : {GetReadyText(player.readyState)}\n";
+                message += $"{player.SteamName}: {GetReadyText(player.readyState)}\n";
             }
 			return message;
         }

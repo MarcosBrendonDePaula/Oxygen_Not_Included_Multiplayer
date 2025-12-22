@@ -16,7 +16,7 @@ namespace ONI_MP_API.Networking
 			if (typesInitialized)
 				return true;
 						
-			if (!ReflectionHelper.TryCreateDelegate<TryRegisterPacketDelegate>("ONI_MP.Networking.Packets.Architecture.PacketRegistry, ONI_MP", "TryRegister", [typeof(Type)], out _TryRegister))
+			if (!ReflectionHelper.TryCreateDelegate<TryRegisterPacketDelegate>("ONI_MP.Networking.Packets.Architecture.PacketRegistry, ONI_MP", "TryRegister", [typeof(Type), typeof(string)], out _TryRegister))
 				return false;
 			typesInitialized = true;
 			return true;
@@ -24,7 +24,7 @@ namespace ONI_MP_API.Networking
 
 		static bool typesInitialized = false;
 		static TryRegisterPacketDelegate? _TryRegister = null;
-		delegate void TryRegisterPacketDelegate(Type packetType);
+		delegate void TryRegisterPacketDelegate(Type packetType, string nameOverride);
 
 
 		/// <summary>
@@ -32,11 +32,11 @@ namespace ONI_MP_API.Networking
 		/// Do not call earlier than "OnAllModsLoaded" Harmony event or the main mod type might not exist yet.
 		/// </summary>
 		/// <param name="packetType"></param>
-		public static void TryRegister(Type packetType)
+		public static void TryRegister(Type packetType, string nameOverride = null)
 		{
 			if (!Init())
 				return;
-			_TryRegister(packetType);
+			_TryRegister(packetType, nameOverride);
 		}
 	}
 }

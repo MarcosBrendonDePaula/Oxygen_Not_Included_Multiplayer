@@ -12,6 +12,7 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 		{
 			"FilterElement".GetHashCode(),
 			"FilterTag".GetHashCode(),
+			"FilterTagString".GetHashCode(),
 		};
 
 		public int[] SupportedConfigHashes => _hashes;
@@ -35,7 +36,7 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 				}
 			}
 
-			if (hash == "FilterTag".GetHashCode())
+			if (hash == "FilterTag".GetHashCode() || hash == "FilterTagString".GetHashCode())
 			{
 				if (packet.ConfigType == BuildingConfigType.String && !string.IsNullOrEmpty(packet.StringValue))
 				{

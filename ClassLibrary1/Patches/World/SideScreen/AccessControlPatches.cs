@@ -1,0 +1,120 @@
+using HarmonyLib;
+using ONI_MP.DebugTools;
+using ONI_MP.Networking;
+using ONI_MP.Networking.Components;
+using ONI_MP.Networking.Packets.World;
+
+namespace ONI_MP.Patches.World.SideScreen
+{
+	/// <summary>
+	/// Patches for AccessControl (door permissions) synchronization
+	/// </summary>
+
+	[HarmonyPatch(typeof(AccessControl), nameof(AccessControl.SetDefaultPermission))]
+	public static class AccessControl_SetDefaultPermission_Patch
+	{
+		public static void Postfix(AccessControl __instance, Tag groupTag, AccessControl.Permission permission)
+		{
+			if (BuildingConfigPacket.IsApplyingPacket) return;
+			if (!MultiplayerSession.InSession) return;
+
+			var identity = __instance.gameObject.AddOrGet<NetworkIdentity>();
+			identity.RegisterIdentity();
+
+			var packet = new BuildingConfigPacket
+			{
+				NetId = identity.NetId,
+				Cell = Grid.PosToCell(__instance.gameObject),
+				ConfigHash = "AccessControlDefault".GetHashCode(),
+				Value = (float)(int)permission,
+				ConfigType = BuildingConfigType.String,
+				StringValue = groupTag.Name
+			};
+
+			if (MultiplayerSession.IsHost) PacketSender.SendToAllClients(packet);
+			else PacketSender.SendToHost(packet);
+		}
+	}
+
+	[HarmonyPatch(typeof(AccessControl), nameof(AccessControl.SetPermission), typeof(MinionAssignablesProxy), typeof(AccessControl.Permission))]
+	public static class AccessControl_SetPermission_Patch
+	{
+		public static void Postfix(AccessControl __instance, MinionAssignablesProxy key, AccessControl.Permission permission)
+		{
+			if (BuildingConfigPacket.IsApplyingPacket) return;
+			if (!MultiplayerSession.InSession) return;
+
+			var identity = __instance.gameObject.AddOrGet<NetworkIdentity>();
+			identity.RegisterIdentity();
+
+			int minionNetId = -1;
+			var targetGO = key.GetTargetGameObject();
+			if (targetGO != null)
+			{
+				var minionIdentity = targetGO.GetComponent<NetworkIdentity>();
+				if (minionIdentity != null)
+				{
+					minionNetId = minionIdentity.NetId;
+				}
+			}
+
+			if (minionNetId == -1) return;
+
+			var packet = new BuildingConfigPacket
+			{
+				NetId = identity.NetId,
+				Cell = Grid.PosToCell(__instance.gameObject),
+				ConfigHash = "AccessControlMinion".GetHashCode(),
+				Value = (int)permission,
+				SliderIndex = minionNetId,
+				ConfigType = BuildingConfigType.Float
+			};
+
+			if (MultiplayerSession.IsHost) PacketSender.SendToAllClients(packet);
+			else PacketSender.SendToHost(packet);
+
+			DebugConsole.Log($"[AccessControl_SetPermission_Patch] Synced: door={__instance.name}, minionNetId={minionNetId}");
+		}
+	}
+
+	[HarmonyPatch(typeof(AccessControl), nameof(AccessControl.ClearPermission), typeof(MinionAssignablesProxy))]
+	public static class AccessControl_ClearPermission_Patch
+	{
+		public static void Postfix(AccessControl __instance, MinionAssignablesProxy key)
+		{
+			if (BuildingConfigPacket.IsApplyingPacket) return;
+			if (!MultiplayerSession.InSession) return;
+
+			var identity = __instance.gameObject.AddOrGet<NetworkIdentity>();
+			identity.RegisterIdentity();
+
+			int minionNetId = -1;
+			var targetGO = key.GetTargetGameObject();
+			if (targetGO != null)
+			{
+				var minionIdentity = targetGO.GetComponent<NetworkIdentity>();
+				if (minionIdentity != null)
+				{
+					minionNetId = minionIdentity.NetId;
+				}
+			}
+
+			if (minionNetId == -1) return;
+
+			var packet = new BuildingConfigPacket
+			{
+				NetId = identity.NetId,
+				Cell = Grid.PosToCell(__instance.gameObject),
+				ConfigHash = "AccessControlClear".GetHashCode(),
+				Value = 0f,
+				SliderIndex = minionNetId,
+				ConfigType = BuildingConfigType.Float
+			};
+
+			if (MultiplayerSession.IsHost) PacketSender.SendToAllClients(packet);
+			else PacketSender.SendToHost(packet);
+
+			DebugConsole.Log($"[AccessControl_ClearPermission_Patch] Cleared for minionNetId={minionNetId} on {__instance.name}");
+		}
+	}
+}

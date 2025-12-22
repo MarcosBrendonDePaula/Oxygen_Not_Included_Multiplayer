@@ -38,6 +38,7 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 			RegisterHandler(new StorageFilterHandler());
 			RegisterHandler(new ReceptacleHandler());
 			RegisterHandler(new MiscBuildingHandler());
+			RegisterHandler(new AccessControlHandler());
 
 			DebugConsole.Log($"[BuildingConfigHandlerRegistry] Initialized with {_allHandlers.Count} handlers, {_handlersByHash.Count} hash mappings");
 		}

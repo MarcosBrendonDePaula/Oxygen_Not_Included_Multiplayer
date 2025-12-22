@@ -12,6 +12,7 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 		{
 			"Threshold".GetHashCode(),
 			"ThresholdDirection".GetHashCode(),
+			"ThresholdDir".GetHashCode(),
 		};
 
 		public int[] SupportedConfigHashes => _hashes;
@@ -30,7 +31,7 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 				return true;
 			}
 
-			if (hash == "ThresholdDirection".GetHashCode())
+			if (hash == "ThresholdDirection".GetHashCode() || hash == "ThresholdDir".GetHashCode())
 			{
 				thresholdSwitch.ActivateAboveThreshold = packet.Value > 0.5f;
 				DebugConsole.Log($"[ThresholdSwitchHandler] Set ActivateAboveThreshold={packet.Value > 0.5f} on {go.name}");

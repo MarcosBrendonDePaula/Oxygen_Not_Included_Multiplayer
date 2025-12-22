@@ -26,8 +26,15 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 				var singleSlider = go.GetComponent<ISingleSliderControl>();
 				if (singleSlider != null)
 				{
-					singleSlider.SetSliderValue(packet.Value, -1);
-					DebugConsole.Log($"[SliderControlHandler] Set SingleSlider value={packet.Value} on {go.name}");
+					try
+					{
+						singleSlider.SetSliderValue(packet.Value, -1);
+						DebugConsole.Log($"[SliderControlHandler] Set SingleSlider value={packet.Value} on {go.name}");
+					}
+					catch (System.Exception e)
+					{
+						DebugConsole.Log($"[SliderControlHandler] Warning: SetSliderValue triggered exception on {go.name}: {e.Message}");
+					}
 					return true;
 				}
 			}
@@ -38,10 +45,17 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 				var sliderControl = go.GetComponent<ISliderControl>();
 				if (sliderControl != null)
 				{
-					int sliderIndex = (int)(packet.Value / 1000000f);
-					float actualValue = packet.Value - (sliderIndex * 1000000f);
-					sliderControl.SetSliderValue(actualValue, sliderIndex);
-					DebugConsole.Log($"[SliderControlHandler] Set Slider[{sliderIndex}]={actualValue} on {go.name}");
+					try
+					{
+						int sliderIndex = (int)(packet.Value / 1000000f);
+						float actualValue = packet.Value - (sliderIndex * 1000000f);
+						sliderControl.SetSliderValue(actualValue, sliderIndex);
+						DebugConsole.Log($"[SliderControlHandler] Set Slider[{sliderIndex}]={actualValue} on {go.name}");
+					}
+					catch (System.Exception e)
+					{
+						DebugConsole.Log($"[SliderControlHandler] Warning: SetSliderValue triggered exception on {go.name}: {e.Message}");
+					}
 					return true;
 				}
 			}

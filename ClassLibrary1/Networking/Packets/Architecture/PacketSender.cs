@@ -1,4 +1,5 @@
 ﻿using ONI_MP.DebugTools;
+using ONI_MP.Networking.Packets;
 using ONI_MP.Networking.Packets.Architecture;
 using Steamworks;
 using System;
@@ -94,7 +95,7 @@ namespace ONI_MP.Networking
 				if (player.Connection != null)
 					SendToConnection(player.Connection.Value, packet, sendType);
 			}
-		}
+		}		
 
 		public static void SendToAllClients(IPacket packet, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
 		{
@@ -118,6 +119,26 @@ namespace ONI_MP.Networking
 			}
 		}
 
-
+		/// <summary>
+		/// custom types, interfaces and enums are not directly usable across assembly boundaries
+		/// </summary>
+		/// <param name="api_packet">data object of the packet class that got registered with a ModApiPacket wrapper earlier</param>
+		/// <param name="exclude"></param>
+		/// <param name="sendType"></param>
+		public static void SendToAll_API(object api_packet, CSteamID? exclude = null, int sendType = (int)SteamNetworkingSend.Reliable)
+		{
+			var type = api_packet.GetType();
+			if (!PacketRegistry.HasRegisteredPacket(type))
+			{
+				DebugConsole.LogError($"[PacketSender] Attempted to send unregistered packet type: {type.Name}");
+				return;
+			}
+			if(!API_Helper.WrapApiPacket(api_packet, out var packet))
+			{
+				DebugConsole.LogError($"[PacketSender] Failed to wrap API packet of type: {type.Name}");
+				return;
+			}
+			SendToAll(packet, exclude, (SteamNetworkingSend)sendType);
+		}
 	}
 }

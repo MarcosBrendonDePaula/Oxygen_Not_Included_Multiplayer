@@ -1,4 +1,6 @@
-﻿using ONI_MP.DebugTools;
+﻿using HarmonyLib;
+using KSerialization;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets.Core;
 using ONI_MP.Networking.Packets.DuplicantActions;
 using ONI_MP.Networking.Packets.Events;
@@ -14,42 +16,54 @@ using ONI_MP.Networking.Packets.Tools.Prioritize;
 using ONI_MP.Networking.Packets.World;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace ONI_MP.Networking.Packets.Architecture
 {
 	public static class PacketRegistry
 	{
-		private static readonly Dictionary<int, Func<IPacket>> _constructors = new Dictionary<int, Func<IPacket>>();
-        private static readonly Dictionary<Type, int> _typeToId = new Dictionary<Type, int>();
-        private static int nextId = 0;
+		private static readonly Dictionary<int, Type> _PacketTypes = new ();
 
         public static bool HasRegisteredPacket(int type)
         {
-            return _constructors.ContainsKey(type);
+            return _PacketTypes.ContainsKey(type);
         }
+		public static bool HasRegisteredPacket(Type type)
+		{
+			return _PacketTypes.ContainsKey(type.Name.GetHashCode());
+		}
 
-        private static void Register(int id, Func<IPacket> constructor)
+		private static void Register(Type packageType)
         {
-            var type = constructor().GetType();
-
-            _constructors[id] = constructor;
-            _typeToId[type] = id;
-
-            DebugConsole.LogSuccess($"[PacketRegistry] Registered {type.Name} => {id}");
+            int id = packageType.Name.GetHashCode();
+			var IPacketType = typeof(IPacket);
+            if(IPacketType.IsAssignableFrom(packageType))
+			{
+				_PacketTypes[id] = packageType;
+				DebugConsole.LogSuccess($"[PacketRegistry] Registered {packageType.Name} => {id}");
+			}
+			///Inheritance checks will fail for mod api packets, so these get wrapped in a generic ModApiPacket<T> at runtime
+			else if (API_Helper.ValidAsModApiPacket(packageType))
+            {
+                _PacketTypes[id] = API_Helper.CreateModApiPacketType(packageType);
+				DebugConsole.LogSuccess($"[PacketRegistry] Registered from ModAPI: {packageType.Name} => {id}");
+			}
+            else
+                throw new InvalidOperationException($"Type {packageType.Name} does not implement IPacket interface");
         }
-
         public static IPacket Create(int type)
 		{
-			return _constructors.TryGetValue(type, out var ctor)
-					? ctor()
+			return _PacketTypes.TryGetValue(type, out var packetType)
+					? (IPacket)Activator.CreateInstance(packetType)
 					: throw new InvalidOperationException($"No packet registered for type {type}");
 		}
 
         public static int GetPacketId(IPacket packet)
         {
             var type = packet.GetType();
+            int id = type.Name.GetHashCode();
 
-            if (!_typeToId.TryGetValue(type, out int id))
+			if (!_PacketTypes.TryGetValue(id, out _))
                 throw new InvalidOperationException($"Packet type {type.Name} is not registered");
 
             return id;
@@ -57,80 +71,79 @@ namespace ONI_MP.Networking.Packets.Architecture
 
         public static void RegisterDefaults()
 		{
-            TryRegister(() => new ChoreAssignmentPacket());
-            TryRegister(() => new EntityPositionPacket());
-            TryRegister(() => new ChatMessagePacket());
-            TryRegister(() => new WorldDataPacket());
-            TryRegister(() => new WorldDataRequestPacket());
-            TryRegister(() => new WorldUpdatePacket());
-            TryRegister(() => new NavigatorPathPacket());
-            TryRegister(() => new SaveFileRequestPacket());
-            TryRegister(() => new SaveFileChunkPacket());
-            TryRegister(() => new DiggablePacket());
-            TryRegister(() => new DigCompletePacket());
-            TryRegister(() => new PlayAnimPacket());
-            TryRegister(() => new BuildPacket());
-            TryRegister(() => new BuildCompletePacket());
-            TryRegister(() => new WorldDamageSpawnResourcePacket());
-            TryRegister(() => new WorldCyclePacket());
-            TryRegister(() => new CancelPacket());
-            TryRegister(() => new DeconstructPacket());
-            TryRegister(() => new DeconstructCompletePacket());
-            TryRegister(() => new UtilityBuildPacket(), "UtilityBuildPacket (WireBuild)");
-            TryRegister(() => new ToggleMinionEffectPacket());
-            TryRegister(() => new ToolEquipPacket());
-            TryRegister(() => new DuplicantConditionPacket());
-            TryRegister(() => new MoveToLocationPacket());
-            TryRegister(() => new PrioritizePacket());
-            TryRegister(() => new ClearPacket());
-            TryRegister(() => new ClientReadyStatusPacket());
-            TryRegister(() => new ClientReadyStatusUpdatePacket());
-            TryRegister(() => new AllClientsReadyPacket());
-            TryRegister(() => new EventTriggeredPacket());
-            TryRegister(() => new HardSyncPacket());
-            TryRegister(() => new HardSyncCompletePacket());
-            TryRegister(() => new DisinfectPacket());
-            TryRegister(() => new SpeedChangePacket());
-            TryRegister(() => new PlayerCursorPacket());
-            TryRegister(() => new BuildingStatePacket());
-            TryRegister(() => new DiggingStatePacket());
-            TryRegister(() => new ChoreStatePacket());
-            TryRegister(() => new ResearchStatePacket());
-            TryRegister(() => new PrioritizeStatePacket());
-            TryRegister(() => new DisinfectStatePacket());
-            TryRegister(() => new DuplicantStatePacket());
-            TryRegister(() => new StructureStatePacket());
-            TryRegister(() => new ResearchRequestPacket());
-            TryRegister(() => new BuildingConfigPacket());
-            TryRegister(() => new ImmigrantOptionsPacket());
-            TryRegister(() => new ImmigrantSelectionPacket());
-            TryRegister(() => new DuplicantPriorityPacket());
-            TryRegister(() => new SkillMasteryPacket());
-            TryRegister(() => new ScheduleUpdatePacket());
-            TryRegister(() => new ScheduleAssignmentPacket());
-            TryRegister(() => new FallingObjectPacket());
-            TryRegister(() => new ConsumablePermissionPacket());
-            TryRegister(() => new VitalStatsPacket());
-            TryRegister(() => new ResourceCountPacket());
-            TryRegister(() => new NotificationPacket());
-            TryRegister(() => new ScheduleDeletePacket());
-            TryRegister(() => new ConsumableStatePacket());
-            TryRegister(() => new ResearchProgressPacket());
-            TryRegister(() => new ResearchCompletePacket());
-            TryRegister(() => new EntitySpawnPacket());
+            TryRegister(typeof(ChoreAssignmentPacket));
+            TryRegister(typeof(EntityPositionPacket));
+            TryRegister(typeof(ChatMessagePacket));
+            TryRegister(typeof(WorldDataPacket));
+            TryRegister(typeof(WorldDataRequestPacket));
+            TryRegister(typeof(WorldUpdatePacket));
+            TryRegister(typeof(NavigatorPathPacket));
+            TryRegister(typeof(SaveFileRequestPacket));
+            TryRegister(typeof(SaveFileChunkPacket));
+            TryRegister(typeof(DiggablePacket));
+            TryRegister(typeof(DigCompletePacket));
+            TryRegister(typeof(PlayAnimPacket));
+            TryRegister(typeof(BuildPacket));
+            TryRegister(typeof(BuildCompletePacket));
+            TryRegister(typeof(WorldDamageSpawnResourcePacket));
+            TryRegister(typeof(WorldCyclePacket));
+            TryRegister(typeof(CancelPacket));
+            TryRegister(typeof(DeconstructPacket));
+            TryRegister(typeof(DeconstructCompletePacket));
+            TryRegister(typeof(UtilityBuildPacket), "UtilityBuildPacket (WireBuild)");
+            TryRegister(typeof(ToggleMinionEffectPacket));
+            TryRegister(typeof(ToolEquipPacket));
+            TryRegister(typeof(DuplicantConditionPacket));
+            TryRegister(typeof(MoveToLocationPacket));
+            TryRegister(typeof(PrioritizePacket));
+            TryRegister(typeof(ClearPacket));
+            TryRegister(typeof(ClientReadyStatusPacket));
+            TryRegister(typeof(ClientReadyStatusUpdatePacket));
+            TryRegister(typeof(AllClientsReadyPacket));
+            TryRegister(typeof(EventTriggeredPacket));
+            TryRegister(typeof(HardSyncPacket));
+            TryRegister(typeof(HardSyncCompletePacket));
+            TryRegister(typeof(DisinfectPacket));
+            TryRegister(typeof(SpeedChangePacket));
+            TryRegister(typeof(PlayerCursorPacket));
+            TryRegister(typeof(BuildingStatePacket));
+            TryRegister(typeof(DiggingStatePacket));
+            TryRegister(typeof(ChoreStatePacket));
+            TryRegister(typeof(ResearchStatePacket));
+            TryRegister(typeof(PrioritizeStatePacket));
+            TryRegister(typeof(DisinfectStatePacket));
+            TryRegister(typeof(DuplicantStatePacket));
+            TryRegister(typeof(StructureStatePacket));
+            TryRegister(typeof(ResearchRequestPacket));
+            TryRegister(typeof(BuildingConfigPacket));
+            TryRegister(typeof(ImmigrantOptionsPacket));
+            TryRegister(typeof(ImmigrantSelectionPacket));
+            TryRegister(typeof(DuplicantPriorityPacket));
+            TryRegister(typeof(SkillMasteryPacket));
+            TryRegister(typeof(ScheduleUpdatePacket));
+            TryRegister(typeof(ScheduleAssignmentPacket));
+            TryRegister(typeof(FallingObjectPacket));
+            TryRegister(typeof(ConsumablePermissionPacket));
+            TryRegister(typeof(VitalStatsPacket));
+            TryRegister(typeof(ResourceCountPacket));
+            TryRegister(typeof(NotificationPacket));
+            TryRegister(typeof(ScheduleDeletePacket));
+            TryRegister(typeof(ConsumableStatePacket));
+            TryRegister(typeof(ResearchProgressPacket));
+            TryRegister(typeof(ResearchCompletePacket));
+            TryRegister(typeof(EntitySpawnPacket));
 		}
 
-        public static void TryRegister(Func<IPacket> constructor, string nameOverride = "")
+        public static void TryRegister(Type packetType, string nameOverride = "")
         {
             try
             {
-                Register(nextId, constructor);
-                nextId++;
+                Register(packetType);
             }
             catch (Exception e)
             {
                 string name = string.IsNullOrEmpty(nameOverride)
-                    ? constructor.GetType().Name
+                    ? packetType.Name
                     : nameOverride;
 
                 DebugConsole.LogError($"Failed to register {name}: {e}");

@@ -27,7 +27,7 @@
 		<!--Generates Yaml files-->
 		<GenerateMetadata>true</GenerateMetadata>
 		<!--Merges dlls into one, becomes relevant if PLib is added, does not play nice with gDrives transitive nuget requirements-->
-		<IsPacked>false</IsPacked> 
+		<IsPacked>true</IsPacked> 
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
@@ -51,5 +51,9 @@
 		<EmbeddedResource Include="Assets\bundles\playercursor_mac.bundle" />
 		<EmbeddedResource Include="Assets\bundles\playercursor_lin.bundle" />
 		<!--<EmbeddedResource Include="Assets\cloud_status.png" />-->
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Shared\Shared.csproj" />
 	</ItemGroup>
 </Project>

@@ -55,8 +55,9 @@ namespace ONI_MP.Networking
 		{
 			hardSyncInProgress = true;
 
-            ReadyManager.MarkAllAsUnready();
             SaveFileRequestPacket.SendSaveFileToAll();
+            ReadyManager.MarkAllAsUnready();
+            ReadyManager.RefreshScreen(); // Bring up ready screen for host
 
             int fileSize = SaveHelper.GetWorldSave().Length;
 			int chunkSize = SaveHelper.SAVEFILE_CHUNKSIZE_KB * 1024;

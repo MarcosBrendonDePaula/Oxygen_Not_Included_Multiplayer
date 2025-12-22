@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ONI_MP_API
 {
-	internal class SessionInfoAPI
+	public static class SessionInfoAPI
 	{
 		static bool Init()
 		{

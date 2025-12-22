@@ -1,5 +1,6 @@
 using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.World.Handlers;
 using ONI_MP.DebugTools;
 using System.IO;
 using UnityEngine;
@@ -11,7 +12,9 @@ namespace ONI_MP.Networking.Packets.World
 	{
 		Float = 0,      // Standard float value (valve flow, thresholds)
 		Boolean = 1,    // Checkbox values
-		SliderIndex = 2 // Slider with index (for multi-slider controls)
+		SliderIndex = 2, // Slider with index (for multi-slider controls)
+		RecipeQueue = 3, // Fabricator recipe queue (ConfigHash = recipe ID hash, Value = count)
+		String = 4       // String value (tag names, text fields)
 	}
 
 	public class BuildingConfigPacket : IPacket
@@ -22,6 +25,7 @@ namespace ONI_MP.Networking.Packets.World
 		public float Value;
 		public BuildingConfigType ConfigType = BuildingConfigType.Float;
 		public int SliderIndex = 0; // For ISliderControl multi-sliders
+		public string StringValue = ""; // For tag names and text fields
 
 		public static bool IsApplyingPacket = false;
 
@@ -33,6 +37,7 @@ namespace ONI_MP.Networking.Packets.World
 			writer.Write(Value);
 			writer.Write((byte)ConfigType);
 			writer.Write(SliderIndex);
+			writer.Write(StringValue ?? "");
 		}
 
 		public void Deserialize(BinaryReader reader)
@@ -43,6 +48,7 @@ namespace ONI_MP.Networking.Packets.World
 			Value = reader.ReadSingle();
 			ConfigType = (BuildingConfigType)reader.ReadByte();
 			SliderIndex = reader.ReadInt32();
+			StringValue = reader.ReadString();
 		}
 
 		public void OnDispatched()
@@ -78,6 +84,19 @@ namespace ONI_MP.Networking.Packets.World
 				{
 					IsApplyingPacket = false;
 				}
+
+				// UI auto-refresh disabled - each side screen subscribes to different 
+				// component-specific events. No universal refresh event exists.
+				// Users must close/reopen screens to see changes from other players.
+				// The sync still works - only the visual update is not instant.
+				// RefreshSideScreenIfOpen(identity.gameObject);
+
+				// HOST RELAY: If host received this from a client, re-broadcast to all other clients
+				if (MultiplayerSession.IsHost)
+				{
+					PacketSender.SendToAllClients(this);
+					DebugConsole.Log($"[BuildingConfigPacket] Host relayed config to all clients: NetId={NetId}, ConfigHash={ConfigHash}");
+				}
 			}
 			else
 			{
@@ -85,139 +104,54 @@ namespace ONI_MP.Networking.Packets.World
 			}
 		}
 
-    private void ApplyConfig(GameObject go)
+		/// <summary>
+		/// Triggers a refresh event on the building so side screens update.
+		/// Uses the same event ID (644822890) that components like Storage use internally.
+		/// </summary>
+		private void RefreshSideScreenIfOpen(GameObject go)
+		{
+			if (go == null) return;
+			
+			try
+			{
+				// Check if this building is currently selected in the details screen
+				if (DetailsScreen.Instance == null) return;
+				if (DetailsScreen.Instance.target != go) return;
+				
+				// Trigger the refresh event on the building's KMonoBehaviour
+				// 644822890 is the event Storage uses for sweep-only updates
+				// This event notifies side screens to refresh their display
+				var kMono = go.GetComponent<KMonoBehaviour>();
+				if (kMono != null)
+				{
+					kMono.Trigger(644822890); // Storage update event
+					DebugConsole.Log($"[BuildingConfigPacket] Triggered UI refresh event on {go.name}");
+				}
+			}
+			catch (System.Exception e)
+			{
+				// Non-critical - just log and continue
+				DebugConsole.Log($"[BuildingConfigPacket] Side screen refresh failed: {e.Message}");
+			}
+		}
+
+		/// <summary>
+		/// Applies the configuration to the target building.
+		/// All handlers are now in the BuildingConfigHandlerRegistry.
+		/// </summary>
+		private void ApplyConfig(GameObject go)
 		{
 			if (go == null) return;
 
-			// Handle Logic Switch (Signal Switch, etc.)
-			var logicSwitch = go.GetComponent<LogicSwitch>();
-			if (logicSwitch != null && ConfigHash == "LogicState".GetHashCode())
+			// All handlers are now in the registry
+			if (BuildingConfigHandlerRegistry.TryHandle(go, this))
 			{
-				bool isOn = Value > 0.5f;
-				if (logicSwitch.IsSwitchedOn != isOn)
-				{
-					HarmonyLib.Traverse.Create(logicSwitch).Method("HandleToggle").GetValue();
-				}
+				DebugConsole.Log($"[BuildingConfigPacket] Handled by registry for {go.name}");
 				return;
 			}
 
-			// Handle Smart Battery (IActivationRangeTarget)
-			var activationRange = go.GetComponent<IActivationRangeTarget>();
-			if (activationRange != null)
-			{
-				if (ConfigHash == "Activate".GetHashCode()) activationRange.ActivateValue = Value;
-				if (ConfigHash == "Deactivate".GetHashCode()) activationRange.DeactivateValue = Value;
-				return;
-			}
-
-			// Handle Logic Sensors (IThresholdSwitch)
-			var thresholdSwitch = go.GetComponent<IThresholdSwitch>();
-			if (thresholdSwitch != null)
-			{
-				if (ConfigHash == "Threshold".GetHashCode())
-				{
-					thresholdSwitch.Threshold = Value;
-					return;
-				}
-				if (ConfigHash == "ThresholdDir".GetHashCode())
-				{
-					thresholdSwitch.ActivateAboveThreshold = Value > 0.5f;
-					return;
-				}
-			}
-
-			// Handle Valves
-			var valve = go.GetComponent<Valve>();
-			if (valve != null && ConfigHash == "Rate".GetHashCode())
-			{
-				HarmonyLib.Traverse.Create(valve).Method("ChangeFlow", Value).GetValue();
-				return;
-			}
-
-			// Handle ISliderControl (generic sliders)
-			var sliderControl = go.GetComponent<ISliderControl>();
-			if (sliderControl != null && ConfigHash == "Slider".GetHashCode())
-			{
-        sliderControl.SetSliderValue(Value, SliderIndex);
-				return;
-			}
-
-			// Handle ISingleSliderControl (alternative generic slider)
-			var singleSliderControl = go.GetComponent<ISingleSliderControl>();
-			if (singleSliderControl == null) singleSliderControl = go.GetSMI<ISingleSliderControl>();
-			if (singleSliderControl != null && ConfigHash == "Slider".GetHashCode())
-			{
-        DebugConsole.Log($"[BuildingConfigPacket] Slider changed: value={Value}, index={SliderIndex}");
-        singleSliderControl.SetSliderValue(Value, SliderIndex);
-				return;
-			}
-
-			// Handle ICheckboxControl
-			var checkboxControl = go.GetComponent<ICheckboxControl>();
-			if (checkboxControl != null && ConfigHash == "Checkbox".GetHashCode())
-			{
-				checkboxControl.SetCheckboxValue(Value > 0.5f);
-				return;
-			}
-
-			// Handle IUserControlledCapacity (storage capacity)
-			var capacityControl = go.GetComponent<IUserControlledCapacity>();
-			if (capacityControl != null && ConfigHash == "Capacity".GetHashCode())
-			{
-				capacityControl.UserMaxCapacity = Value;
-				return;
-			}
-
-			// Handle ISidescreenButtonControl (button presses)
-			var buttonControl = go.GetComponent<ISidescreenButtonControl>();
-			if (buttonControl != null && ConfigHash == "ButtonPress".GetHashCode())
-			{
-				buttonControl.OnSidescreenButtonPressed();
-				return;
-			}
-
-			// Handle Door state (Open, Close, Auto)
-			var door = go.GetComponent<Door>();
-			if (door != null && ConfigHash == "DoorState".GetHashCode())
-			{
-				var state = (Door.ControlState)(int)Value;
-				HarmonyLib.Traverse.Create(door).Method("SetRequestedState", new System.Type[] { typeof(Door.ControlState) }).GetValue(state);
-				return;
-			}
-
-			// Handle LimitValve
-			var limitValve = go.GetComponent<LimitValve>();
-			if (limitValve != null && ConfigHash == "LimitValve".GetHashCode())
-			{
-				limitValve.Limit = Value;
-				return;
-			}
-
-			// Handle LogicTimeOfDaySensor
-			var timeOfDaySensor = go.GetComponent<LogicTimeOfDaySensor>();
-			if (timeOfDaySensor != null)
-			{
-				if (ConfigHash == "StartTime".GetHashCode())
-				{
-					timeOfDaySensor.startTime = Value;
-					return;
-				}
-				if (ConfigHash == "Duration".GetHashCode())
-				{
-					timeOfDaySensor.duration = Value;
-					return;
-				}
-			}
-
-			// Handle ManualGenerator
-			var manualGenerator = go.GetComponent<ManualGenerator>();
-			if (manualGenerator != null && ConfigHash == "ManualGeneratorThreshold".GetHashCode())
-			{
-				Traverse.Create(manualGenerator).Field("refillPercent").SetValue(Value);
-				return;
-			}
-
-			// TODO: CritterCount sensor sync - needs investigation of the correct API
+			// Log unhandled configs for debugging
+			DebugConsole.LogWarning($"[BuildingConfigPacket] Unhandled config: Hash={ConfigHash}, Type={ConfigType}, Value={Value}, String={StringValue} on {go.name}");
 		}
 	}
 }

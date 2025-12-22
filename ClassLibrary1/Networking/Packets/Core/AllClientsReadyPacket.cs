@@ -22,7 +22,7 @@ namespace ONI_MP.Networking.Packets.Core
 
 		public void OnDispatched()
 		{
-			DebugConsole.Log("[AllClientsReadyPacket] All players are ready! Closing overlay in 1 second...");
+			DebugConsole.Log("[AllClientsReadyPacket] All players are ready! Closing overlay");
 			ProcessAllReady();
 		}
 
@@ -30,16 +30,16 @@ namespace ONI_MP.Networking.Packets.Core
 		{
 			//CoroutineRunner.RunOne(CloseOverlayAfterDelay());
 			MultiplayerOverlay.Show("All players are ready!\nPlease wait...");
-			SpeedControlScreen.Instance?.Unpause(false);
-			MultiplayerOverlay.Close();
+            MultiplayerOverlay.Close();
+            SpeedControlScreen.Instance?.Unpause(false);
 		}
 
 		private static IEnumerator CloseOverlayAfterDelay()
 		{
 			MultiplayerOverlay.Show("All players are ready!\nPlease wait...");
 			yield return new WaitForSeconds(1f);
-			SpeedControlScreen.Instance?.Unpause(false);
-			MultiplayerOverlay.Close();
+            MultiplayerOverlay.Close();
+            SpeedControlScreen.Instance?.Unpause(false);
 		}
 	}
 }

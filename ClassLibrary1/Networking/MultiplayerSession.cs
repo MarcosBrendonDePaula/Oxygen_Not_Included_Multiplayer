@@ -9,6 +9,9 @@ namespace ONI_MP.Networking
 	{
 		public static bool ShouldHostAfterLoad = false;
 
+		/// <summary>
+		/// HOST ONLY - Returns a list of connected players
+		/// </summary>
 		public static readonly Dictionary<CSteamID, MultiplayerPlayer> ConnectedPlayers = new Dictionary<CSteamID, MultiplayerPlayer>();
 
 		public static CSteamID LocalSteamID => SteamUser.GetSteamID();

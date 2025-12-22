@@ -1,4 +1,5 @@
 ﻿using ONI_MP.Networking;
+using ONI_MP.Networking.States;
 using Steamworks;
 using System;
 using UnityEngine;
@@ -35,10 +36,10 @@ namespace ONI_MP.DebugTools
 
 		private void Update()
 		{
-			//if (Input.GetKeyDown(KeyCode.F1) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-			//{
-			//	showMenu = !showMenu;
-			//}
+			if (Input.GetKeyDown(KeyCode.F1) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
+			{
+				showMenu = !showMenu;
+			}
 		}
 
 		private void OnGUI()
@@ -56,60 +57,12 @@ namespace ONI_MP.DebugTools
 			if (GUILayout.Button("Toggle Hierarchy Viewer"))
 				hierarchyViewer.Toggle();
 
-			//if (GUILayout.Button("Toggle Debug Console"))
-				//debugConsole.Toggle();
+			if (GUILayout.Button("Send Unready Packet"))
+                ReadyManager.SendReadyStatusPacket(ClientReadyState.Unready);
 
-			if (GUILayout.Button("Create Lobby"))
-				SteamLobby.CreateLobby(onSuccess: () =>
-				{
-					SpeedControlScreen.Instance?.Unpause(false);
-				});
+            if (GUILayout.Button("Send Ready Packet"))
+                ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
 
-			if (GUILayout.Button("Leave lobby"))
-				SteamLobby.LeaveLobby();
-
-			if (GUILayout.Button("Client disconnect"))
-			{
-				GameClient.CacheCurrentServer();
-				GameClient.Disconnect();
-			}
-
-			if (GUILayout.Button("Reconnect"))
-				GameClient.ReconnectFromCache();
-
-			GUILayout.Space(10);
-
-			try
-			{
-				if (MultiplayerSession.InSession)
-				{
-					if (!MultiplayerSession.IsHost)
-					{
-						int? ping = GameClient.GetPingToHost();
-						string pingDisplay = ping >= 0 ? $"{ping} ms" : "Pending...";
-						GUILayout.Label($"Ping to Host: {pingDisplay}");
-					}
-					else
-					{
-						GUILayout.Label("Hosting multiplayer session.");
-						if (GUILayout.Button("Test Hard sync"))
-							GameServerHardSync.PerformHardSync();
-					}
-
-					GUILayout.Space(10);
-					//DrawPlayerList();
-				}
-				else
-				{
-					GUILayout.Label("Not in a multiplayer session.");
-				}
-			}
-			catch (Exception e)
-			{
-
-			}
-
-			GUILayout.Space(20);
 			GUILayout.EndScrollView();
 
 			GUI.DragWindow();

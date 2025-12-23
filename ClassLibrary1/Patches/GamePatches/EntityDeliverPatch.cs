@@ -20,14 +20,11 @@ namespace ONI_MP.Patches.GamePatches
 			if (!MultiplayerSession.IsHost) return;
 			if (__result == null) return;
 
+
 			try
 			{
 				// Get or add NetworkIdentity
-				var identity = __result.GetComponent<NetworkIdentity>();
-				if (identity == null)
-				{
-					identity = __result.AddComponent<NetworkIdentity>();
-				}
+				var identity = __result.AddOrGet<NetworkIdentity>();
 
 				// Make sure the NetId is valid (not 0)
 				if (identity.NetId == 0)
@@ -90,11 +87,7 @@ namespace ONI_MP.Patches.GamePatches
 			try
 			{
 				// Get or add NetworkIdentity
-				var identity = __result.GetComponent<NetworkIdentity>();
-				if (identity == null)
-				{
-					identity = __result.AddComponent<NetworkIdentity>();
-				}
+				var identity = __result.AddOrGet<NetworkIdentity>();
 
 				// Make sure the NetId is valid (not 0)
 				if (identity.NetId == 0)

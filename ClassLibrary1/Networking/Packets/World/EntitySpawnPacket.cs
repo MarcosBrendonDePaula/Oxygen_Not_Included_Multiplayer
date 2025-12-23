@@ -15,16 +15,16 @@ namespace ONI_MP.Networking.Packets.World
 	{
 		public int NetId;
 		public bool IsDuplicant;
-		
+
 		// Duplicant data
 		public string Name;
 		public string PersonalityId;
 		public List<string> TraitIds;
-		
+
 		// Item data
 		public string ItemId;
 		public float Quantity;
-		
+
 		// Position
 		public float PosX;
 		public float PosY;
@@ -33,12 +33,12 @@ namespace ONI_MP.Networking.Packets.World
 		{
 			writer.Write(NetId);
 			writer.Write(IsDuplicant);
-			
+
 			if (IsDuplicant)
 			{
 				writer.Write(Name ?? "");
 				writer.Write(PersonalityId ?? "");
-				
+
 				writer.Write(TraitIds?.Count ?? 0);
 				if (TraitIds != null)
 				{
@@ -53,7 +53,7 @@ namespace ONI_MP.Networking.Packets.World
 				writer.Write(ItemId ?? "");
 				writer.Write(Quantity);
 			}
-			
+
 			writer.Write(PosX);
 			writer.Write(PosY);
 		}
@@ -62,12 +62,12 @@ namespace ONI_MP.Networking.Packets.World
 		{
 			NetId = reader.ReadInt32();
 			IsDuplicant = reader.ReadBoolean();
-			
+
 			if (IsDuplicant)
 			{
 				Name = reader.ReadString();
 				PersonalityId = reader.ReadString();
-				
+
 				int traitCount = reader.ReadInt32();
 				TraitIds = new List<string>(traitCount);
 				for (int i = 0; i < traitCount; i++)
@@ -80,20 +80,20 @@ namespace ONI_MP.Networking.Packets.World
 				ItemId = reader.ReadString();
 				Quantity = reader.ReadSingle();
 			}
-			
+
 			PosX = reader.ReadSingle();
 			PosY = reader.ReadSingle();
 		}
 
-			public void OnDispatched()
+		public void OnDispatched()
 		{
 			DebugConsole.Log($"[EntitySpawnPacket] OnDispatched called - NetId {NetId}, IsDuplicant={IsDuplicant}, IsHost={MultiplayerSession.IsHost}");
-			
+
 			// Only clients should process this
 			if (MultiplayerSession.IsHost) return;
-			
+
 			DebugConsole.Log($"[EntitySpawnPacket] Client: Received spawn for NetId {NetId}, IsDuplicant={IsDuplicant}");
-			
+
 			try
 			{
 				var telepad = UnityEngine.Object.FindObjectOfType<Telepad>();
@@ -102,17 +102,17 @@ namespace ONI_MP.Networking.Packets.World
 					DebugConsole.LogWarning("[EntitySpawnPacket] Cannot find Telepad");
 					return;
 				}
-				
+
 				UnityEngine.GameObject spawnedGO = null;
-				
+
 				if (IsDuplicant)
 				{
 					var personality = Db.Get().Personalities.TryGet(PersonalityId);
 					if (personality == null) personality = Db.Get().Personalities.TryGet("Hassan");
-					
+
 					var stats = new MinionStartingStats(personality);
 					stats.Name = Name;
-					
+
 					if (TraitIds != null)
 					{
 						stats.Traits.Clear();
@@ -122,11 +122,11 @@ namespace ONI_MP.Networking.Packets.World
 							if (trait != null) stats.Traits.Add(trait);
 						}
 					}
-					
+
 					// Spawn via telepad
 					var pos = new UnityEngine.Vector3(PosX, PosY, 0);
 					spawnedGO = stats.Deliver(pos);
-					
+
 					DebugConsole.Log($"[EntitySpawnPacket] Client: Spawned duplicant {Name} at ({PosX}, {PosY})");
 				}
 				else
@@ -134,12 +134,12 @@ namespace ONI_MP.Networking.Packets.World
 					// Don't use pkg.Deliver() on client as it causes telepad animation to freeze
 					// Spawn items directly instead
 					DebugConsole.Log($"[EntitySpawnPacket] Client: Spawning care package {ItemId} x{Quantity} directly");
-					
+
 					try
 					{
 						var pos = new UnityEngine.Vector3(PosX, PosY, 0);
 						var prefab = Assets.GetPrefab(new Tag(ItemId));
-						
+
 						if (prefab != null)
 						{
 							// Spawn the item(s) directly
@@ -147,14 +147,14 @@ namespace ONI_MP.Networking.Packets.World
 							if (spawnedGO != null)
 							{
 								spawnedGO.SetActive(true);
-								
+
 								// Set the amount/quantity if it has a PrimaryElement
 								var primaryElement = spawnedGO.GetComponent<PrimaryElement>();
 								if (primaryElement != null)
 								{
 									primaryElement.Mass = Quantity;
 								}
-								
+
 								DebugConsole.Log($"[EntitySpawnPacket] Client: Directly spawned {ItemId} x{Quantity} at ({PosX}, {PosY})");
 							}
 						}
@@ -175,7 +175,7 @@ namespace ONI_MP.Networking.Packets.World
 						spawnedGO = pkg.Deliver(pos);
 					}
 				}
-				
+
 				// Set the NetId to match the host's entity
 				if (spawnedGO != null)
 				{
@@ -184,11 +184,11 @@ namespace ONI_MP.Networking.Packets.World
 					{
 						identity = spawnedGO.AddComponent<NetworkIdentity>();
 					}
-					
+
 					// Override the NetId to match host
 					identity.NetId = NetId;
 					NetworkIdentityRegistry.Register(identity);
-					
+
 					DebugConsole.Log($"[EntitySpawnPacket] Client: Registered entity with NetId {NetId}");
 				}
 			}

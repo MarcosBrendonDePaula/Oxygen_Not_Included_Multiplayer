@@ -148,6 +148,8 @@ namespace ONI_MP.DebugTools
             ImGui.Text($"Local ID: {MultiplayerSession.LocalSteamID}");
             ImGui.Text($"Host ID: {MultiplayerSession.HostSteamID}");
 
+            DisplayNetworkStatistics();
+
             ImGui.Separator();
 
             try
@@ -235,33 +237,23 @@ namespace ONI_MP.DebugTools
             }
         }
 
-        private void ShowAlertPrompt(
-            ref bool isVisible,
-            string title,
-            string message,
-            string confirmText,
-            string cancelText,
-            System.Action onConfirmAction)
+        public void DisplayNetworkStatistics()
         {
-            if (ImGui.BeginPopupModal(title, ref isVisible, ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text(message);
-                ImGui.Separator();
+            if(!MultiplayerSession.InSession)
+                return;
 
-                if (ImGui.Button(confirmText, new Vector2(150, 0)))
-                {
-                    isVisible = false;
+            ImGui.Separator();
+            ImGui.Text("Network Statistics");
+            ImGui.Text($"Ping: {GameClient.GetPingToHost()}");
+            ImGui.Text($"Quality(L/R): {GameClient.GetLocalPacketQuality():0.00} / {GameClient.GetRemotePacketQuality():0.00}");
+            ImGui.Text($"Unacked Reliable: {GameClient.GetUnackedReliable()}");
+            ImGui.Text($"Pending Unreliable: {GameClient.GetPendingUnreliable()}");
+            ImGui.Spacing();
+            ImGui.Text($"Has Packet Lost: {GameClient.HasPacketLoss()}");
+            ImGui.Text($"Has Jitter: {GameClient.HasNetworkJitter()}");
+            ImGui.Text($"Has Reliable Packet Loss: {GameClient.HasReliablePacketLoss()}");
+            ImGui.Text($"Has Unreliable Packet Loss: {GameClient.HasUnreliablePacketLoss()}");
 
-                    onConfirmAction.Invoke();
-                }
-
-                ImGui.SameLine();
-                if (ImGui.Button(cancelText, new Vector2(150, 0)))
-                {
-                    isVisible = false;
-                }
-                ImGui.EndPopup();
-            }
         }
     }
 }

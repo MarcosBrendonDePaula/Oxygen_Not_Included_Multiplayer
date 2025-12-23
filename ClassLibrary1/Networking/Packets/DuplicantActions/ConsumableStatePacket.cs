@@ -48,12 +48,11 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 		{
 			if (!NetworkIdentityRegistry.TryGet(NetId, out var identity)) return;
 
-			var consumer = identity.GetComponent<ConsumableConsumer>();
-			if (consumer == null) return;
+			if (!identity.TryGetComponent<ConsumableConsumer>(out var consumer)) return;
 
 			// Apply forbidden tags
 			// Accessing private 'forbiddenTags'
-			var forbidden = Traverse.Create(consumer).Field("forbiddenTags").GetValue<HashSet<Tag>>();
+			var forbidden = consumer.forbiddenTagSet;
 			if (forbidden != null)
 			{
 				forbidden.Clear();

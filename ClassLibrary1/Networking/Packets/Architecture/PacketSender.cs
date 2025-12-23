@@ -1,5 +1,7 @@
 ﻿using ONI_MP.DebugTools;
+using ONI_MP.Networking.Packets;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.Core;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -7,7 +9,6 @@ using System.Runtime.InteropServices;
 
 namespace ONI_MP.Networking
 {
-
 	public static class PacketSender
 	{
 		public static int MAX_PACKET_SIZE_RELIABLE = 512;
@@ -19,7 +20,7 @@ namespace ONI_MP.Networking
 			using (var writer = new System.IO.BinaryWriter(ms))
 			{
 				int packet_type = PacketRegistry.GetPacketId(packet);
-                writer.Write(packet_type);
+				writer.Write(packet_type);
 				packet.Serialize(writer);
 				return ms.ToArray();
 			}
@@ -122,6 +123,125 @@ namespace ONI_MP.Networking
 			}
 		}
 
+		public static void SendToAllOtherPeers(IPacket packet)
+		{
+			if (!MultiplayerSession.InSession)
+			{
+				DebugConsole.LogWarning("[PacketSender] Not in a multiplayer session, cannot send to other peers");
+				return;
+			}
+
+			if (MultiplayerSession.IsHost)
+				SendToAllClients(packet);
+			else
+				SendToHost(new HostBroadcastPacket(packet, MultiplayerSession.LocalSteamID));
+		}
+
+		public static void SendToAllOtherPeers_API(object api_packet)
+		{
+			var type = api_packet.GetType();
+			if (!PacketRegistry.HasRegisteredPacket(type))
+			{
+				DebugConsole.LogError($"[PacketSender] Attempted to send unregistered packet type: {type.Name}");
+				return;
+			}
+			if (!API_Helper.WrapApiPacket(api_packet, out var packet))
+			{
+				DebugConsole.LogError($"[PacketSender] Failed to wrap API packet of type: {type.Name}");
+				return;
+			}
+			SendToAllOtherPeers(packet);
+		}
+
+		/// <summary>
+		/// custom types, interfaces and enums are not directly usable across assembly boundaries
+		/// </summary>
+		/// <param name="api_packet">data object of the packet class that got registered with a ModApiPacket wrapper earlier</param>
+		/// <param name="exclude"></param>
+		/// <param name="sendType"></param>
+		public static void SendToAll_API(object api_packet, CSteamID? exclude = null, int sendType = (int)SteamNetworkingSend.Reliable)
+		{
+			var type = api_packet.GetType();
+			if (!PacketRegistry.HasRegisteredPacket(type))
+			{
+				DebugConsole.LogError($"[PacketSender] Attempted to send unregistered packet type: {type.Name}");
+				return;
+			}
+			if (!API_Helper.WrapApiPacket(api_packet, out var packet))
+			{
+				DebugConsole.LogError($"[PacketSender] Failed to wrap API packet of type: {type.Name}");
+				return;
+			}
+			SendToAll(packet, exclude, (SteamNetworkingSend)sendType);
+		}
+
+		public static void SendToAllClients_API(object api_packet, int sendType = (int)SteamNetworkingSend.Reliable)
+		{
+			var type = api_packet.GetType();
+			if (!PacketRegistry.HasRegisteredPacket(type))
+			{
+				DebugConsole.LogError($"[PacketSender] Attempted to send unregistered packet type: {type.Name}");
+				return;
+			}
+
+			if (!API_Helper.WrapApiPacket(api_packet, out var packet))
+			{
+				DebugConsole.LogError($"[PacketSender] Failed to wrap API packet of type: {type.Name}");
+				return;
+			}
+			SendToAllClients(packet, (SteamNetworkingSend)sendType);
+		}
+
+		public static void SendToAllExcluding_API(object api_packet, HashSet<CSteamID> excludedIds, int sendType = (int)SteamNetworkingSend.Reliable)
+		{
+			var type = api_packet.GetType();
+			if (!PacketRegistry.HasRegisteredPacket(type))
+			{
+				DebugConsole.LogError($"[PacketSender] Attempted to send unregistered packet type: {type.Name}");
+				return;
+			}
+
+			if (!API_Helper.WrapApiPacket(api_packet, out var packet))
+			{
+				DebugConsole.LogError($"[PacketSender] Failed to wrap API packet of type: {type.Name}");
+				return;
+			}
+			SendToAllExcluding(packet, excludedIds, (SteamNetworkingSend)sendType);
+		}
+
+		public static void SendToPlayer_API(CSteamID steamID, object api_packet, int sendType = (int)SteamNetworkingSend.ReliableNoNagle)
+		{
+			var type = api_packet.GetType();
+			if (!PacketRegistry.HasRegisteredPacket(type))
+			{
+				DebugConsole.LogError($"[PacketSender] Attempted to send unregistered packet type: {type.Name}");
+				return;
+			}
+
+			if (!API_Helper.WrapApiPacket(api_packet, out var packet))
+			{
+				DebugConsole.LogError($"[PacketSender] Failed to wrap API packet of type: {type.Name}");
+				return;
+			}
+			SendToPlayer(steamID, packet, (SteamNetworkingSend)sendType);
+		}
+
+		public static void SendToHost_API(object api_packet, int sendType = (int)SteamNetworkingSend.ReliableNoNagle)
+		{
+			var type = api_packet.GetType();
+			if (!PacketRegistry.HasRegisteredPacket(type))
+			{
+				DebugConsole.LogError($"[PacketSender] Attempted to send unregistered packet type: {type.Name}");
+				return;
+			}
+
+			if (!API_Helper.WrapApiPacket(api_packet, out var packet))
+			{
+				DebugConsole.LogError($"[PacketSender] Failed to wrap API packet of type: {type.Name}");
+				return;
+			}
+			SendToHost(packet, (SteamNetworkingSend)sendType);
+		}
 
 	}
 }

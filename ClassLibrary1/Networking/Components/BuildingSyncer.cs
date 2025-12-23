@@ -11,8 +11,13 @@ namespace ONI_MP.Networking.Components
 	{
 		public static BuildingSyncer Instance { get; private set; }
 
-		private const float SYNC_INTERVAL = 10f; // Sync every 10 seconds
+		private const float SYNC_INTERVAL = 30f; // Increased from 10s, helps sandbox mode
 		private float _lastSyncTime;
+
+		// Grace period
+		private bool _initialized = false;
+		private float _initializationTime;
+		private const float INITIAL_DELAY = 5f;
 
 		private void Awake()
 		{
@@ -22,6 +27,21 @@ namespace ONI_MP.Networking.Components
 		private void Update()
 		{
 			if (!MultiplayerSession.InSession || !MultiplayerSession.IsHost)
+				return;
+
+			// Skip if no clients connected
+			if (MultiplayerSession.ConnectedPlayers.Count == 0)
+				return;
+
+			// Grace period after world load
+			if (!_initialized)
+			{
+				_initializationTime = Time.unscaledTime;
+				_initialized = true;
+				return;
+			}
+
+			if (Time.unscaledTime - _initializationTime < INITIAL_DELAY)
 				return;
 
 			if (Time.unscaledTime - _lastSyncTime > SYNC_INTERVAL)

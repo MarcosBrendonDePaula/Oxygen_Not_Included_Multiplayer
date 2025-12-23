@@ -32,6 +32,10 @@ namespace ONI_MP.Networking.Synchronization
 		{
 			if (!MultiplayerSession.IsHost) return;
 			if (_identity == null || _amounts == null) return;
+			
+			// Skip if no clients connected
+			if (MultiplayerSession.ConnectedPlayers.Count == 0) return;
+			
 			if (Time.time - _lastSendTime < SYNC_INTERVAL) return;
 
 			// Gather current values

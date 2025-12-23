@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ONI_MP_API
 {
-	internal class MP_Mod_Info
+	public static class MP_Mod_Info
 	{
 		/// <summary>
 		///     True if the multiplayer mod has been detected, false otherwise.

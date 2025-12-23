@@ -7,40 +7,45 @@ using ONI_MP.Networking.States;
 
 namespace ONI_MP.Patches.GamePatches
 {
-	// This single class contains BOTH patches.
-	public static class GamePatch
-	{
-		// Patch Game.Update to run the two batchers if host
-		[HarmonyPatch(typeof(Game), "Update")]
-		[HarmonyPostfix]
-		public static void UpdatePostfix()
-		{
-			if (MultiplayerSession.IsHost)
-			{
-				InstantiationBatcher.Update();
-				WorldUpdateBatcher.Update();
-			}
-		}
+  /// <summary>
+  /// Patch Game.Update to run the two batchers if host
+  /// </summary>
+  [HarmonyPatch(typeof(Game), "Update")]
+  public static class GameUpdatePatch
+  {
+    public static void Postfix()
+    {
+      if (MultiplayerSession.IsHost)
+      {
+        InstantiationBatcher.Update();
+        WorldUpdateBatcher.Update();
+      }
+    }
+  }
 
-		[HarmonyPatch(typeof(Game), "OnSpawn")]
-		[HarmonyPostfix]
-		public static void OnSpawnPostfix()
-		{
-			DebugConsole.Log($"[GamePatch] Game.OnSpawn fired. ClientState={GameClient.State}, IsClient={MultiplayerSession.IsClient}, InSession={MultiplayerSession.InSession}");
+  /// <summary>
+  /// Patch Game.OnSpawn to handle client reconnection after world load
+  /// </summary>
+  [HarmonyPatch(typeof(Game), "OnSpawn")]
+  public static class GameOnSpawnPatch
+  {
+    public static void Postfix()
+    {
+      DebugConsole.Log($"[GamePatch] Game.OnSpawn fired. ClientState={GameClient.State}, HasCachedConnection={GameClient.HasCachedConnection()}, IsHost={MultiplayerSession.IsHost}");
 
-			// Handle client reconnection after world is fully loaded
-			// This is triggered AFTER the game world is completely initialized,
-			// which is much safer than OnPostSceneLoaded which fires during unload
-			
-			// Check if we have cached connection info waiting to reconnect
-			// State might be LoadingWorld or might have changed - check cache instead
-			if (MultiplayerSession.IsClient && GameClient.HasCachedConnection())
-			{
-				DebugConsole.Log("[GamePatch] World fully loaded, reconnecting to host from cache...");
-				GameClient.ReconnectFromCache();
-				MultiplayerOverlay.Close();
-			}
-		}
-	}
+      // Handle client reconnection after world is fully loaded
+      // This is triggered AFTER the game world is completely initialized,
+      // which is much safer than OnPostSceneLoaded which fires during unload
+
+      // Check if we have cached connection info waiting to reconnect
+      // Note: Can't use IsClient here because InSession is false after disconnect
+      // Instead check for cached connection and ensure we're not the host
+      if (GameClient.HasCachedConnection() && !MultiplayerSession.IsHost)
+      {
+        DebugConsole.Log("[GamePatch] World fully loaded, reconnecting to host from cache...");
+        GameClient.ReconnectFromCache();
+        MultiplayerOverlay.Close();
+      }
+    }
+  }
 }
-

@@ -35,6 +35,9 @@ namespace ONI_MP_API
 			return true;
 		}
 
+		///not sure where this belongs best
+		public static bool MultiplayerModPresent => MP_Mod_Info.MultiplayerModPresent;
+
 		static bool typesInitialized = false;
 
 		static FieldInfo _InSessionFieldInfo;

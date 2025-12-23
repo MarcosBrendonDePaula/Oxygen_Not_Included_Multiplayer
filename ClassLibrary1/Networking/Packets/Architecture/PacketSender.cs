@@ -1,6 +1,7 @@
 ﻿using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.Core;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -116,6 +117,36 @@ namespace ONI_MP.Networking
 				if (player.Connection != null)
 					SendToConnection(player.Connection.Value, packet, sendType);
 			}
+		}
+
+		public static void SendToAllOtherPeers(IPacket packet)
+		{
+			if (!MultiplayerSession.InSession)
+			{
+				DebugConsole.LogWarning("[PacketSender] Not in a multiplayer session, cannot send to other peers");
+				return;
+			}
+
+			if (MultiplayerSession.IsHost)
+				SendToAllClients(packet);
+			else
+				SendToHost(new HostBroadcastPacket(packet, MultiplayerSession.LocalSteamID));
+		}
+
+		public static void SendToAllOtherPeers_API(object api_packet)
+		{
+			var type = api_packet.GetType();
+			if (!PacketRegistry.HasRegisteredPacket(type))
+			{
+				DebugConsole.LogError($"[PacketSender] Attempted to send unregistered packet type: {type.Name}");
+				return;
+			}
+			if (!API_Helper.WrapApiPacket(api_packet, out var packet))
+			{
+				DebugConsole.LogError($"[PacketSender] Failed to wrap API packet of type: {type.Name}");
+				return;
+			}
+			SendToAllOtherPeers(packet);
 		}
 
 		/// <summary>

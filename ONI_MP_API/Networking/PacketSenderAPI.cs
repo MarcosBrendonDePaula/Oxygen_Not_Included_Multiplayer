@@ -33,6 +33,9 @@ namespace ONI_MP_API.Networking
 			if (!ReflectionHelper.TryCreateDelegate<SendToHostDelegate>("ONI_MP.Networking.PacketSender, ONI_MP", "SendToHost_API", [typeof(object), typeof(int)], out _SendToHost))
 				return false;
 
+			if (!ReflectionHelper.TryCreateDelegate<SendToAllOtherPeersDelegate>("ONI_MP.Networking.PacketSender, ONI_MP", "SendToAllOtherPeers_API", [typeof(object)], out _SendToAllOtherPeers))
+				return false;
+
 			typesInitialized = true;
 			return true;
 		}
@@ -53,6 +56,9 @@ namespace ONI_MP_API.Networking
 
 		static SendToHostDelegate? _SendToHost = null;
 		delegate void SendToHostDelegate(object packet, int sendType = (int)SteamNetworkingSend.ReliableNoNagle);
+
+		static SendToAllOtherPeersDelegate? _SendToAllOtherPeers = null;
+		delegate void SendToAllOtherPeersDelegate(object packet);
 
 		/// Original single-exclude overload
 		public static void SendToAll(IPacket packet, CSteamID? exclude = null, SteamNetworkingSend sendType = SteamNetworkingSend.Reliable)
@@ -93,6 +99,13 @@ namespace ONI_MP_API.Networking
 			if (_SendToHost == null)
 				return;
 			_SendToHost(packet, (int)sendType);
+		}
+		public static void SendToAllOtherPeers(IPacket packet)
+		{
+			Init();
+			if (_SendToAllOtherPeers == null)
+				return;
+			_SendToAllOtherPeers(packet);
 		}
 	}
 }

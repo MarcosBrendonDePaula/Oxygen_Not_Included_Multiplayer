@@ -17,6 +17,8 @@ using ONI_MP.Networking.Packets.World;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ONI_MP.Networking.Packets.Architecture
 {
@@ -30,23 +32,27 @@ namespace ONI_MP.Networking.Packets.Architecture
         }
 		public static bool HasRegisteredPacket(Type type)
 		{
-			return _PacketTypes.ContainsKey(type.Name.GetHashCode());
+			return _PacketTypes.ContainsKey(API_Helper.GetHashCode(type));
 		}
 
 		private static void Register(Type packageType)
         {
-            int id = packageType.Name.GetHashCode();
+            int id = API_Helper.GetHashCode(packageType);
 			var IPacketType = typeof(IPacket);
             if(IPacketType.IsAssignableFrom(packageType))
 			{
 				_PacketTypes[id] = packageType;
 				DebugConsole.LogSuccess($"[PacketRegistry] Registered {packageType.Name} => {id}");
 			}
-			///Inheritance checks will fail for mod api packets, so these get wrapped in a generic ModApiPacket<T> at runtime
+			///Inheritance checks will fail for mod api packets, so these get wrapped in a generated type derived from ModApiPacket<T> at runtime
 			else if (API_Helper.ValidAsModApiPacket(packageType))
             {
-                _PacketTypes[id] = API_Helper.CreateModApiPacketType(packageType);
-				DebugConsole.LogSuccess($"[PacketRegistry] Registered from ModAPI: {packageType.Name} => {id}");
+				///gotta register both ids so they can be created from either the wrapped or unwrapped type id
+				var wrappedType = API_Helper.CreateModApiPacketType(packageType);
+				_PacketTypes[id] = wrappedType;
+				var wrappedId = API_Helper.GetHashCode(wrappedType);
+				_PacketTypes[wrappedId] = wrappedType;
+				DebugConsole.LogSuccess($"[PacketRegistry] Registered from ModAPI: {packageType.Name} => {id} (unwrapped), {wrappedId} (wrapped)");
 			}
             else
                 throw new InvalidOperationException($"Type {packageType.Name} does not implement IPacket interface");
@@ -61,10 +67,10 @@ namespace ONI_MP.Networking.Packets.Architecture
         public static int GetPacketId(IPacket packet)
         {
             var type = packet.GetType();
-            int id = type.Name.GetHashCode();
+            int id = API_Helper.GetHashCode(type);
 
 			if (!_PacketTypes.TryGetValue(id, out _))
-                throw new InvalidOperationException($"Packet type {type.Name} is not registered");
+                throw new InvalidOperationException($"Packet type {type.Name} with id {id} is not registered");
 
             return id;
         }
@@ -132,6 +138,8 @@ namespace ONI_MP.Networking.Packets.Architecture
             TryRegister(typeof(ResearchProgressPacket));
             TryRegister(typeof(ResearchCompletePacket));
             TryRegister(typeof(EntitySpawnPacket));
+
+            TryRegister(typeof(HostBroadcastPacket));
 		}
 
         public static void TryRegister(Type packetType, string nameOverride = "")

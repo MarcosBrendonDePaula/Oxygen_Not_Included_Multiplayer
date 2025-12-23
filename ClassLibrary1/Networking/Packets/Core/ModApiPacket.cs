@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ONI_MP.Networking.Packets
+namespace ONI_MP.Networking.Packets.Core
 {
 	/// <summary>
 	/// generic packet wrapper for mod API packets;

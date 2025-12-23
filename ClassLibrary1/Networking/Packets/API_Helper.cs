@@ -1,9 +1,11 @@
 ﻿using HarmonyLib;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,12 +19,21 @@ namespace ONI_MP.Networking.Packets
 			var constructedType = genericType.MakeGenericType(modPacketType);
 			return constructedType;
 		}
+
+		public static int GetHashCode(Type type)
+		{
+			var identity = type.FullName!;
+			using var sha256 = SHA256.Create();
+			var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(identity));
+			return BitConverter.ToInt32(bytes, 0);
+		}
+
 		public static bool WrapApiPacket(object packet, out IPacket wrap)
 		{
 			wrap = null;
 
 			var type = packet.GetType();
-			int id = type.Name.GetHashCode();
+			int id = GetHashCode(type);
 			if (!PacketRegistry.HasRegisteredPacket(type))
 				return false;
 			wrap = PacketRegistry.Create(id);

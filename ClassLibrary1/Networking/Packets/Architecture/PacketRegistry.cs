@@ -5,6 +5,7 @@ using ONI_MP.Networking.Packets.Core;
 using ONI_MP.Networking.Packets.DuplicantActions;
 using ONI_MP.Networking.Packets.Events;
 using ONI_MP.Networking.Packets.Social;
+using ONI_MP.Networking.Packets.Tools;
 using ONI_MP.Networking.Packets.Tools.Build;
 using ONI_MP.Networking.Packets.Tools.Cancel;
 using ONI_MP.Networking.Packets.Tools.Clear;
@@ -77,7 +78,10 @@ namespace ONI_MP.Networking.Packets.Architecture
 
         public static void RegisterDefaults()
 		{
-            TryRegister(typeof(ChoreAssignmentPacket));
+			TryRegister(typeof(HostBroadcastPacket));
+			TryRegister(typeof(DisconnectPacket));
+			TryRegister(typeof(EmptyPipePacket));
+			TryRegister(typeof(ChoreAssignmentPacket));
             TryRegister(typeof(EntityPositionPacket));
             TryRegister(typeof(ChatMessagePacket));
             TryRegister(typeof(WorldDataPacket));

@@ -1,4 +1,5 @@
-﻿using ONI_MP;
+﻿using Klei;
+using ONI_MP;
 using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Misc;
@@ -8,8 +9,12 @@ using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.States;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine;
 
 public static class SaveHelper
 {
@@ -45,6 +50,12 @@ public static class SaveHelper
 			}
 		}
 
+		if(!SavegameDlcListValid(data, out string errorMsg))
+		{
+			ShowMessageAndReturnToMainMenu(errorMsg);
+			return;
+		}
+
 		// We've saved a copy of the downloaded world now load it
 		GameClient.CacheCurrentServer();
 		GameClient.Disconnect();
@@ -54,6 +65,95 @@ public static class SaveHelper
 
 		LoadScreen.DoLoad(path);
 	}
+	public static void ShowMessageAndReturnToMainMenu(string msg)
+	{
+		CoroutineRunner.RunOne(ShowMessageAndReturnToTitle(msg));
+	}
+
+	private static IEnumerator ShowMessageAndReturnToTitle(string msg = "Connection to the host was lost!")
+	{
+		MultiplayerOverlay.Show(msg);
+
+		yield return new WaitForSeconds(4f);
+
+		ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
+		yield return new WaitForSeconds(1f);
+
+		MultiplayerOverlay.Close();
+		NetworkIdentityRegistry.Clear();
+		SteamLobby.LeaveLobby();
+
+		App.LoadScene("frontend");
+	}
+	public static bool SavegameDlcListValid(byte[] saveBytes, out string errorMsg)
+	{
+		errorMsg = null;
+		IReader reader = new FastReader(saveBytes);
+		//read the gameInfo to advance the filereader
+		SaveGame.GameInfo gameInfo = SaveGame.GetHeader(reader, out SaveGame.Header header, "MP-Mod-Server-Save");
+		///check if all dlcs of the savegame are currently active
+		
+		HashSet<string> missingDLCs = new HashSet<string>();
+
+		bool spacedOutSave = gameInfo.dlcIds.Contains(DlcManager.EXPANSION1_ID);
+
+		foreach (var dlcId in gameInfo.dlcIds)
+		{
+			if(!DlcManager.IsContentSubscribed(dlcId))
+			{
+				DebugConsole.LogWarning($"[SaveHelper] Missing DLC required by savegame: {dlcId}");
+				missingDLCs.Add(dlcId);
+			}
+		}
+		if(spacedOutSave != DlcManager.IsExpansion1Active())
+		{
+			errorMsg = spacedOutSave
+				? "Server requires Spaced Out, cannot join without SpacedOut active!"
+				: "Server requires Base Game, cannot join with Spaced Out active!";
+			return false;
+		}
+
+
+		if (missingDLCs.Any())
+		{
+			errorMsg = "Server requires the following DLCs which are not installed or active:\n" + string.Join(", ", missingDLCs.Select(id => DlcManager.GetDlcTitleNoFormatting(id)));
+			return false;
+		}
+
+		return true;
+
+		///this is for later use if we want game mod syncing
+		KSerialization.Manager.DeserializeDirectory(reader);
+		if (header.IsCompressed)
+		{
+			int length = saveBytes.Length - reader.Position;
+			byte[] compressedBytes = new byte[length];
+			Array.Copy((Array)saveBytes, reader.Position, compressedBytes, 0, length);
+			byte[] uncompressedBytes = SaveLoader.DecompressContents(compressedBytes);
+			reader = new FastReader(uncompressedBytes);
+		}
+
+		Debug.Assert(reader.ReadKleiString() == "world");
+		KSerialization.Deserializer deserializer = new KSerialization.Deserializer(reader);
+		SaveFileRoot saveFileRoot = new ();
+		deserializer.Deserialize(saveFileRoot);
+		if ((gameInfo.saveMajorVersion == 7 || gameInfo.saveMinorVersion < 8) && saveFileRoot.requiredMods != null)
+		{
+			saveFileRoot.active_mods = new List<KMod.Label>();
+			foreach (ModInfo requiredMod in saveFileRoot.requiredMods)
+				saveFileRoot.active_mods.Add(new KMod.Label()
+				{
+					id = requiredMod.assetID,
+					version = (long)requiredMod.lastModifiedTime,
+					distribution_platform = KMod.Label.DistributionPlatform.Steam,
+					title = requiredMod.description
+				});
+			saveFileRoot.requiredMods.Clear();
+		}
+
+		var activeSaveMods = saveFileRoot.active_mods;
+	}
+
 
 	public static string WorldName
 	{

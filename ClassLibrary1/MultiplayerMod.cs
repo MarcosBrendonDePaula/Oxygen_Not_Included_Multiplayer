@@ -91,7 +91,7 @@ namespace ONI_MP
 		{
 			App.OnPostLoadScene += () =>
 			{
-				OnPostSceneLoaded.Invoke();
+				OnPostSceneLoaded?.Invoke();
 			};
 
 			ReadyManager.SetupListeners();

@@ -1,4 +1,5 @@
 using HarmonyLib;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.World;
@@ -131,26 +132,45 @@ namespace ONI_MP.Patches.World.SideScreen
 	[HarmonyPatch(typeof(ComplexFabricator), nameof(ComplexFabricator.SetRecipeQueueCount))]
 	public static class ComplexFabricator_SetRecipeQueueCount_Patch
 	{
-		public static void Postfix(ComplexFabricator __instance, ComplexRecipe recipe, int count)
+	public static void Postfix(ComplexFabricator __instance, ComplexRecipe recipe, int count)
 		{
-			if (BuildingConfigPacket.IsApplyingPacket) return;
-			if (!MultiplayerSession.InSession) return;
-
-			var identity = __instance.gameObject.AddOrGet<NetworkIdentity>();
-			identity.RegisterIdentity();
-
-			// Use recipe ID hash and pack count into Value
-			var packet = new BuildingConfigPacket
+			try
 			{
-				NetId = identity.NetId,
-				Cell = Grid.PosToCell(__instance.gameObject),
-				ConfigHash = recipe.id.GetHashCode(),
-				Value = count,
-				ConfigType = BuildingConfigType.RecipeQueue
-			};
+				DebugConsole.Log($"[ComplexFabricator] SetRecipeQueueCount Postfix called: recipe={recipe?.id ?? "null"}, count={count}");
+				
+				if (BuildingConfigPacket.IsApplyingPacket)
+				{
+					DebugConsole.Log($"[ComplexFabricator] Ignoring sync - IsApplyingPacket=true");
+					return;
+				}
+				if (!MultiplayerSession.InSession)
+				{
+					DebugConsole.Log($"[ComplexFabricator] Not in session, skipping sync");
+					return;
+				}
 
-			if (MultiplayerSession.IsHost) PacketSender.SendToAllClients(packet);
-			else PacketSender.SendToHost(packet);
+				var identity = __instance.gameObject.AddOrGet<NetworkIdentity>();
+				identity.RegisterIdentity();
+
+				// Use recipe ID hash and pack count into Value
+				var packet = new BuildingConfigPacket
+				{
+					NetId = identity.NetId,
+					Cell = Grid.PosToCell(__instance.gameObject),
+					ConfigHash = recipe.id.GetHashCode(),
+					Value = count,
+					ConfigType = BuildingConfigType.RecipeQueue
+				};
+
+				DebugConsole.Log($"[ComplexFabricator] Sending recipe={recipe.id}, count={count}, NetId={identity.NetId}, Hash={packet.ConfigHash}");
+
+				if (MultiplayerSession.IsHost) PacketSender.SendToAllClients(packet);
+				else PacketSender.SendToHost(packet);
+			}
+			catch (System.Exception ex)
+			{
+				DebugConsole.Log($"[ComplexFabricator] ERROR in Postfix: {ex.Message}");
+			}
 		}
 	}
 

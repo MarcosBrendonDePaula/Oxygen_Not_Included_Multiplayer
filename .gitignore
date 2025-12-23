@@ -412,6 +412,6 @@ FodyWeavers.xsd
 *.sln.iml
 
 # AI Agent notes (private, not uploaded to GitHub)
-# .agent/
+.agent/
 /Directory.Build.props.user
 /PublicisedAssembly

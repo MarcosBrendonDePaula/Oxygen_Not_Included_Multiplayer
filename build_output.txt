@@ -1,0 +1,21 @@
+﻿D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\Networking\Packets\ChoreAssignmentPacket.cs(42,3): warning CS0162: Código inacessível detectado [D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\ONI_MP.csproj]
+D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\Patches\ChoresPatches\ChoresPatch.cs(63,4): warning CS0162: Código inacessível detectado [D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\ONI_MP.csproj]
+D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\DebugTools\DebugMenu.cs(16,24): warning CS0169: O campo "DebugMenu.debugConsole" nunca é usado [D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\ONI_MP.csproj]
+D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\DebugTools\DebugConsole.cs(15,25): warning CS0169: O campo "DebugConsole.scrollPos" nunca é usado [D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\ONI_MP.csproj]
+D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\DebugTools\DevToolMultiplayer.cs(28,22): warning CS0414: O campo "DevToolMultiplayer.showRestartPrompt" é atribuído, mas seu valor nunca é usado [D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\ONI_MP.csproj]
+  ONI_MP -> D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\bin\Debug\net472\ONI_MP.dll
+  Executing CopyDLLs task
+  Copy ModAssets to C:\Users\mathe\OneDrive\Documentos\Klei\OxygenNotIncluded\mods\dev\ONI_MP_dev\
+  Copied build files
+
+Compilação com êxito.
+
+D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\Networking\Packets\ChoreAssignmentPacket.cs(42,3): warning CS0162: Código inacessível detectado [D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\ONI_MP.csproj]
+D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\Patches\ChoresPatches\ChoresPatch.cs(63,4): warning CS0162: Código inacessível detectado [D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\ONI_MP.csproj]
+D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\DebugTools\DebugMenu.cs(16,24): warning CS0169: O campo "DebugMenu.debugConsole" nunca é usado [D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\ONI_MP.csproj]
+D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\DebugTools\DebugConsole.cs(15,25): warning CS0169: O campo "DebugConsole.scrollPos" nunca é usado [D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\ONI_MP.csproj]
+D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\DebugTools\DevToolMultiplayer.cs(28,22): warning CS0414: O campo "DevToolMultiplayer.showRestartPrompt" é atribuído, mas seu valor nunca é usado [D:\ONI\Oxygen_Not_Included_Multiplayer\ClassLibrary1\ONI_MP.csproj]
+    5 Aviso(s)
+    0 Erro(s)
+
+Tempo Decorrido 00:00:03.64

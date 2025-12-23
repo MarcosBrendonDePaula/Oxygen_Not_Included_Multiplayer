@@ -15,6 +15,7 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 		{
 			// LogicSwitch
 			"LogicSwitchState".GetHashCode(),
+			"LogicState".GetHashCode(), // Alias for backwards compatibility
 			// LogicCounter
 			"CounterMaxCount".GetHashCode(),
 			"CounterAdvancedMode".GetHashCode(),
@@ -46,6 +47,19 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 			"FoodStorageSpicedFoodOnly".GetHashCode(),
 			// IceMachine
 			"IceMachineElement".GetHashCode(),
+			// Artable (paintings, sculptures)
+			"ArtableState".GetHashCode(),
+			"ArtableDefault".GetHashCode(),
+			// SuitLocker
+			"SuitLockerRequestSuit".GetHashCode(),
+			"SuitLockerNoSuit".GetHashCode(),
+			"SuitLockerDropSuit".GetHashCode(),
+			// RemoteWorkTerminal (DLC3)
+			"RemoteWorkTerminalDock".GetHashCode(),
+			// SuitMarker (checkpoint clearance)
+			"SuitMarkerTraversal".GetHashCode(),
+			// FlatTagFilterable (meteor type selection)
+			"FlatTagFilter".GetHashCode(),
 		};
 
 		public int[] SupportedConfigHashes => _hashes;
@@ -53,14 +67,39 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 		public bool TryApplyConfig(GameObject go, BuildingConfigPacket packet)
 		{
 			int hash = packet.ConfigHash;
+			int logicSwitchHash = "LogicSwitchState".GetHashCode();
+			int logicStateHash = "LogicState".GetHashCode();
 
 			// LogicSwitch
 			var logicSwitch = go.GetComponent<LogicSwitch>();
-			if (logicSwitch != null && hash == "LogicSwitchState".GetHashCode())
+			DebugConsole.Log($"[MiscBuildingHandler] Checking LogicSwitch: component={logicSwitch != null}, hash={hash}, expected={logicSwitchHash}");
+			
+			if (hash == logicSwitchHash || hash == logicStateHash)
 			{
-				logicSwitch.SetState(packet.Value > 0.5f);
-				DebugConsole.Log($"[MiscBuildingHandler] Set LogicSwitch state={packet.Value > 0.5f} on {go.name}");
-				return true;
+				if (logicSwitch != null)
+				{
+					bool targetState = packet.Value > 0.5f;
+					// Use Traverse to call SetState since it may be private/protected
+					Traverse.Create(logicSwitch).Method("SetState", new[] { typeof(bool) }).GetValue(targetState);
+					DebugConsole.Log($"[MiscBuildingHandler] Set LogicSwitch state={targetState} on {go.name}");
+					return true;
+				}
+				else
+				{
+					DebugConsole.LogWarning($"[MiscBuildingHandler] LogicSwitch component not found on {go.name}, trying IPlayerControlledToggle");
+					// Try IPlayerControlledToggle interface instead
+					var toggle = go.GetComponent<IPlayerControlledToggle>();
+					if (toggle != null)
+					{
+						bool targetState = packet.Value > 0.5f;
+						if (toggle.ToggledOn() != targetState)
+						{
+							toggle.ToggledByPlayer();
+						}
+						DebugConsole.Log($"[MiscBuildingHandler] Set IPlayerControlledToggle state={targetState} on {go.name}");
+						return true;
+					}
+				}
 			}
 
 			// LogicCounter
@@ -198,6 +237,112 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 					Tag tag = new Tag(packet.StringValue);
 					iceMachine.OnOptionSelected(new FewOptionSideScreen.IFewOptionSideScreen.Option(tag, null, null));
 					DebugConsole.Log($"[MiscBuildingHandler] Set IceMachine element={tag} on {go.name}");
+					return true;
+				}
+			}
+
+			// Artable (paintings, sculptures) - select specific art style
+			var artable = go.GetComponent<Artable>();
+			if (artable != null)
+			{
+				if (hash == "ArtableState".GetHashCode())
+				{
+					if (!string.IsNullOrEmpty(packet.StringValue))
+					{
+						artable.SetUserChosenTargetState(packet.StringValue);
+						DebugConsole.Log($"[MiscBuildingHandler] Set Artable state={packet.StringValue} on {go.name}");
+						return true;
+					}
+				}
+				if (hash == "ArtableDefault".GetHashCode())
+				{
+					artable.SetDefault();
+					DebugConsole.Log($"[MiscBuildingHandler] Reset Artable to default on {go.name}");
+					return true;
+				}
+			}
+
+			// SuitLocker
+			var suitLocker = go.GetComponent<SuitLocker>();
+			if (suitLocker != null)
+			{
+				if (hash == "SuitLockerRequestSuit".GetHashCode())
+				{
+					suitLocker.ConfigRequestSuit();
+					DebugConsole.Log($"[MiscBuildingHandler] ConfigRequestSuit on {go.name}");
+					return true;
+				}
+				if (hash == "SuitLockerNoSuit".GetHashCode())
+				{
+					suitLocker.ConfigNoSuit();
+					DebugConsole.Log($"[MiscBuildingHandler] ConfigNoSuit on {go.name}");
+					return true;
+				}
+				if (hash == "SuitLockerDropSuit".GetHashCode())
+				{
+					suitLocker.DropSuit();
+					DebugConsole.Log($"[MiscBuildingHandler] DropSuit on {go.name}");
+					return true;
+				}
+			}
+
+			// RemoteWorkTerminal (DLC3)
+			if (hash == "RemoteWorkTerminalDock".GetHashCode())
+			{
+				var terminal = go.GetComponent<RemoteWorkTerminal>();
+				if (terminal != null)
+				{
+					int dockNetId = packet.SliderIndex;
+					RemoteWorkerDock targetDock = null;
+
+					if (dockNetId != -1)
+					{
+						if (NetworkIdentityRegistry.TryGet(dockNetId, out var dockIdentity) && dockIdentity != null)
+						{
+							targetDock = dockIdentity.gameObject.GetComponent<RemoteWorkerDock>();
+						}
+					}
+
+					terminal.FutureDock = targetDock;
+					DebugConsole.Log($"[MiscBuildingHandler] Set RemoteWorkTerminal FutureDock={targetDock?.GetProperName() ?? "null"} on {go.name}");
+					return true;
+				}
+			}
+
+			// SuitMarker (checkpoint clearance - traverse only when room available)
+			var suitMarker = go.GetComponent<SuitMarker>();
+			if (suitMarker != null && hash == "SuitMarkerTraversal".GetHashCode())
+			{
+				if (packet.Value > 0.5f)
+				{
+					// Use Traverse to call private method
+					Traverse.Create(suitMarker).Method("OnEnableTraverseIfUnequipAvailable").GetValue();
+					DebugConsole.Log($"[MiscBuildingHandler] SuitMarker clearance=OnlyWhenRoomAvailable on {go.name}");
+				}
+				else
+				{
+					Traverse.Create(suitMarker).Method("OnDisableTraverseIfUnequipAvailable").GetValue();
+					DebugConsole.Log($"[MiscBuildingHandler] SuitMarker clearance=Always on {go.name}");
+				}
+				return true;
+			}
+
+			// FlatTagFilterable (meteor type selection, etc.)
+			var flatTagFilter = go.GetComponent<FlatTagFilterable>();
+			if (flatTagFilter != null)
+			{
+				if (hash == "FlatTagFilter".GetHashCode())
+				{
+					Tag tag = new Tag(packet.StringValue);
+					bool shouldBeSelected = packet.Value > 0.5f;
+					bool isSelected = flatTagFilter.selectedTags.Contains(tag);
+					
+					// Only toggle if state doesn't match
+					if (isSelected != shouldBeSelected)
+					{
+						flatTagFilter.ToggleTag(tag);
+					}
+					DebugConsole.Log($"[MiscBuildingHandler] FlatTagFilter tag={tag.Name}, selected={shouldBeSelected} on {go.name}");
 					return true;
 				}
 			}

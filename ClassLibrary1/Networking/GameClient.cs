@@ -38,6 +38,23 @@ namespace ONI_MP.Networking
 			}
 		}
 
+		/// <summary>
+		/// Returns true if we have cached connection info from a previous session
+		/// (used to determine if we need to reconnect after world load)
+		/// </summary>
+		public static bool HasCachedConnection()
+		{
+			return _cachedConnectionInfo.HasValue;
+		}
+
+		/// <summary>
+		/// Clears the cached connection info after successful reconnection or on error
+		/// </summary>
+		public static void ClearCachedConnection()
+		{
+			_cachedConnectionInfo = null;
+		}
+
 		public static void SetState(ClientState newState)
 		{
 			if (_state != newState)
@@ -246,12 +263,14 @@ namespace ONI_MP.Networking
 		private static void OnDisconnected(string reason, CSteamID remote, ESteamNetworkingConnectionState state)
 		{
             DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
-   //         if (remote == MultiplayerSession.LocalSteamID)
-  //		  {
-				// We disconnected
-   //             MultiplayerSession.InSession = false;
-   //             SetState(ClientState.Disconnected);
-   //         }
+
+			// If we're intentionally disconnecting for world loading, don't show error or return to title
+			// We will reconnect automatically after the world finishes loading via ReconnectFromCache()
+			if (_state == ClientState.LoadingWorld)
+			{
+				DebugConsole.Log("[GameClient] Ignoring disconnect callback - world is loading, will reconnect after.");
+				return;
+			}
 
 			switch(state)
 			{
@@ -328,7 +347,9 @@ namespace ONI_MP.Networking
 			if (_cachedConnectionInfo.HasValue)
 			{
 				DebugConsole.Log($"[GameClient] Reconnecting to cached server: {_cachedConnectionInfo.Value.HostSteamID}");
-				ConnectToHost(_cachedConnectionInfo.Value.HostSteamID, false);
+				var hostId = _cachedConnectionInfo.Value.HostSteamID;
+				_cachedConnectionInfo = null; // Clear cache to prevent re-triggering
+				ConnectToHost(hostId, false);
 			}
 			else
 			{

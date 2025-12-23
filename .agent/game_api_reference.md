@@ -4,7 +4,305 @@ This document contains reference information about Oxygen Not Included game clas
 
 ---
 
-## Telepad / Immigration System
+## Player Controlled Toggles (Switches)
+
+### `IPlayerControlledToggle` (Interface)
+Interface for player-controlled toggle buildings (switches, etc).
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `ToggledByPlayer()` | Called when player clicks to toggle the switch |
+| `ToggledOn()` | Returns current toggle state (bool) |
+| `ToggleRequested` | Property - true if toggle queued while paused |
+| `GetSelectable()` | Returns the selectable component |
+
+**Implementations:**
+- `LogicSwitch` - Standard automation switch
+- Other player-controllable buildings
+
+---
+
+### `PlayerControlledToggleSideScreen` (UI class)
+Side screen for toggle switch buildings.
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `Toggle()` | Executes the toggle (called on unpause if pending) |
+| `RequestToggle()` | Queues toggle if paused, executes immediately if unpaused |
+| `UpdateVisuals(bool state, bool smooth)` | Updates visual state |
+
+**Sync Design Pattern (Prefix/Postfix):**
+
+The switch sync uses a **pending toggle detection** pattern to prevent double-sending when game is paused:
+
+```mermaid
+flowchart TD
+    A[Player Clicks Toggle] --> B{Game Paused?}
+    B -->|Yes| C[RequestToggle called]
+    C --> D[Sets ToggleRequested=true]
+    C --> E[Sync target state !current]
+    B -->|No| F[RequestToggle → Toggle]
+    F --> G[Sync in Toggle]
+    
+    H[Game Unpauses] --> I[Toggle called]
+    I --> J{Prefix: ToggleRequested?}
+    J -->|Yes| K[Mark as pending]
+    J -->|No| L[Fresh toggle]
+    
+    K --> M[Postfix: Skip sync]
+    L --> N[Postfix: Sync current state]
+```
+
+**Implementation:**
+1. `RequestToggle.Postfix` → Always syncs `!currentState` (target after toggle)
+2. `Toggle.Prefix` → Checks `ToggleRequested` property BEFORE it's cleared, records if pending
+3. `Toggle.Postfix` → If was pending, skip (already synced); otherwise sync current state
+
+---
+
+## Complex Fabricator (Crafting Stations)
+
+### `ComplexFabricator`
+Component for crafting buildings (cooking, refining, etc).
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `IncrementRecipeQueueCount(ComplexRecipe)` | Adds 1 to recipe queue |
+| `DecrementRecipeQueueCount(ComplexRecipe, bool)` | Removes 1 from queue |
+| `SetRecipeQueueCount(ComplexRecipe, int)` | Sets exact queue count |
+| `GetRecipeQueueCount(ComplexRecipe)` | Gets current queue count |
+| `GetRecipes()` | Gets all available recipes |
+
+**Constants:**
+- `ComplexFabricator.QUEUE_INFINITE` - Value representing infinite queue
+
+---
+
+### `SelectedRecipeQueueScreen` (UI class)
+Secondary side screen for recipe queue management.
+
+**Key Fields (via Traverse):**
+| Field | Type | Description |
+|-------|------|-------------|
+| `target` | `ComplexFabricator` | The fabricator being configured |
+| `selectedRecipeCategoryID` | `string` | Current recipe category |
+| `ownerScreen` | `ComplexFabricatorSideScreen` | Parent side screen |
+
+**Button Handlers (in OnSpawn):**
+| Button | Action |
+|--------|--------|
+| `IncrementButton` | `target.IncrementRecipeQueueCount(selectedRecipe)` |
+| `DecrementButton` | `target.DecrementRecipeQueueCount(selectedRecipe, false)` |
+| `InfiniteButton` | `target.SetRecipeQueueCount(selectedRecipe, QUEUE_INFINITE)` or 0 |
+
+**Sync Design Pattern:**
+
+Crafting sync patches the `ComplexFabricator` methods directly (not the UI):
+
+```mermaid
+flowchart LR
+    A[Player clicks +/-/∞] --> B[SelectedRecipeQueueScreen]
+    B --> C[ComplexFabricator.IncrementRecipeQueueCount]
+    B --> D[ComplexFabricator.DecrementRecipeQueueCount]
+    B --> E[ComplexFabricator.SetRecipeQueueCount]
+    C --> F[Harmony Postfix → Sync]
+    D --> F
+    E --> F
+```
+
+---
+
+## FlatTagFilterable (Meteor Target Selection)
+
+### `FlatTagFilterable`
+Component for tag-based filters (e.g., meteor type selection on Meteor Blaster).
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `ToggleTag(Tag)` | Toggles selection of a tag |
+
+**Key Fields:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `selectedTags` | `HashSet<Tag>` | Currently selected tags |
+
+---
+
+## Artable (Paintings/Sculptures)
+
+### `Artable`
+Component for art buildings that can have different visual states.
+
+**Key Fields:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `CurrentStage` | `string` | Current art stage ID |
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `SetUserChosenTargetState(string state)` | Sets a specific art style |
+| `SetDefault()` | Resets to default/random state |
+
+---
+
+### `ArtableSelectionSideScreen` (UI class)
+Side screen for choosing art styles.
+
+**Key Fields:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `selectedStage` | `string` | Currently selected art stage |
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `SetTarget(GameObject target)` | Sets the target artable |
+
+---
+
+## Robot Door Permissions
+
+### Robot Tags
+Special tags for robot types used with `AccessControl`:
+
+```csharp
+GameTags.Robots.Models.FetchDrone  // Auto-Sweeper bot
+GameTags.Robots.Models.ScoutRover  // Scout rover
+GameTags.Robots.Models.MorbRover   // Morb rover
+GameTags.Robot                     // Default group for all robots
+```
+
+### `AccessControl` Robot Methods
+| Method | Description |
+|--------|-------------|
+| `SetPermission(Tag robotTag, Permission)` | Sets permission for robot type |
+| `ClearPermission(Tag robotTag, Tag defaultKey)` | Clears robot permission |
+| `GetSetPermission(Tag robotTag)` | Gets current permission for robot |
+| `IsDefaultPermission(Tag robotTag)` | Checks if using default |
+
+---
+
+## Comet Detector (Space Scanner)
+
+### `ClusterCometDetector.Instance` (Spaced Out DLC)
+StateMachine instance for space scanners in Spaced Out.
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `SetDetectorState(ClusterCometDetectorState state)` | Sets detection mode |
+| `SetClustercraftTarget(Clustercraft target)` | Sets which rocket to track |
+| `GetDetectorState()` | Gets current detection mode |
+| `GetClustercraftTarget()` | Gets current rocket target |
+
+**ClusterCometDetectorState Enum:**
+```csharp
+ClusterCometDetector.Instance.ClusterCometDetectorState {
+    MeteorShower,    // Detect meteor showers
+    BallisticObject, // Detect player-made projectiles
+    Rocket           // Track specific rocket
+}
+```
+
+---
+
+### `CometDetector.Instance` (Base Game)
+StateMachine instance for space scanners in base game.
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `SetTargetCraft(LaunchConditionManager target)` | Sets craft to track (null = meteors) |
+| `GetTargetCraft()` | Gets current target craft |
+
+---
+
+## Cluster Destination Selector (Rocket Destinations)
+
+> [!NOTE]
+> **Not yet implemented** - Documented for future reference
+
+### `ClusterDestinationSelector`
+Component for selecting destinations on the cluster map.
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `SetDestination(AxialI)` | Sets hex destination coordinates |
+| `GetDestination()` | Gets current destination |
+| `GetMyWorldLocation()` | Gets current location |
+| `IsAtDestination()` | Checks if at destination |
+
+---
+
+### `RocketClusterDestinationSelector`
+Extends ClusterDestinationSelector for rockets with landing pad selection.
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `SetDestinationPad(LaunchPad)` | Sets specific landing pad |
+| `GetDestinationPad()` | Gets destination pad |
+| `Repeat` | Property - round-trip toggle |
+
+---
+
+### `ClusterDestinationSideScreen`
+Side screen for destination selection.
+
+**Key Methods:**
+| Method | Description |
+|--------|-------------|
+| `OnClickClearDestination()` | Clears destination |
+| `OnLaunchPadEntryClick(IListableOption, object)` | Selects landing pad |
+| `OnRepeatClicked()` | Toggles round-trip |
+
+---
+
+## Missile Launcher (Meteor Blaster)
+
+### `MissileLauncher.Instance`
+StateMachine instance for meteor defense system.
+
+**Ammunition selection (IMPLEMENTED):**
+Via `IMissileSelectionInterface.ChangeAmmunition(Tag, bool)` - already synced
+
+**Target selection (NOT IMPLEMENTED):**
+Uses `EntityClusterDestinationSelector` for long-range missile targeting.
+
+**Key Fields:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `TargetFilter` | `FlatTagFilterable` | Filters which meteor types to target |
+| `clusterDestinationSelector` | `EntityClusterDestinationSelector` | For long-range targeting |
+| `ammunitionPermissions` | `Dictionary<Tag, bool>` | Ammo type allowances |
+
+---
+
+## Suit Marker (Checkpoint)
+
+### `SuitMarker`
+Component for suit checkpoint stations (equip/unequip suits).
+
+**Key Fields:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `onlyTraverseIfUnequipAvailable` | `bool` | Clearance setting |
+
+**Key Methods (private):**
+| Method | Description |
+|--------|-------------|
+| `OnEnableTraverseIfUnequipAvailable()` | Set to only when room available |
+| `OnDisableTraverseIfUnequipAvailable()` | Allow always |
+
+**Related:** `JetSuitMarker`, `LeadSuitMarker`, `OxygenMaskMarker`
+
+---
 
 ### `ImmigrantScreen` (UI class)
 The main screen for selecting duplicants and care packages from the Printing Pod.

@@ -39,6 +39,8 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 			RegisterHandler(new ReceptacleHandler());
 			RegisterHandler(new MiscBuildingHandler());
 			RegisterHandler(new AccessControlHandler());
+			RegisterHandler(new CraftingHandler());
+			RegisterHandler(new CometDetectorHandler());
 
 			DebugConsole.Log($"[BuildingConfigHandlerRegistry] Initialized with {_allHandlers.Count} handlers, {_handlersByHash.Count} hash mappings");
 		}

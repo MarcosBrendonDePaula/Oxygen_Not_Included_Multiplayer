@@ -5,15 +5,17 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 {
 	/// <summary>
 	/// Handles AccessControl (door permissions) configuration.
-	/// Includes default group permissions and per-minion permissions.
+	/// Includes default group permissions, per-minion permissions, and robot tag permissions.
 	/// </summary>
 	public class AccessControlHandler : IBuildingConfigHandler
 	{
-		private static readonly int[] _hashes = new int[]
+    private static readonly int[] _hashes = new int[]
 		{
 			"AccessControlDefault".GetHashCode(),
 			"AccessControlMinion".GetHashCode(),
 			"AccessControlClear".GetHashCode(),
+			"AccessControlRobot".GetHashCode(),
+			"AccessControlRobotClear".GetHashCode(),
 		};
 
 		public int[] SupportedConfigHashes => _hashes;
@@ -86,6 +88,32 @@ namespace ONI_MP.Networking.Packets.World.Handlers
 				}
 				DebugConsole.Log($"[AccessControlHandler] Could not find minion with NetID={minionNetId} for clear");
 				return true;
+			}
+
+			// Handle robot tag permission (FetchDrone, ScoutRover, MorbRover)
+			if (hash == "AccessControlRobot".GetHashCode())
+			{
+				if (!string.IsNullOrEmpty(packet.StringValue))
+				{
+					Tag robotTag = new Tag(packet.StringValue);
+					AccessControl.Permission permission = (AccessControl.Permission)(int)packet.Value;
+					accessControl.SetPermission(robotTag, permission);
+					DebugConsole.Log($"[AccessControlHandler] Set robot permission tag={robotTag}, permission={permission} on {go.name}");
+					return true;
+				}
+			}
+
+			// Handle clear robot tag permission
+			if (hash == "AccessControlRobotClear".GetHashCode())
+			{
+				if (!string.IsNullOrEmpty(packet.StringValue))
+				{
+					Tag robotTag = new Tag(packet.StringValue);
+					// Clear robot permission - uses GameTags.Robot as the default key
+					accessControl.ClearPermission(robotTag, GameTags.Robot);
+					DebugConsole.Log($"[AccessControlHandler] Cleared robot permission for tag={robotTag} on {go.name}");
+					return true;
+				}
 			}
 
 			return false;

@@ -248,6 +248,7 @@ namespace ONI_MP.DebugTools
             ImGui.Text($"Quality(L/R): {GameClient.GetLocalPacketQuality():0.00} / {GameClient.GetRemotePacketQuality():0.00}");
             ImGui.Text($"Unacked Reliable: {GameClient.GetUnackedReliable()}");
             ImGui.Text($"Pending Unreliable: {GameClient.GetPendingUnreliable()}");
+            ImGui.Text($"Queue Time: {GameClient.GetUsecQueueTime() / 1000}ms");
             ImGui.Spacing();
             ImGui.Text($"Has Packet Lost: {GameClient.HasPacketLoss()}");
             ImGui.Text($"Has Jitter: {GameClient.HasNetworkJitter()}");

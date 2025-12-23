@@ -403,6 +403,14 @@ namespace ONI_MP.Networking
 
 			return connectionHealth.Value.m_cbPendingUnreliable;
 		}
+
+		public static long GetUsecQueueTime()
+		{
+			if (!connectionHealth.HasValue)
+				return -1;
+
+			return (long) connectionHealth.Value.m_usecQueueTime;
+		}
 		#endregion
 		public static void CacheCurrentServer()
 		{

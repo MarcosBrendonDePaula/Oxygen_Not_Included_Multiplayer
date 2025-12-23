@@ -115,7 +115,7 @@ namespace ONI_MP.DebugTools
             if (ImGui.BeginTable(str_id, 3,
                         ImGuiTableFlags.Borders |
                         ImGuiTableFlags.RowBg |
-                        ImGuiTableFlags.ScrollY))
+                        ImGuiTableFlags.ScrollY, new UnityEngine.Vector2(0, 400)))
             {
                 ImGui.TableSetupColumn("Packet Type");
                 ImGui.TableSetupColumn("Packet ID");

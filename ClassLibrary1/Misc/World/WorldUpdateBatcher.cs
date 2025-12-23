@@ -15,6 +15,12 @@ namespace ONI_MP.Misc.World
 
 		public static void Queue(WorldUpdatePacket.CellUpdate update)
 		{
+			if(MultiplayerSession.IsClient)
+			{
+				// Client is not allowed to send WorldUpdate states as the host has full authority
+				return;
+			}
+
 			lock (pendingUpdates)
 			{
 				pendingUpdates.Add(update);
@@ -23,6 +29,11 @@ namespace ONI_MP.Misc.World
 
 		public static void Update()
 		{
+			if (MultiplayerSession.IsClient)
+			{
+				return;
+			}
+
 			flushTimer += Time.unscaledDeltaTime;
 			if (flushTimer >= FlushInterval)
 			{
@@ -33,13 +44,19 @@ namespace ONI_MP.Misc.World
 
 		public static void Flush()
 		{
-			lock (pendingUpdates)
+			if (MultiplayerSession.IsClient)
+			{
+				return;
+			}
+
+            lock (pendingUpdates)
 			{
 				if (pendingUpdates.Count == 0)
 					return;
 
 				if(MultiplayerSession.IsClient)
 				{
+					// This should never happen, but its better to be safe then sorry
                     pendingUpdates.Clear();
                     return;
 				}

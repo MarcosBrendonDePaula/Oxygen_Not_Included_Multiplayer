@@ -30,6 +30,7 @@ namespace ONI_MP
 			try
 			{
 				DebugConsole.Init(); // Init console first to catch logs
+				PacketTracker.Init();
 				DebugConsole.Log("[ONI_MP] Loaded Oxygen Not Included Together Multiplayer Mod.");
 
                 PacketRegistry.RegisterDefaults();

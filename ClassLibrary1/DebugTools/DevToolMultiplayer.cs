@@ -19,6 +19,7 @@ namespace ONI_MP.DebugTools
     {
         private Vector2 scrollPos = Vector2.zero;
         DebugConsole console = null;
+        PacketTracker packetTracker = null;
 
         // Player color
         private bool useRandomColor = false;
@@ -40,6 +41,7 @@ namespace ONI_MP.DebugTools
             Name = "Multiplayer";
             RequiresGameRunning = false;
             console = DebugConsole.Init();
+            packetTracker = PacketTracker.Init();
 
             ColorRGB loadedColor = Configuration.GetClientProperty<ColorRGB>("PlayerColor");
             playerColor = new Vector3(loadedColor.R / 255, loadedColor.G / 255, loadedColor.B / 255);
@@ -83,8 +85,12 @@ namespace ONI_MP.DebugTools
             if (ImGui.Button("Toggle Debug Console"))
             {
                 console?.Toggle();
-                Debug.Log("Toggled Debug Console");
             }
+            if (ImGui.Button("Toggle Packet Tracker"))
+            {
+                packetTracker?.Toggle();
+            }
+            packetTracker.ShowWindow();
             console?.ShowWindow();
 
             ImGui.NewLine();

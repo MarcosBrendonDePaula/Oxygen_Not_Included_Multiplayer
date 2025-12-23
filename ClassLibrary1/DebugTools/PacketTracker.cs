@@ -23,7 +23,6 @@ namespace ONI_MP.DebugTools
         {
             public IPacket packet;
             public int size;
-            public CSteamID destination;
         }
 
         private List<PacketTrackData> tracked = new List<PacketTrackData>();
@@ -37,7 +36,6 @@ namespace ONI_MP.DebugTools
             _instance = new PacketTracker();
             return _instance;
         }
-
 
         public static void TrackSent(PacketTrackData data)
         {

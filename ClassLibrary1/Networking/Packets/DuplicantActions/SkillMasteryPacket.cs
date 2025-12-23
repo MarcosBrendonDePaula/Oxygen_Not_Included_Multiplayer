@@ -36,13 +36,19 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 
 		private void Apply()
 		{
-			if (!NetworkIdentityRegistry.TryGet(NetId, out var identity))
+			if (!NetworkIdentityRegistry.TryGet(NetId, out var identity) || identity == null)
 			{
 				DebugConsole.LogWarning($"[SkillMasteryPacket] NetId {NetId} not found.");
 				return;
 			}
 
-			var resume = identity.GetComponent<MinionResume>();
+			if (identity.gameObject == null)
+			{
+				DebugConsole.LogWarning($"[SkillMasteryPacket] NetId {NetId} has null gameObject.");
+				return;
+			}
+
+			var resume = identity.gameObject.GetComponent<MinionResume>();
 			if (resume == null)
 			{
 				DebugConsole.LogWarning($"[SkillMasteryPacket] NetId {NetId} has no MinionResume.");

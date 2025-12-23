@@ -38,9 +38,17 @@ namespace ONI_MP.Networking.Packets.World
 			{
 				// Mark as complete (Purchased triggers the unlocks)
 				techInstance.Purchased();
-				
+
 				DebugConsole.Log($"[ResearchCompletePacket] Completed research: {tech.Name}");
 				
+				// Trigger the game event to notify all listeners (PlanScreen, etc.)
+				// This is what normally happens when research completes on host
+				try
+				{
+					Game.Instance?.Trigger((int)GameHashes.ResearchComplete, tech);
+				}
+				catch { }
+
 				// Refresh the research screen if open
 				try
 				{
@@ -54,7 +62,7 @@ namespace ONI_MP.Networking.Packets.World
 					
 					if (researchScreen != null)
 					{
-						// Call ResearchCompleted on the entry
+						// Call OnActiveResearchChanged to update visuals
 						HarmonyLib.Traverse.Create(researchScreen)
 							.Method("OnActiveResearchChanged", new Type[] { typeof(object) })
 							.GetValue(null);

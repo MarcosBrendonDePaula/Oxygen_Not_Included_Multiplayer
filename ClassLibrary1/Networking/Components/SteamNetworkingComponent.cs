@@ -1,5 +1,4 @@
-﻿using ONI_MP.Menus;
-using ONI_MP.Misc;
+﻿using ONI_MP.Misc;
 using ONI_MP.Networking.States;
 using Steamworks;
 using UnityEngine;
@@ -15,14 +14,9 @@ namespace ONI_MP.Networking.Components
 			SteamNetworkingUtils.InitRelayNetworkAccess();
 			GameClient.Init();
 
-			MultiplayerMod.OnPostSceneLoaded += () =>
-			{
-				if (GameClient.State.Equals(ClientState.LoadingWorld))
-				{
-					GameClient.ReconnectFromCache();
-					MultiplayerOverlay.Close();
-				}
-			};
+			// NOTE: Client reconnection after world load is now handled in 
+			// GamePatch.OnSpawnPostfix which triggers AFTER the world is fully loaded.
+			// This is safer than OnPostSceneLoaded which fires during scene unload.
 		}
 
 		private void Update()

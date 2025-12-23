@@ -36,10 +36,10 @@ namespace ONI_MP.DebugTools
 
 		private void Update()
 		{
-			if (Input.GetKeyDown(KeyCode.F1) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-			{
-				showMenu = !showMenu;
-			}
+			//if (Input.GetKeyDown(KeyCode.F2) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
+			//{
+			//	showMenu = !showMenu;
+			//}
 		}
 
 		private void OnGUI()

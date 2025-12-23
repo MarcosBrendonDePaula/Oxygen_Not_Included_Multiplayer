@@ -30,7 +30,13 @@ namespace ONI_MP.Networking.Packets.Architecture
                     var packet = PacketRegistry.Create(type);
 					packet.Deserialize(reader);
 					Dispatch(packet);
-				}
+
+                    PacketTracker.TrackIncoming(new PacketTracker.PacketTrackData
+                    {
+						packet = packet,
+						size = data.Length
+                    });
+                }
 			}
 		}
 

@@ -30,6 +30,7 @@ namespace ONI_MP
 			try
 			{
 				DebugConsole.Init(); // Init console first to catch logs
+				PacketTracker.Init();
 				DebugConsole.Log("[ONI_MP] Loaded Oxygen Not Included Together Multiplayer Mod.");
 
                 PacketRegistry.RegisterDefaults();
@@ -37,6 +38,7 @@ namespace ONI_MP
                 // CHECKPOINT 1
                 System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 1: Pre-DebugMenu\n");
 				DebugMenu.Init();
+				NetworkStatisticsMenu.Init();
 
 				// CHECKPOINT 2
 				System.IO.File.AppendAllText(logPath, "[Trace] Checkpoint 2: Pre-SteamLobby\n");
@@ -91,7 +93,7 @@ namespace ONI_MP
 		{
 			App.OnPostLoadScene += () =>
 			{
-				OnPostSceneLoaded.Invoke();
+				OnPostSceneLoaded?.Invoke();
 			};
 
 			ReadyManager.SetupListeners();

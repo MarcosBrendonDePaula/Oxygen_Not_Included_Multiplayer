@@ -42,6 +42,9 @@ namespace ONI_MP.DebugTools
 
         public static DebugConsole Init()
         {
+            if (_instance != null)
+                return _instance;
+
             _instance = new DebugConsole();
             return _instance;
         }

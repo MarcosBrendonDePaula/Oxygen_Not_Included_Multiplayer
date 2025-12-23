@@ -66,8 +66,7 @@ namespace ONI_MP.Patches
 				{
                     AddButton(__instance, "Invite", () =>
                     {
-                        //SteamFriends.ActivateGameOverlayInviteDialog(MultiplayerSession.HostSteamID); // Whilst the menu opens, sending an invite this way doesn't work
-                        SteamFriends.ActivateGameOverlay("friends");
+                        SteamFriends.ActivateGameOverlayInviteDialog(SteamLobby.CurrentLobby); // Whilst the menu opens, sending an invite this way doesn't work
                     });
 
 					if (!GameServerHardSync.hardSyncDoneThisCycle)

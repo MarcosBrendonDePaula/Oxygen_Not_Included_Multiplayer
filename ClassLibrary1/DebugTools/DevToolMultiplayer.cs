@@ -19,6 +19,7 @@ namespace ONI_MP.DebugTools
     {
         private Vector2 scrollPos = Vector2.zero;
         DebugConsole console = null;
+        PacketTracker packetTracker = null;
 
         // Player color
         private bool useRandomColor = false;
@@ -40,6 +41,7 @@ namespace ONI_MP.DebugTools
             Name = "Multiplayer";
             RequiresGameRunning = false;
             console = DebugConsole.Init();
+            packetTracker = PacketTracker.Init();
 
             ColorRGB loadedColor = Configuration.GetClientProperty<ColorRGB>("PlayerColor");
             playerColor = new Vector3(loadedColor.R / 255, loadedColor.G / 255, loadedColor.B / 255);
@@ -83,8 +85,12 @@ namespace ONI_MP.DebugTools
             if (ImGui.Button("Toggle Debug Console"))
             {
                 console?.Toggle();
-                Debug.Log("Toggled Debug Console");
             }
+            if (ImGui.Button("Toggle Packet Tracker"))
+            {
+                packetTracker?.Toggle();
+            }
+            packetTracker.ShowWindow();
             console?.ShowWindow();
 
             ImGui.NewLine();
@@ -147,6 +153,8 @@ namespace ONI_MP.DebugTools
             ImGui.Text($"In Session: {MultiplayerSession.InSession}");
             ImGui.Text($"Local ID: {MultiplayerSession.LocalSteamID}");
             ImGui.Text($"Host ID: {MultiplayerSession.HostSteamID}");
+
+            DisplayNetworkStatistics();
 
             ImGui.Separator();
 
@@ -235,33 +243,24 @@ namespace ONI_MP.DebugTools
             }
         }
 
-        private void ShowAlertPrompt(
-            ref bool isVisible,
-            string title,
-            string message,
-            string confirmText,
-            string cancelText,
-            System.Action onConfirmAction)
+        public void DisplayNetworkStatistics()
         {
-            if (ImGui.BeginPopupModal(title, ref isVisible, ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text(message);
-                ImGui.Separator();
+            if(!MultiplayerSession.InSession)
+                return;
 
-                if (ImGui.Button(confirmText, new Vector2(150, 0)))
-                {
-                    isVisible = false;
+            ImGui.Separator();
+            ImGui.Text("Network Statistics");
+            ImGui.Text($"Ping: {GameClient.GetPingToHost()}");
+            ImGui.Text($"Quality(L/R): {GameClient.GetLocalPacketQuality():0.00} / {GameClient.GetRemotePacketQuality():0.00}");
+            ImGui.Text($"Unacked Reliable: {GameClient.GetUnackedReliable()}");
+            ImGui.Text($"Pending Unreliable: {GameClient.GetPendingUnreliable()}");
+            ImGui.Text($"Queue Time: {GameClient.GetUsecQueueTime() / 1000}ms");
+            ImGui.Spacing();
+            ImGui.Text($"Has Packet Lost: {GameClient.HasPacketLoss()}");
+            ImGui.Text($"Has Jitter: {GameClient.HasNetworkJitter()}");
+            ImGui.Text($"Has Reliable Packet Loss: {GameClient.HasReliablePacketLoss()}");
+            ImGui.Text($"Has Unreliable Packet Loss: {GameClient.HasUnreliablePacketLoss()}");
 
-                    onConfirmAction.Invoke();
-                }
-
-                ImGui.SameLine();
-                if (ImGui.Button(cancelText, new Vector2(150, 0)))
-                {
-                    isVisible = false;
-                }
-                ImGui.EndPopup();
-            }
         }
     }
 }

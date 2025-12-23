@@ -39,27 +39,30 @@ namespace ONI_MP.Networking.Compatibility
             };
         }
 
-        public void AddMissingMod(string modId)
+        public void AddMissingMod(string modId, string modName = null)
         {
-            if (!MissingMods.Contains(modId))
+            string displayName = string.IsNullOrEmpty(modName) ? modId : modName;
+            if (!MissingMods.Contains(displayName))
             {
-                MissingMods.Add(modId);
+                MissingMods.Add(displayName);
             }
         }
 
-        public void AddExtraMod(string modId)
+        public void AddExtraMod(string modId, string modName = null)
         {
-            if (!ExtraMods.Contains(modId))
+            string displayName = string.IsNullOrEmpty(modName) ? modId : modName;
+            if (!ExtraMods.Contains(displayName))
             {
-                ExtraMods.Add(modId);
+                ExtraMods.Add(displayName);
             }
         }
 
-        public void AddVersionMismatch(string modId)
+        public void AddVersionMismatch(string modId, string modName = null)
         {
-            if (!VersionMismatches.Contains(modId))
+            string displayName = string.IsNullOrEmpty(modName) ? modId : modName;
+            if (!VersionMismatches.Contains(displayName))
             {
-                VersionMismatches.Add(modId);
+                VersionMismatches.Add(displayName);
             }
         }
 

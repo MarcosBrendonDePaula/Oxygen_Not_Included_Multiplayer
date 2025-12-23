@@ -29,7 +29,6 @@ namespace ONI_MP.Networking
 
 		public static bool IsHardSyncInProgress = false;
 		private static bool _modVerificationSent = false;
-		private static bool _modVerificationApproved = false;
 
 		private struct CachedConnectionInfo
 		{
@@ -61,6 +60,9 @@ namespace ONI_MP.Networking
 
 		public static void ConnectToHost(CSteamID hostSteamId, bool showLoadingScreen = true)
 		{
+			// Reset mod verification for new connection attempts
+			_modVerificationSent = false;
+
 			if (showLoadingScreen)
 			{
 				MultiplayerOverlay.Show($"Connecting to {SteamFriends.GetFriendPersonaName(hostSteamId)}!");
@@ -93,6 +95,7 @@ namespace ONI_MP.Networking
 				Connection = null;
 				SetState(ClientState.Disconnected);
 				MultiplayerSession.InSession = false;
+
 				SaveHelper.CaptureWorldSnapshot();
 			}
 			else
@@ -222,13 +225,12 @@ namespace ONI_MP.Networking
 
 			// Reset mod verification state on new connection
 			_modVerificationSent = false;
-			_modVerificationApproved = false;
 
 			// First step: Send mod verification packet to host (CLIENTS ONLY)
 			if (!_modVerificationSent)
 			{
 				DebugConsole.Log("[GameClient] Sending mod verification to host...");
-				MultiplayerOverlay.Show("Verifying mod compatibility...");
+				// Overlay removido a pedido do usuário - verificação acontece silenciosamente
 
 				try
 				{
@@ -257,11 +259,32 @@ namespace ONI_MP.Networking
 
 		private static void ContinueConnectionFlow()
 		{
+			// CRÍTICO: Só executar no cliente, nunca no servidor
+			if (MultiplayerSession.IsHost)
+			{
+				DebugConsole.Log("[GameClient] ContinueConnectionFlow called on host - ignoring");
+				return;
+			}
+
+			DebugConsole.Log($"[GameClient] ContinueConnectionFlow - IsInMenu: {Utils.IsInMenu()}, IsInGame: {Utils.IsInGame()}, HardSyncInProgress: {IsHardSyncInProgress}");
+
 			if (Utils.IsInMenu())
 			{
-				MultiplayerOverlay.Show($"Waiting for {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+				DebugConsole.Log("[GameClient] Client is in menu - requesting save file or sending ready status");
+
+				// Mostrar overlay apenas se não estiver já visível
+				if (!MultiplayerOverlay.IsOpen)
+				{
+					MultiplayerOverlay.Show($"Syncing with {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+				}
+				else
+				{
+					DebugConsole.Log("[GameClient] MultiplayerOverlay already open, not showing duplicate");
+				}
+
 				if (!IsHardSyncInProgress)
 				{
+					DebugConsole.Log("[GameClient] Requesting save file from host");
 					var packet = new SaveFileRequestPacket
 					{
 						Requester = MultiplayerSession.LocalSteamID
@@ -270,21 +293,40 @@ namespace ONI_MP.Networking
 				}
 				else
 				{
+					DebugConsole.Log("[GameClient] Hard sync in progress, sending ready status");
 					// Tell the host we're ready
 					ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
 				}
 			}
 			else if (Utils.IsInGame())
 			{
+				DebugConsole.Log("[GameClient] Client is in game - treating as reconnection");
+
 				// We're in game already. Consider this a reconnection
 				SetState(ClientState.InGame);
+
+				// CRÍTICO: Habilitar processamento de pacotes
 				PacketHandler.readyToProcess = true;
+				DebugConsole.Log("[GameClient] PacketHandler.readyToProcess = true");
+
 				if (IsHardSyncInProgress)
+				{
 					IsHardSyncInProgress = false;
+					DebugConsole.Log("[GameClient] Cleared HardSyncInProgress flag");
+				}
 
 				ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
 				MultiplayerSession.CreateConnectedPlayerCursors();
 				SelectToolPatch.UpdateColor();
+
+				// Fechar overlay se reconectou com sucesso
+				MultiplayerOverlay.Close();
+
+				DebugConsole.Log("[GameClient] Reconnection setup complete");
+			}
+			else
+			{
+				DebugConsole.LogWarning("[GameClient] Client is neither in menu nor in game - unexpected state");
 			}
 		}
 
@@ -398,7 +440,9 @@ namespace ONI_MP.Networking
 		public static void OnModVerificationApproved()
 		{
 			DebugConsole.Log("[GameClient] Mod verification approved by host!");
-			_modVerificationApproved = true;
+
+			// NÃO fechar o overlay aqui - deixar para o fluxo de conexão gerenciar
+			DebugConsole.Log("[GameClient] Mod verification approved, continuing connection flow");
 
 			// Continue with normal connection flow
 			ContinueConnectionFlow();
@@ -407,8 +451,6 @@ namespace ONI_MP.Networking
 		public static void OnModVerificationRejected(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches)
 		{
 			DebugConsole.Log($"[GameClient] Mod verification rejected: {reason}");
-
-			_modVerificationApproved = false;
 
 			// Show detailed error to user
 			ShowModIncompatibilityError(reason, missingMods, extraMods, versionMismatches);

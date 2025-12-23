@@ -14,6 +14,9 @@ namespace ONI_MP.Networking.Compatibility
         private static bool _strictModeEnabled = true;
         private static bool _allowVersionMismatches = false;
 
+        // Ignora verificação de versão por enquanto - foca apenas em presença do mod
+        private const bool IGNORE_VERSION_CHECKS = true;
+
         public static void Initialize()
         {
             DebugConsole.Log("[ModCompatibilityManager] Initializing...");
@@ -125,6 +128,20 @@ namespace ONI_MP.Networking.Compatibility
                 }
 
                 DebugConsole.Log($"[ModCompatibilityManager] Validating client {clientPacket.ClientSteamID} with {clientMods.Count} mods");
+                DebugConsole.Log($"[ModCompatibilityManager] Host has {_hostMods.Count} mods");
+
+                // Log detailed mod lists for debugging
+                DebugConsole.Log("[ModCompatibilityManager] Host mods:");
+                foreach (var hostMod in _hostMods)
+                {
+                    DebugConsole.Log($"  Host: {hostMod.StaticID} - {hostMod.Version}");
+                }
+
+                DebugConsole.Log("[ModCompatibilityManager] Client mods:");
+                foreach (var clientMod in clientMods)
+                {
+                    DebugConsole.Log($"  Client: {clientMod.StaticID} - {clientMod.Version}");
+                }
 
                 // Verificar mods necessários que estão faltando no cliente
                 foreach (var hostMod in _hostMods)
@@ -133,42 +150,35 @@ namespace ONI_MP.Networking.Compatibility
 
                     if (clientMod == null)
                     {
-                        if (hostMod.IsRequired && hostMod.IsCritical())
-                        {
-                            result.AddMissingMod(hostMod.StaticID);
-                            DebugConsole.Log($"  Missing critical mod: {hostMod}");
-                        }
-                        else
-                        {
-                            result.AddWarning($"Missing non-critical mod: {hostMod}");
-                        }
+                        // Always require host mods to be present on client
+                        result.AddMissingMod(hostMod.StaticID, GetModName(hostMod.StaticID));
+                        DebugConsole.Log($"  Missing required mod: {hostMod}");
                     }
                     else if (hostMod.HasVersionMismatch(clientMod))
                     {
-                        if (!hostMod.AllowVersionMismatch && !_allowVersionMismatches)
+                        if (!IGNORE_VERSION_CHECKS && !hostMod.AllowVersionMismatch && !_allowVersionMismatches)
                         {
-                            result.AddVersionMismatch(hostMod.StaticID);
+                            result.AddVersionMismatch(hostMod.StaticID, GetModName(hostMod.StaticID));
                             DebugConsole.Log($"  Version mismatch: {hostMod} vs {clientMod}");
                         }
                         else
                         {
-                            result.AddWarning($"Version mismatch (allowed): {hostMod} vs {clientMod}");
+                            result.AddWarning($"Version mismatch (ignored): {hostMod} vs {clientMod}");
+                            DebugConsole.Log($"  Version mismatch ignored: {hostMod} vs {clientMod}");
                         }
                     }
                 }
 
-                // Verificar mods extras no cliente (dependendo do modo strict)
-                if (_strictModeEnabled)
+                // Log extra mods but DO NOT reject for them (permissive policy)
+                foreach (var clientMod in clientMods)
                 {
-                    foreach (var clientMod in clientMods)
-                    {
-                        var hostMod = _hostMods.FirstOrDefault(h => h.StaticID == clientMod.StaticID);
+                    var hostMod = _hostMods.FirstOrDefault(h => h.StaticID == clientMod.StaticID);
 
-                        if (hostMod == null && clientMod.IsCritical())
-                        {
-                            result.AddExtraMod(clientMod.StaticID);
-                            DebugConsole.Log($"  Extra mod (strict mode): {clientMod}");
-                        }
+                    if (hostMod == null)
+                    {
+                        // Client has extra mod that host doesn't have - log but allow
+                        result.AddExtraMod(clientMod.StaticID, GetModName(clientMod.StaticID));
+                        DebugConsole.Log($"  Client has extra mod (allowed): {clientMod}");
                     }
                 }
 
@@ -185,14 +195,21 @@ namespace ONI_MP.Networking.Compatibility
                     }
                 }
 
-                // Determinar resultado final
-                if (result.MissingMods.Count == 0 && result.VersionMismatches.Count == 0 &&
-                    result.ExtraMods.Count == 0)
+                // Determinar resultado final - só rejeitar para missing mods ou version mismatches
+                // Extra mods são permitidos (política permissiva)
+                if (result.MissingMods.Count == 0 && result.VersionMismatches.Count == 0)
                 {
                     result.IsCompatible = true;
-                    result.RejectReason = "Compatible";
-
-                    DebugConsole.Log($"[ModCompatibilityManager] Client {clientPacket.ClientSteamID} APPROVED");
+                    if (result.ExtraMods.Count > 0)
+                    {
+                        result.RejectReason = $"Compatible (client has {result.ExtraMods.Count} extra mod(s))";
+                        DebugConsole.Log($"[ModCompatibilityManager] Client {clientPacket.ClientSteamID} APPROVED with extra mods");
+                    }
+                    else
+                    {
+                        result.RejectReason = "Compatible";
+                        DebugConsole.Log($"[ModCompatibilityManager] Client {clientPacket.ClientSteamID} APPROVED");
+                    }
                 }
                 else
                 {
@@ -261,6 +278,53 @@ namespace ONI_MP.Networking.Compatibility
             catch
             {
                 return 0;
+            }
+        }
+
+        private static string GetModName(string modId)
+        {
+            try
+            {
+                // Try to find mod by ID in the active mods
+                var activeMods = Global.Instance?.modManager?.mods;
+                if (activeMods != null)
+                {
+                    foreach (var mod in activeMods)
+                    {
+                        if (mod?.label != null && mod.label.id == modId)
+                        {
+                            // Return "ModName - ID" format for better UX
+                            string displayName = !string.IsNullOrEmpty(mod.title) ? mod.title : mod.label.title;
+                            return $"{displayName} - {modId}";
+                        }
+                    }
+                }
+
+                // Fallback: try to get from mod manager instance
+                var modManager = Global.Instance?.modManager;
+                if (modManager != null)
+                {
+                    var allMods = modManager.mods;
+                    if (allMods != null)
+                    {
+                        foreach (var mod in allMods)
+                        {
+                            if (mod?.label != null && mod.label.id == modId)
+                            {
+                                string displayName = !string.IsNullOrEmpty(mod.title) ? mod.title : mod.label.title;
+                                return $"{displayName} - {modId}";
+                            }
+                        }
+                    }
+                }
+
+                // If we can't find the mod name, return just the ID
+                return modId;
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityManager] Failed to get mod name for {modId}: {ex.Message}");
+                return modId;
             }
         }
 

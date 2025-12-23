@@ -413,3 +413,6 @@ FodyWeavers.xsd
 
 # AI Agent notes (private, not uploaded to GitHub)
 .agent/
+/dev_build
+build_install.bat
+build_install.sh

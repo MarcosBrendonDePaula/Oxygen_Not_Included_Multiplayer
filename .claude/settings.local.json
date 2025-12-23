@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmd.exe /c install_mod.bat)",
+      "Bash(msbuild:*)",
+      "Bash(where /r \"C:\\\\Program Files\" msbuild.exe)",
+      "Bash(dotnet build:*)",
+      "Bash(move \"dynamic_build_install.py\" \"build_install.py\")",
+      "Bash(ren:*)",
+      "Bash(chmod:*)",
+      "Bash(python build_install.py:*)",
+      "Bash(python dev_build/build_install.py:*)",
+      "Bash(build_install.bat --paths --no-pause)",
+      "Bash(./build_install.sh:*)",
+      "Bash(grep:*)",
+      "Bash(timeout 30s python:*)",
+      "Bash(timeout 30s dotnet build:*)",
+      "Bash(timeout 10s python:*)",
+      "Bash(dir \"C:\\\\Users\\\\Marcos\\\\Documents\\\\ModsPresetsOrganizer\\\\Release.Mod.ModsPresetsOrganizer\")",
+      "Bash(dir:*)",
+      "Bash(findstr:*)"
+    ]
+  }
+}

@@ -15,16 +15,25 @@ namespace ONI_MP.Menus
             {
                 DebugConsole.Log("[ModCompatibilityPopup] Showing mod compatibility error dialog...");
 
-                // Simple approach: Use MultiplayerOverlay that works during connection
-                ShowViaMultiplayerOverlay(reason, missingMods, extraMods, versionMismatches);
+                // Use new dynamic IMGUI approach - much simpler!
+                ModCompatibilityGUI.ShowIncompatibilityError(reason, missingMods, extraMods, versionMismatches);
 
                 DebugConsole.Log("[ModCompatibilityPopup] Mod compatibility message displayed.");
             }
             catch (System.Exception ex)
             {
                 DebugConsole.LogWarning($"[ModCompatibilityPopup] Error showing dialog: {ex.Message}");
-                // Ultimate fallback: just log the message
-                ShowViaNotification(reason, missingMods, extraMods, versionMismatches);
+                // Fallback to MultiplayerOverlay approach
+                try
+                {
+                    ShowViaMultiplayerOverlay(reason, missingMods, extraMods, versionMismatches);
+                }
+                catch (System.Exception ex2)
+                {
+                    DebugConsole.LogWarning($"[ModCompatibilityPopup] Fallback overlay failed: {ex2.Message}");
+                    // Ultimate fallback: just log the message
+                    ShowViaNotification(reason, missingMods, extraMods, versionMismatches);
+                }
             }
         }
 

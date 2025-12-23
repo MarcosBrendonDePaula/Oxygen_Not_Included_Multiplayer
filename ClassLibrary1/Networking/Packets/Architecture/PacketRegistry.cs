@@ -118,6 +118,7 @@ namespace ONI_MP.Networking.Packets.Architecture
             TryRegister(() => new ResearchProgressPacket());
             TryRegister(() => new ResearchCompletePacket());
             TryRegister(() => new EntitySpawnPacket());
+            TryRegister(() => new AssignmentPacket());
 		}
 
         public static void TryRegister(Func<IPacket> constructor, string nameOverride = "")

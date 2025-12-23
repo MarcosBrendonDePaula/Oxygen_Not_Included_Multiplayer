@@ -160,6 +160,14 @@ namespace ONI_MP.Networking.Packets.World
 					if (techInst != null && !techInst.IsComplete())
 					{
 						techInst.Purchased();
+						
+						// Trigger the game event to notify all listeners (PlanScreen, etc.)
+						try
+						{
+							Game.Instance?.Trigger((int)GameHashes.ResearchComplete, tech);
+						}
+						catch { }
+						
 						unlockedCount++;
 					}
 				}

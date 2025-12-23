@@ -29,13 +29,36 @@ namespace ONI_MP.Networking.Components
 
 		public void RegisterIdentity()
 		{
+			if (Grid.WidthInCells == 0) 
+			{
+				// DebugConsole.LogWarning($"[NetworkIdentity] Skipping registration for {gameObject.name} - Grid not ready");
+				return;
+			}
+
+			// Try to handle deterministic ID for buildings first
+			if (NetId == 0)
+			{
+				var building = GetComponent<Building>();
+				if (building != null)
+				{
+					int detId = NetIdHelper.GetDeterministicBuildingId(gameObject);
+					if (detId != 0)
+					{
+						NetId = detId;
+						// DebugConsole.Log($"[NetworkIdentity] Generated Deterministic NetId {detId} for building {gameObject.name}");
+					}
+				}
+			}
+
 			if (NetId == 0)
 			{
 				NetId = NetworkIdentityRegistry.Register(this);
+				DebugConsole.Log($"[NetworkIdentity] Generated Random NetId {NetId} for {gameObject.name}");
 			}
 			else
 			{
 				NetworkIdentityRegistry.RegisterExisting(this, NetId);
+				// DebugConsole.Log($"[NetworkIdentity] Registered Existing NetId {NetId} for {gameObject.name}");
 			}
 		}
 

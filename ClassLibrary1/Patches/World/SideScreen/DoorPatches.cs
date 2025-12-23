@@ -1,0 +1,22 @@
+using HarmonyLib;
+using ONI_MP.Networking.Packets.World;
+
+namespace ONI_MP.Patches.World.SideScreen
+{
+	/// <summary>
+	/// Patches for door state synchronization
+	/// </summary>
+
+	/// <summary>
+	/// Sync door state changes (Open/Close/Auto)
+	/// </summary>
+	[HarmonyPatch(typeof(Door), "QueueStateChange")]
+	public static class Door_QueueStateChange_Patch
+	{
+		public static void Postfix(Door __instance, Door.ControlState nextState)
+		{
+			if (BuildingConfigPacket.IsApplyingPacket) return;
+			SideScreenSyncHelper.SyncDoorState(__instance.gameObject, nextState);
+		}
+	}
+}

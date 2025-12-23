@@ -38,6 +38,12 @@ namespace ONI_MP.Misc.World
 				if (pendingUpdates.Count == 0)
 					return;
 
+				if(MultiplayerSession.IsClient)
+				{
+                    pendingUpdates.Clear();
+                    return;
+				}
+
 				// Each cell update is roughly 5.38 bytes after compression (1KB / 5.38 = 188)
 				const int MaxUpdatesPerPacket = 180; // Keep packet size under ~1KB
 
@@ -46,8 +52,8 @@ namespace ONI_MP.Misc.World
 					var chunk = pendingUpdates.GetRange(i, Math.Min(MaxUpdatesPerPacket, pendingUpdates.Count - i));
 					var packet = new WorldUpdatePacket();
 					packet.Updates.AddRange(chunk);
-					PacketSender.SendToAll(packet, sendType: SteamNetworkingSend.Unreliable); // max packet size 1200 bytes (typically 1170–1200 bytes)
-				}
+					PacketSender.SendToAllClients(packet, sendType: SteamNetworkingSend.Unreliable); // max packet size 1200 bytes (typically 1170–1200 bytes)
+                }
 
 				pendingUpdates.Clear();
 			}

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
@@ -16,7 +17,8 @@ namespace ONI_MP.DebugTools
         private static PacketTracker _instance;
         private bool showWindow = false;
 
-        private string filter = string.Empty;
+        private string outgoing_filter = string.Empty;
+        private string incoming_filter = string.Empty;
 
         // Used for imgui packet tracking
         public struct PacketTrackData
@@ -25,7 +27,8 @@ namespace ONI_MP.DebugTools
             public int size;
         }
 
-        private List<PacketTrackData> tracked = new List<PacketTrackData>();
+        private List<PacketTrackData> incoming_tracked = new List<PacketTrackData>();
+        private List<PacketTrackData> outgoing_tracked = new List<PacketTrackData>();
         private const int MAX_TRACKED_LIMIT = 100;
 
         public static PacketTracker Init()
@@ -39,18 +42,30 @@ namespace ONI_MP.DebugTools
 
         public static void TrackSent(PacketTrackData data)
         {
-            _instance.tracked.Add(data);
+            _instance.outgoing_tracked.Add(data);
 
-            if (_instance.tracked.Count > MAX_TRACKED_LIMIT)
+            if (_instance.outgoing_tracked.Count > MAX_TRACKED_LIMIT)
             {
-                int overflow = _instance.tracked.Count - MAX_TRACKED_LIMIT;
-                _instance.tracked.RemoveRange(0, overflow);
+                int overflow = _instance.outgoing_tracked.Count - MAX_TRACKED_LIMIT;
+                _instance.outgoing_tracked.RemoveRange(0, overflow);
+            }
+        }
+
+        public static void TrackIncoming(PacketTrackData data)
+        {
+            _instance.incoming_tracked.Add(data);
+
+            if (_instance.incoming_tracked.Count > MAX_TRACKED_LIMIT)
+            {
+                int overflow = _instance.incoming_tracked.Count - MAX_TRACKED_LIMIT;
+                _instance.incoming_tracked.RemoveRange(0, overflow);
             }
         }
 
         public void Clear()
         {
-            _instance.tracked.Clear();
+            _instance.outgoing_tracked.Clear();
+            _instance.incoming_tracked.Clear();
         }
 
         public void Toggle()
@@ -67,64 +82,80 @@ namespace ONI_MP.DebugTools
             {
                 if (!MultiplayerSession.InSession)
                 {
-                    if (tracked.Count > 0)
+                    if (outgoing_tracked.Count > 0)
                         Clear();
 
                     ImGui.TextDisabled("Not in a session!");
                 }
                 else
                 {
-                    ImGui.InputText("Filter", ref filter, 64);
-                    ImGui.Separator();
-
-                    if (ImGui.BeginTable("packet_tracker_table", 3,
-                        ImGuiTableFlags.Borders |
-                        ImGuiTableFlags.RowBg |
-                        ImGuiTableFlags.ScrollY))
+                    if (ImGui.CollapsingHeader("Incoming Packets"))
                     {
-                        ImGui.TableSetupColumn("Packet Type");
-                        ImGui.TableSetupColumn("Packet ID");
-                        ImGui.TableSetupColumn("Size (bytes)");
+                        ImGui.InputText("Filter", ref incoming_filter, 64);
+                        ImGui.Separator();
 
-                        ImGui.TableHeadersRow();
+                        AddTable("incoming_packets_table", incoming_tracked, incoming_filter);
+                    }
 
-                        for (int i = tracked.Count - 1; i >= 0; i--)
-                        {
-                            var entry = tracked[i];
+                    if (ImGui.CollapsingHeader("Outgoing Packets"))
+                    {
+                        ImGui.InputText("Filter", ref outgoing_filter, 64);
+                        ImGui.Separator();
 
-                            string typeName = entry.packet.GetType().Name;
-                            string idString = entry.packet.GetType().GetHashCode().ToString();
-
-                            if (!string.IsNullOrEmpty(filter))
-                            {
-                                bool matchesType =
-                                    typeName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
-
-                                bool matchesId =
-                                    idString.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
-
-                                if (!matchesType && !matchesId)
-                                    continue;
-                            }
-
-                            ImGui.TableNextRow();
-
-                            ImGui.TableSetColumnIndex(0);
-                            ImGui.Text(typeName);
-
-                            ImGui.TableSetColumnIndex(1);
-                            ImGui.Text(idString);
-
-                            ImGui.TableSetColumnIndex(2);
-                            ImGui.Text(Utils.FormatBytes(entry.size));
-                        }
-
-                        ImGui.EndTable();
+                        AddTable("outgoing_packets_table", outgoing_tracked, outgoing_filter);
                     }
                 }
             }
 
             ImGui.End();
+        }
+
+        private void AddTable(string str_id, List<PacketTrackData> dataset, string filter)
+        {
+            if (ImGui.BeginTable(str_id, 3,
+                        ImGuiTableFlags.Borders |
+                        ImGuiTableFlags.RowBg |
+                        ImGuiTableFlags.ScrollY))
+            {
+                ImGui.TableSetupColumn("Packet Type");
+                ImGui.TableSetupColumn("Packet ID");
+                ImGui.TableSetupColumn("Size (bytes)");
+
+                ImGui.TableHeadersRow();
+
+                for (int i = dataset.Count - 1; i >= 0; i--)
+                {
+                    var entry = dataset[i];
+
+                    string typeName = entry.packet.GetType().Name;
+                    string idString = entry.packet.GetType().GetHashCode().ToString();
+
+                    if (!string.IsNullOrEmpty(filter))
+                    {
+                        bool matchesType =
+                            typeName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+
+                        bool matchesId =
+                            idString.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+
+                        if (!matchesType && !matchesId)
+                            continue;
+                    }
+
+                    ImGui.TableNextRow();
+
+                    ImGui.TableSetColumnIndex(0);
+                    ImGui.Text(typeName);
+
+                    ImGui.TableSetColumnIndex(1);
+                    ImGui.Text(idString);
+
+                    ImGui.TableSetColumnIndex(2);
+                    ImGui.Text(Utils.FormatBytes(entry.size));
+                }
+
+                ImGui.EndTable();
+            }
         }
 
     }

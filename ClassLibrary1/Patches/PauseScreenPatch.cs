@@ -73,9 +73,17 @@ namespace ONI_MP.Patches
 					{
                         AddButton(__instance, "Perform Hard Sync", () =>
                         {
-                            PauseScreen.Instance.Show(false); // Hide pause screen
-                            SpeedControlScreen.Instance?.Unpause(false);
-							GameServerHardSync.PerformHardSync(); // Manually trigger the hard sync
+							if (MultiplayerSession.ConnectedPlayers.Count > 0)
+							{
+								PauseScreen.Instance.Show(false); // Hide pause screen
+								SpeedControlScreen.Instance?.Unpause(false);
+								GameServerHardSync.PerformHardSync(); // Manually trigger the hard sync
+							} else
+							{
+                                PauseScreen.Instance.Show(false); // Hide pause screen
+                                SpeedControlScreen.Instance?.Unpause(false);
+								GameServerHardSync.hardSyncDoneThisCycle = true; // No one is here, skip hard sync
+                            }
                         });
                     } else
 					{

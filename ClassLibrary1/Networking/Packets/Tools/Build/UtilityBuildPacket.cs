@@ -129,14 +129,17 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 					if (existingObj != null) continue;
 
 					Vector3 pos = Grid.CellToPosCBC(cell, def.SceneLayer);
-					var go = def.TryPlace(null, pos, Orientation.Neutral, tags, "DEFAULT_FACADE");
+					///check if there is a conduit on the layer already
+					GameObject go = Grid.Objects[cell, (int)def.ObjectLayer];
+					///if not, try placing a new planned building
+					if (go == null)
+						def.TryPlace(null, pos, Orientation.Neutral, tags, "DEFAULT_FACADE");
 					if (go != null)
 					{
 						placedCount++;
 
 						// Set connection state using our connection flags
-						var tileVis = go.GetComponent<KAnimGraphTileVisualizer>();
-						if (tileVis != null)
+						if (go.TryGetComponent<KAnimGraphTileVisualizer>(out var tileVis))
 						{
 							// Build the UtilityConnections bitmask: Left=1, Right=2, Up=4, Down=8
 							UtilityConnections newConnections = (UtilityConnections)0;

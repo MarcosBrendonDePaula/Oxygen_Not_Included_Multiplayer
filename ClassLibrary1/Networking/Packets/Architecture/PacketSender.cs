@@ -49,6 +49,10 @@ namespace ONI_MP.Networking
 				}
 				else
 				{
+					PacketTracker.TrackSent(new PacketTracker.PacketTrackData {
+						packet = packet,
+						size = bytes.Length
+					});
 					//DebugConsole.Log($"[Sockets] Sent {packet.Type} to conn {conn} ({Utils.FormatBytes(bytes.Length)})");
 				}
 				return sent;

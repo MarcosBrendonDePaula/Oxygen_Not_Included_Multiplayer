@@ -28,6 +28,8 @@ namespace ONI_MP.Networking
 
 		public static bool IsHardSyncInProgress = false;
 
+		private static SteamNetConnectionRealTimeStatus_t? connectionHealth = null;
+
 		private struct CachedConnectionInfo
 		{
 			public CSteamID HostSteamID;
@@ -141,8 +143,9 @@ namespace ONI_MP.Networking
 				return;
 
 			SteamNetworkingSockets.RunCallbacks();
+			EvaluateConnectionHealth();
 
-			switch (State)
+            switch (State)
 			{
 				case ClientState.Connected:
 				case ClientState.InGame:
@@ -305,28 +308,129 @@ namespace ONI_MP.Networking
 			SteamLobby.LeaveLobby();
 		}
 
-		public static int? GetPingToHost()
+        #region Connection Health
+        public static SteamNetConnectionRealTimeStatus_t? QueryConnectionHealth()
 		{
-			if (Connection.HasValue)
-			{
-				SteamNetConnectionRealTimeStatus_t status = default;
-				SteamNetConnectionRealTimeLaneStatus_t laneStatus = default;
+            if (Connection.HasValue)
+            {
+                SteamNetConnectionRealTimeStatus_t status = default;
+                SteamNetConnectionRealTimeLaneStatus_t laneStatus = default;
 
-				EResult res = SteamNetworkingSockets.GetConnectionRealTimeStatus(
-						Connection.Value,
-						ref status,
-						0,
-						ref laneStatus
-				);
+                EResult res = SteamNetworkingSockets.GetConnectionRealTimeStatus(
+                        Connection.Value,
+                        ref status,
+                        0,
+                        ref laneStatus
+                );
 
-				if (res == EResult.k_EResultOK)
-				{
-					return status.m_nPing >= 0 ? (int?)status.m_nPing : null;
-				}
-			}
+                if (res == EResult.k_EResultOK)
+                {
+                    return status;
+                }
+            }
 			return null;
+        }
+
+		public static void EvaluateConnectionHealth()
+		{
+			connectionHealth = QueryConnectionHealth();
+        }
+
+		public static SteamNetConnectionRealTimeStatus_t? GetConnectionHealth()
+		{
+			return connectionHealth;
 		}
 
+        public static float GetLocalPacketQuality()
+        {
+            if (!connectionHealth.HasValue)
+                return 0f;
+
+            return connectionHealth.Value.m_flConnectionQualityLocal;
+        }
+
+        public static float GetRemotePacketQuality()
+        {
+            if (!connectionHealth.HasValue)
+                return 0f;
+
+            return connectionHealth.Value.m_flConnectionQualityRemote;
+        }
+
+        public static int GetPingToHost()
+		{
+			if (!connectionHealth.HasValue)
+				return -1;
+
+			return connectionHealth.Value.m_nPing;
+		}
+
+        public static bool HasPacketLoss()
+        {
+            if (!connectionHealth.HasValue)
+                return false;
+
+			float localQuality = GetLocalPacketQuality();
+            return localQuality < 0.7f;
+        }
+
+        public static bool HasReliablePacketLoss()
+        {
+            if (!connectionHealth.HasValue)
+                return false;
+
+            return connectionHealth.Value.m_cbSentUnackedReliable > 0;
+        }
+
+        public static bool HasSevereReliableLoss()
+        {
+            if (!connectionHealth.HasValue)
+                return false;
+
+            return connectionHealth.Value.m_cbSentUnackedReliable > 32 * 1024; // 32 KB backlog
+        }
+
+        public static bool HasUnreliablePacketLoss()
+        {
+            if (!connectionHealth.HasValue)
+                return false;
+
+            return connectionHealth.Value.m_cbPendingUnreliable > 0;
+        }
+
+        public static bool HasNetworkJitter()
+        {
+            if (!connectionHealth.HasValue)
+                return false;
+
+            // > 50ms queued
+            return (long) connectionHealth.Value.m_usecQueueTime > 50_000;
+        }
+
+		public static int GetUnackedReliable()
+		{
+			if (!connectionHealth.HasValue)
+				return -1;
+
+			return connectionHealth.Value.m_cbSentUnackedReliable;
+		}
+
+		public static int GetPendingUnreliable()
+		{
+			if (!connectionHealth.HasValue)
+				return -1;
+
+			return connectionHealth.Value.m_cbPendingUnreliable;
+		}
+
+		public static long GetUsecQueueTime()
+		{
+			if (!connectionHealth.HasValue)
+				return -1;
+
+			return (long) connectionHealth.Value.m_usecQueueTime;
+		}
+		#endregion
 		public static void CacheCurrentServer()
 		{
 			if (MultiplayerSession.HostSteamID != CSteamID.Nil)

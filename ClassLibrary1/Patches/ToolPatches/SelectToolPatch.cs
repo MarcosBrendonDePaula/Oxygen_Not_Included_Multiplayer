@@ -34,8 +34,8 @@ namespace ONI_MP.Patches.ToolPatches
 			Texture2D tinted = TintTexture(cursor, tint);
 			Cursor.SetCursor(tinted, Vector2.zero, CursorMode.Auto);
 
-			if (PlayerController.Instance.vim != null)
-				PlayerController.Instance.vim.SetCursor(tinted);
+			if (PlayerController.Instance?.vim != null)
+				PlayerController.Instance?.vim.SetCursor(tinted);
 		}
 
 		private static Texture2D TintTexture(Texture2D src, Color tint)

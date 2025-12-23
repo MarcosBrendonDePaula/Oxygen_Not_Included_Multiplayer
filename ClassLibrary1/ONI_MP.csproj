@@ -15,7 +15,6 @@
 		<ModDescription>Adds multiplayer to Oxygen Not Included! By Lyraedan</ModDescription>
 		<MinimumSupportedBuild>$(TargetGameVersion)</MinimumSupportedBuild>
 		<APIVersion>2</APIVersion>
-		<ForbiddenDlcIds>EXPANSION_1_ID</ForbiddenDlcIds> <!-- Block spaced out. Not supported right now -->
 	</PropertyGroup>
 
 	<!-- Build Properties -->

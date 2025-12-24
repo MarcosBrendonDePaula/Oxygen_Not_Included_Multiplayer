@@ -9,18 +9,29 @@ using System.Reflection;
 namespace ONI_MP.Patches.ToolPatches.Build
 {
 	// Try patching BuildPath - called when drag is complete and building is placed
-	[HarmonyPatch(typeof(BaseUtilityBuildTool), nameof(BaseUtilityBuildTool.BuildPath))]
+	[HarmonyPatch(typeof(BaseUtilityBuildTool), "BuildPath")]
 	public static class UtilityBuildToolPatch
 	{
 		public static void Prefix(BaseUtilityBuildTool __instance)
 		{
+			DebugConsole.Log($"[UtilityBuildToolPatch] Prefix called! Tool type: {__instance.GetType().Name}");
+
 			if (!MultiplayerSession.InSession)
 			{
-				//DebugConsole.Log($"[UtilityBuildToolPatch] Not in MP session, returning");
+				DebugConsole.Log($"[UtilityBuildToolPatch] Not in MP session, returning");
 				return;
 			}
-			DebugConsole.Log($"[UtilityBuildToolPatch] Prefix called! Tool type: {__instance.GetType().Name}");
-			var pathList = __instance.path;
+
+			// Reflect the path
+			// protected IList<PathNode> path;
+			var pathField = typeof(BaseUtilityBuildTool).GetField("path", BindingFlags.Instance | BindingFlags.NonPublic);
+			if (pathField == null)
+			{
+				DebugConsole.LogError("[UtilityBuildToolPatch] Could not find 'path' field.");
+				return;
+			}
+
+			var pathList = pathField.GetValue(__instance) as IList;
 			if (pathList == null || pathList.Count < 2)
 			{
 				// Typically needs at least 2 nodes or valid drag to apply? 
@@ -28,7 +39,14 @@ namespace ONI_MP.Patches.ToolPatches.Build
 				return;
 			}
 
-			var def = __instance.def;
+			// Reflect the BuildingDef (def)
+			var defField = typeof(BaseUtilityBuildTool).GetField("def", BindingFlags.Instance | BindingFlags.NonPublic);
+			if (defField == null)
+			{
+				DebugConsole.LogError("[UtilityBuildToolPatch] Could not find 'def' field.");
+				return;
+			}
+			var def = defField.GetValue(__instance) as BuildingDef;
 			if (def == null) return;
 
 			// Reflect selected elements (BaseUtlityBuildTool -> BaseTool? No, it inherits. But selectedElements might be on BaseUtilityBuildTool or BuildTool?)
@@ -37,7 +55,7 @@ namespace ONI_MP.Patches.ToolPatches.Build
 			// Let's check AccessTools or use reflection on instance.
 			// "selectedElements" is typically 'IList<Tag>'
 
-			var selectedElements = __instance.selectedElements;;
+			var selectedElements = AccessTools.Field(typeof(BaseUtilityBuildTool), "selectedElements").GetValue(__instance) as IList<Tag>;
 
 			// Prepare Packet
 			var packet = new UtilityBuildPacket();

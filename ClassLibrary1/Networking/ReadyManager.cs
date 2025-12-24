@@ -154,6 +154,12 @@ namespace ONI_MP.Networking
 
 		internal static void RefreshReadyState()
 		{
+			if(MultiplayerSession.ConnectedPlayers.Count <= 1)
+			{
+				AllClientsReadyPacket.ProcessAllReady();//bypass sending packet if its just the host left
+				return;
+			}
+
 			bool allReady = ReadyManager.IsEveryoneReady();
 			if (allReady)
 			{

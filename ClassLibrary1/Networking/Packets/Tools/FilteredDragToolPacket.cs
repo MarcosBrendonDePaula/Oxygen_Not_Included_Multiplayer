@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static STRINGS.INPUT_BINDINGS;
 
 namespace ONI_MP.Networking.Packets.Tools
 {
@@ -81,7 +82,8 @@ namespace ONI_MP.Networking.Packets.Tools
 			{
 				DebugConsole.LogWarning("[FilteredDragToolPacket] ToolInstance is null in OnDispatched");
 			}
-			ApplyFilterData(ToolInstance);
+			var cachedFilters = ToolInstance.currentFilterTargets?.Keys.ToHashSet();
+			ApplyFilterData(ToolInstance, currentFilterTargets);
 			ProcessingIncoming = true;
 			switch (ToolMode)
 			{
@@ -101,8 +103,9 @@ namespace ONI_MP.Networking.Packets.Tools
 					break;
 			}
 			ProcessingIncoming = false;
+			ApplyFilterData(ToolInstance, cachedFilters);
 		}
-		public void ApplyFilterData(FilteredDragTool tool)
+		public void ApplyFilterData(FilteredDragTool tool, HashSet<string> targets)
 		{
 			var currentFilterKeys = tool.currentFilterTargets.Keys.ToList();
 
@@ -110,7 +113,7 @@ namespace ONI_MP.Networking.Packets.Tools
 			{
 				tool.currentFilterTargets[target] = ToolParameterMenu.ToggleState.Off;
 			}
-			foreach(var target in currentFilterTargets)
+			foreach(var target in targets)
 			{
 				tool.currentFilterTargets[target] = ToolParameterMenu.ToggleState.On;
 			}

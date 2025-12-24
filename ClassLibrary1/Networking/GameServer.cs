@@ -215,6 +215,7 @@ namespace ONI_MP.Networking
 
 			DebugConsole.Log($"[GameServer] Connection closed for {clientId}");
 
+			ReadyManager.RefreshReadyState();
 			// Do I wanna auto shutdown here? I don't think so
 			// if (MultiplayerSession.ConnectedPlayers.Count == 0)
 			// {

@@ -152,5 +152,18 @@ namespace ONI_MP.Networking
 			return result;
 		}
 
+		internal static void RefreshReadyState()
+		{
+			bool allReady = ReadyManager.IsEveryoneReady();
+			if (allReady)
+			{
+				ReadyManager.SendAllReadyPacket();
+			}
+			else
+			{
+				// Broadcast updated overlay message to all clients
+				ReadyManager.SendStatusUpdatePacketToClients();
+			}
+		}
 	}
 }

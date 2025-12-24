@@ -21,6 +21,7 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 		public List<BaseUtilityBuildTool.PathNode> path = [];
 		public List<string> MaterialTags = [];
 		public string PrefabID, FacadeID;
+		public PrioritySetting Priority;
 
 		static void SerializePathNode(BinaryWriter writer, BaseUtilityBuildTool.PathNode node)
 		{
@@ -60,7 +61,10 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			{
 				writer.Write(tag);
 			}
+			writer.Write((int)Priority.priority_class);
+			writer.Write(Priority.priority_value);
 		}
+
 
 		public void Deserialize(BinaryReader reader)
 		{
@@ -78,6 +82,9 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			{
 				MaterialTags.Add(reader.ReadString());
 			}
+			Priority = new PrioritySetting(
+					(PriorityScreen.PriorityClass)reader.ReadInt32(),
+					reader.ReadInt32());
 		}
 
 		public void OnDispatched()
@@ -107,7 +114,8 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			BuildingDef cachedDef = tool.def;
 			List<BaseUtilityBuildTool.PathNode> cachedPath = tool.path != null ? [.. tool.path] : [];
 			IList<Tag> cachedMaterials = tool.selectedElements != null?[..tool.selectedElements] : [];
-			var cachedMgr = tool.conduitMgr;
+			IUtilityNetworkMgr cachedMgr = tool.conduitMgr;
+			PrioritySetting cachedPriority = ToolMenu.Instance.PriorityScreen.GetLastSelectedPriority();
 
 			IHaveUtilityNetworkMgr conduitManagerHaver = def.BuildingComplete.GetComponent<IHaveUtilityNetworkMgr>();
 
@@ -116,7 +124,9 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			tool.selectedElements = tags;
 			tool.conduitMgr = conduitManagerHaver.GetNetworkManager();
 
+
 			ProcessingIncoming = true;
+			ToolMenu.Instance.PriorityScreen.SetScreenPriority(Priority);
 			DebugConsole.Log($"[UtilityBuildPacket] Building path with {path.Count} nodes of prefab {def.PrefabID}");
 			tool.BuildPath();
 			ProcessingIncoming = false;
@@ -125,6 +135,7 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			tool.path = cachedPath;
 			tool.selectedElements = cachedMaterials;
 			tool.conduitMgr = cachedMgr;
+			ToolMenu.Instance.PriorityScreen.SetScreenPriority(cachedPriority);
 		}
 	}
 }

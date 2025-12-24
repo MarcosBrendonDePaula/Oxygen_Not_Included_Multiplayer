@@ -27,7 +27,7 @@ namespace ONI_MP.Patches.ToolPatches.Build
 				DebugConsole.Log("UtilityBuildPacket currently processing");
 				return;
 			}
-
+			
 			if (__instance.path == null || __instance.def == null || __instance.path.Count < 2)
 			{
 				DebugConsole.LogWarning("[UtilityBuildToolPatch] Path or Def is null, cannot send UtilityBuildPacket.");

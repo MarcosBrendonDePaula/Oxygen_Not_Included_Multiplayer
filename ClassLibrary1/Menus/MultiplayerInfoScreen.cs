@@ -86,9 +86,6 @@ namespace ONI_MP.Menus
             var image = screen.GetComponent<Image>();
             image.color = new Color(0.1f, 0.1f, 0.15f, 1f);
 
-            // Add X close button at top-right
-            CreateCloseXButton(screen.transform);
-
             // Store overlay as the main GO to destroy
             _screenGO = overlay;
 
@@ -97,8 +94,12 @@ namespace ONI_MP.Menus
 
         private static void CreateCloseXButton(Transform panelTransform)
         {
-            var btnGO = new GameObject("CloseXButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            var btnGO = new GameObject("CloseXButton", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
             btnGO.transform.SetParent(panelTransform, false);
+
+            // Ignore layout so it positions independently
+            var layoutElem = btnGO.GetComponent<LayoutElement>();
+            layoutElem.ignoreLayout = true;
 
             var rt = btnGO.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(1f, 1f);
@@ -108,7 +109,7 @@ namespace ONI_MP.Menus
             rt.sizeDelta = new Vector2(28, 28);
 
             var image = btnGO.GetComponent<Image>();
-            image.color = new Color(0.5f, 0.2f, 0.2f, 0.9f);
+            image.color = new Color(0.6f, 0.25f, 0.25f, 1f);
 
             var textGO = new GameObject("X", typeof(RectTransform), typeof(TextMeshProUGUI));
             textGO.transform.SetParent(btnGO.transform, false);
@@ -118,8 +119,9 @@ namespace ONI_MP.Menus
             textRT.sizeDelta = Vector2.zero;
 
             var tmp = textGO.GetComponent<TextMeshProUGUI>();
-            tmp.text = "✕";
-            tmp.fontSize = 18;
+            tmp.text = "X";
+            tmp.fontSize = 16;
+            tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = Color.white;
 
@@ -154,6 +156,9 @@ namespace ONI_MP.Menus
 
             // Action buttons
             CreateActionButtons();
+
+            // X close button at top-right (created last for proper raycast order)
+            CreateCloseXButton(_panelGO.transform);
         }
 
         private void CreateLobbyCodeSection()
@@ -274,7 +279,7 @@ namespace ONI_MP.Menus
             container.transform.SetParent(_panelGO.transform, false);
 
             var containerRT = container.GetComponent<RectTransform>();
-            containerRT.sizeDelta = new Vector2(0, 130);
+            containerRT.sizeDelta = new Vector2(0, 150);
 
             var layout = container.GetComponent<VerticalLayoutGroup>();
             layout.spacing = 10;
@@ -285,7 +290,7 @@ namespace ONI_MP.Menus
             if (MultiplayerSession.IsHost)
             {
                 // Invite button
-                CreateActionButton(container.transform, "📨 Invite Friends", () =>
+                CreateActionButton(container.transform, "Invite Friends", () =>
                 {
                     Steamworks.SteamFriends.ActivateGameOverlayInviteDialog(SteamLobby.CurrentLobby);
                 });
@@ -293,7 +298,7 @@ namespace ONI_MP.Menus
                 // Hard Sync button
                 if (!GameServerHardSync.hardSyncDoneThisCycle)
                 {
-                    CreateActionButton(container.transform, "🔄 Perform Hard Sync", () =>
+                    CreateActionButton(container.transform, "Perform Hard Sync", () =>
                     {
                         Close();
                         if (MultiplayerSession.ConnectedPlayers.Count > 0)
@@ -308,11 +313,11 @@ namespace ONI_MP.Menus
                 }
                 else
                 {
-                    CreateActionButton(container.transform, "✓ Hard Sync Done", null, true);
+                    CreateActionButton(container.transform, "Hard Sync Done", null, true);
                 }
 
                 // End Session button
-                CreateActionButton(container.transform, "🚪 End Session", () =>
+                CreateActionButton(container.transform, "End Session", () =>
                 {
                     Close();
                     SteamLobby.LeaveLobby();
@@ -322,7 +327,7 @@ namespace ONI_MP.Menus
             else
             {
                 // Leave Session button for clients
-                CreateActionButton(container.transform, "🚪 Leave Session", () =>
+                CreateActionButton(container.transform, "Leave Session", () =>
                 {
                     Close();
                     SteamLobby.LeaveLobby();

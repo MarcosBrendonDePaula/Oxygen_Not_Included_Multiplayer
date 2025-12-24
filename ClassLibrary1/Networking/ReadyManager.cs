@@ -5,6 +5,7 @@ using ONI_MP.Networking.States;
 using Steamworks;
 using System;
 using System.Collections.Generic;
+using static STRINGS.BUILDINGS.PREFABS.DOOR.CONTROL_STATE;
 
 namespace ONI_MP.Networking
 {
@@ -126,6 +127,10 @@ namespace ONI_MP.Networking
         private static void UpdateReadyStateTracking(CSteamID id)
 		{
 			DebugConsole.LogAssert($"Update ready state tracking for {id}");
+			if (!MultiplayerSession.IsHost)
+				return;
+			if(MultiplayerOverlay.IsOpen)
+				RefreshScreen();
 		}
 
 		/// <summary>

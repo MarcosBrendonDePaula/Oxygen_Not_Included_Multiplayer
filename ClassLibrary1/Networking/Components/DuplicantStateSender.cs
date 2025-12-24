@@ -52,6 +52,10 @@ namespace ONI_MP.Networking.Components
 			if (!MultiplayerSession.InSession || MultiplayerSession.IsClient)
 				return;
 
+			// Skip if no clients connected
+			if (MultiplayerSession.ConnectedPlayers.Count == 0)
+				return;
+
 			timer += Time.unscaledDeltaTime;
 			heartbeatTimer += Time.unscaledDeltaTime;
 

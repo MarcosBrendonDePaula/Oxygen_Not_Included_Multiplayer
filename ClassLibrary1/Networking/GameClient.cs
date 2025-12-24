@@ -303,7 +303,7 @@ namespace ONI_MP.Networking
             Sim.Shutdown();
             App.LoadScene("frontend");
 
-            MultiplayerOverlay.Close();
+			MultiplayerOverlay.Close();
 			NetworkIdentityRegistry.Clear();
 			SteamLobby.LeaveLobby();
 		}

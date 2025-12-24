@@ -261,6 +261,29 @@ namespace ONI_MP.DebugTools
             ImGui.Text($"Has Reliable Packet Loss: {GameClient.HasReliablePacketLoss()}");
             ImGui.Text($"Has Unreliable Packet Loss: {GameClient.HasUnreliablePacketLoss()}");
 
+            // Sync Statistics (Host only)
+            if (MultiplayerSession.IsHost)
+            {
+                ImGui.Separator();
+                if (ImGui.CollapsingHeader("Sync Statistics"))
+                {
+                    float fps = 1f / Time.unscaledDeltaTime;
+                    ImGui.Text($"FPS: {fps:F0} | Clients: {MultiplayerSession.ConnectedPlayers.Count}");
+                    ImGui.Spacing();
+
+                    foreach (var m in SyncStats.AllMetrics)
+                    {
+                        if (m.LastSyncTime > 0)
+                        {
+                            ImGui.Text($"{m.Name}: {m.TimeRemaining:F1}s | {m.LastItemCount} items, {m.LastPacketBytes}B, {m.LastDurationMs:F1}ms");
+                        }
+                        else
+                        {
+                            ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1f), $"{m.Name}: waiting...");
+                        }
+                    }
+                }
+            }
         }
     }
 }

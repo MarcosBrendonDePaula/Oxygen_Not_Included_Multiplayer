@@ -17,6 +17,11 @@ namespace ONI_MP.Networking.Components
 		private float lastSentValue;
 		private bool lastSentActive;
 
+		// Grace period
+		private bool _initialized = false;
+		private float _initializationTime;
+		private const float INITIAL_DELAY = 5f;
+
 		public override void OnSpawn()
 		{
 			base.OnSpawn();
@@ -43,6 +48,21 @@ namespace ONI_MP.Networking.Components
 		{
 			if (MultiplayerSession.IsHost)
 			{
+				// Skip if no clients connected
+				if (MultiplayerSession.ConnectedPlayers.Count == 0)
+					return;
+
+				// Grace period after world load
+				if (!_initialized)
+				{
+					_initializationTime = Time.unscaledTime;
+					_initialized = true;
+					return;
+				}
+
+				if (Time.unscaledTime - _initializationTime < INITIAL_DELAY)
+					return;
+
 				HostUpdate();
 			}
 		}
@@ -89,6 +109,9 @@ namespace ONI_MP.Networking.Components
 			}
 		}
 
+		// Cached reflection field
+		private static System.Reflection.FieldInfo _batteryJoulesField;
+
 		// Static handler for client-side reception
 		public static void HandlePacket(StructureStatePacket packet)
 		{
@@ -104,10 +127,13 @@ namespace ONI_MP.Networking.Components
 				// JoulesAvailable is read-only, set backing field via reflection
 				try
 				{
-					var field = typeof(Battery).GetField("joulesAvailable", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-					if (field != null)
+					if (_batteryJoulesField == null)
 					{
-						field.SetValue(battery, packet.Value);
+						_batteryJoulesField = typeof(Battery).GetField("joulesAvailable", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+					}
+					if (_batteryJoulesField != null)
+					{
+						_batteryJoulesField.SetValue(battery, packet.Value);
 					}
 				}
 				catch (System.Exception ex)

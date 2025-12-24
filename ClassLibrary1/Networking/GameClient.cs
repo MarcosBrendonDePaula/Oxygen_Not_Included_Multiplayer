@@ -79,7 +79,7 @@ namespace ONI_MP.Networking
 		{
 			if (showLoadingScreen)
 			{
-				MultiplayerOverlay.Show($"Connecting to {SteamFriends.GetFriendPersonaName(hostSteamId)}!");
+				MultiplayerOverlay.Show(string.Format(MP_STRINGS.UI.MP_OVERLAY.CLIENT.CONNECTING_TO_HOST, SteamFriends.GetFriendPersonaName(hostSteamId)));
 			}
 
 			DebugConsole.Log($"[GameClient] Attempting ConnectP2P to host {hostSteamId}...");
@@ -232,7 +232,7 @@ namespace ONI_MP.Networking
 
             if (Utils.IsInMenu())
 			{
-				MultiplayerOverlay.Show($"Waiting for {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
+				MultiplayerOverlay.Show(string.Format(MP_STRINGS.UI.MP_OVERLAY.CLIENT.WAITING_FOR_PLAYER, SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)));
 				if (!IsHardSyncInProgress)
 				{
                     var packet = new SaveFileRequestPacket
@@ -293,7 +293,7 @@ namespace ONI_MP.Networking
 
 		private static IEnumerator ShowMessageAndReturnToTitle()
 		{
-			MultiplayerOverlay.Show("Connection to the host was lost!");
+			MultiplayerOverlay.Show(MP_STRINGS.UI.MP_OVERLAY.CLIENT.LOST_CONNECTION);
             //SaveHelper.CaptureWorldSnapshot();
             yield return new WaitForSeconds(3f);
             //PauseScreen.TriggerQuitGame(); // Force exit to frontend, getting a crash here

@@ -90,9 +90,11 @@ namespace ONI_MP.Networking.Packets.Tools
 					ToolInstance.OnDragTool(cell, distFromOrigin);
 					break;
 				case DragToolMode.OnDragComplete:
+					Vector3 cachedDownPos = ToolInstance.downPos;
 					ToolInstance.downPos = downPos;
 					DebugConsole.Log($"[FilteredDragToolPacket] OnDispatched OnDragComplete - startPos: {downPos}, endPos: {upPos}");
 					ToolInstance.OnDragComplete(downPos, upPos);
+					ToolInstance.downPos = cachedDownPos;
 					break;
 				default:
 					DebugConsole.LogWarning("[FilteredDragToolPacket] OnDispatched called with invalid ToolMode");

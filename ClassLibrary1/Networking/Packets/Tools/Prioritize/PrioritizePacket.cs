@@ -35,8 +35,11 @@ namespace ONI_MP.Networking.Packets.Tools.Prioritize
 
 		public override void OnDispatched()
 		{
+			var cachedPriority = ToolMenu.Instance.PriorityScreen.GetLastSelectedPriority();
 			ToolMenu.Instance.PriorityScreen.SetScreenPriority(Priority);
 			base.OnDispatched();
+			ToolMenu.Instance.PriorityScreen.SetScreenPriority(cachedPriority);
+
 		}
 	}
 }

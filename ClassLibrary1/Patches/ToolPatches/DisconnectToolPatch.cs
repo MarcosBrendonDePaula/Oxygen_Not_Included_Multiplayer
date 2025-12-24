@@ -22,7 +22,7 @@ namespace ONI_MP.Patches.ToolPatches
                 if (!MultiplayerSession.InSession)
                     return;
 
-				DebugConsole.Log("Disconnecting from " + downPos.x + "," + downPos.y + " to " + upPos.x + "," + upPos.y);
+				//DebugConsole.Log("Disconnecting from " + downPos.x + "," + downPos.y + " to " + upPos.x + "," + upPos.y);
 				//prevent recursion
 				if (DisconnectPacket.ProcessingIncoming)
                     return;

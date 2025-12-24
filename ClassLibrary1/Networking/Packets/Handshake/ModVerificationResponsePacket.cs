@@ -9,8 +9,6 @@ namespace ONI_MP.Networking.Packets.Handshake
 {
     public class ModVerificationResponsePacket : IPacket
     {
-        public PacketType Type => PacketType.ModVerificationResponse;
-
         public CSteamID ClientSteamID;
         public bool IsApproved;
         public string RejectReason;

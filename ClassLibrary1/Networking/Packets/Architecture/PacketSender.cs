@@ -72,7 +72,7 @@ namespace ONI_MP.Networking
 			// Prevent host from sending packets to itself (can cause loops and errors)
 			if (MultiplayerSession.IsHost && steamID == MultiplayerSession.HostSteamID)
 			{
-				DebugConsole.LogWarning($"[PacketSender] Host attempted to send packet {packet.Type} to itself - blocked");
+				DebugConsole.LogWarning($"[PacketSender] Host attempted to send packet {packet.GetType().Name} to itself - blocked");
 				return false;
 			}
 

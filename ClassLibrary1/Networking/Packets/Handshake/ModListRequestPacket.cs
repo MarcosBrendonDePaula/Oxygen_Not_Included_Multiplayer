@@ -8,8 +8,6 @@ namespace ONI_MP.Networking.Packets.Handshake
 {
     public class ModListRequestPacket : IPacket
     {
-        public PacketType Type => PacketType.ModListRequest;
-
         public CSteamID RequesterSteamID;
         public CSteamID TargetSteamID;
 

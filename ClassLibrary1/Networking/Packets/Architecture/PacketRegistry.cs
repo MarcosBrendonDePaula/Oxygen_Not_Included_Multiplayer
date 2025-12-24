@@ -4,6 +4,7 @@ using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets.Core;
 using ONI_MP.Networking.Packets.DuplicantActions;
 using ONI_MP.Networking.Packets.Events;
+using ONI_MP.Networking.Packets.Handshake;
 using ONI_MP.Networking.Packets.Social;
 using ONI_MP.Networking.Packets.Tools.Build;
 using ONI_MP.Networking.Packets.Tools.Cancel;

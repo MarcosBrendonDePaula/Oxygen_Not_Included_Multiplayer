@@ -11,8 +11,6 @@ namespace ONI_MP.Networking.Packets.Handshake
 {
     public class ModVerificationPacket : IPacket
     {
-        public PacketType Type => PacketType.ModVerification;
-
         public CSteamID ClientSteamID;
         public string[] InstalledMods;
         public string[] ModVersions;

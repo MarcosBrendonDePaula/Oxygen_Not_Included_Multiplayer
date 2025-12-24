@@ -109,7 +109,7 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			tool.selectedElements = tags;
 
 			ProcessingIncoming = true;
-			DebugConsole.LogError($"[UtilityBuildPacket] Building path with {path.Count} nodes of prefab {def.PrefabID}");
+			DebugConsole.Log($"[UtilityBuildPacket] Building path with {path.Count} nodes of prefab {def.PrefabID}");
 			tool.BuildPath();
 			ProcessingIncoming = false;
 

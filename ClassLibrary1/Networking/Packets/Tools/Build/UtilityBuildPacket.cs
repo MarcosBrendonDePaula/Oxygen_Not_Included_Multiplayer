@@ -75,27 +75,39 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 
 		public void Deserialize(BinaryReader reader)
 		{
-			DebugConsole.Log("[UtilityBuildPacket] Deserializing UtilityBuildPacket");
+			//DebugConsole.Log("[UtilityBuildPacket] Deserializing UtilityBuildPacket");
+			//DebugConsole.Log("[UtilityBuildPacket] Reading PrefabID...");
 			PrefabID = reader.ReadString();
+			//DebugConsole.Log("[UtilityBuildPacket] PrefabID read successfully: "+PrefabID);
+			//DebugConsole.Log("[UtilityBuildPacket] Reading FacadeID...");
 			FacadeID = reader.ReadString();
+			//DebugConsole.Log("[UtilityBuildPacket] FacadeID read successfully: " + FacadeID);
+			//DebugConsole.Log("[UtilityBuildPacket] Reading path Count...");
 			int count = reader.ReadInt32();
+			//DebugConsole.Log("[UtilityBuildPacket] path Count read successfully: " + count);
 			path = new List<BaseUtilityBuildTool.PathNode>(count);
 			for (int i = 0; i < count; i++)
 			{
+				//DebugConsole.Log("[UtilityBuildPacket] Reading node at index "+i);
 				DeserializePathNode(ref reader, ref path);
 			}
+			//DebugConsole.Log("[UtilityBuildPacket] Reading matCount...");
 			int matCount = reader.ReadInt32();
+			//DebugConsole.Log("[UtilityBuildPacket] matCount read successfully: " + matCount);
 			MaterialTags = new List<string>(matCount);
 			if (matCount > 0)
 			{
 				for (int i = 0; i < matCount; i++)
 				{
+					//DebugConsole.Log("[UtilityBuildPacket] Reading material at index " + i);
 					MaterialTags.Add(reader.ReadString());
 				}
 			}
+			//DebugConsole.Log("[UtilityBuildPacket] Reading Priority...");
 			Priority = new PrioritySetting(
 					(PriorityScreen.PriorityClass)reader.ReadInt32(),
 					reader.ReadInt32());
+			//DebugConsole.Log("[UtilityBuildPacket] Priority read successfully: " + Priority.priority_class+" - "+Priority.priority_value);
 		}
 
 		public void OnDispatched()
@@ -123,17 +135,25 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			///mirrored from BuildMenu OnRecipeElementsFullySelected
 			BaseUtilityBuildTool tool = def.BuildingComplete.TryGetComponent<Wire>(out _) ? WireBuildTool.Instance : UtilityBuildTool.Instance;
 
+			if(PlanScreen.Instance?.ProductInfoScreen?.materialSelectionPanel?.PriorityScreen == null)
+			{
+				DebugConsole.LogWarning("[UtilityBuildPacket] PlanScreen or PriorityScreen is null, opening PlanScreen to initialize.");
+				PlanScreen.Instance.CopyBuildingOrder(def,FacadeID);
+				DebugConsole.LogWarning("[UtilityBuildPacket] Planscreen initialized, closing it again");
+				PlanScreen.Instance.OnActiveToolChanged(SelectTool.Instance);
+			}
+
 			///caching existing stuff on the tool
-			BuildingDef cachedDef = tool.def;
+			var cachedDef = tool.def;
 			List<BaseUtilityBuildTool.PathNode> cachedPath = tool.path != null ? [.. tool.path] : [];
 			IList<Tag> cachedMaterials = tool.selectedElements != null ? [.. tool.selectedElements] : [];
-			IUtilityNetworkMgr cachedMgr = tool.conduitMgr;
-			PrioritySetting cachedPriority = ToolMenu.Instance.PriorityScreen.GetLastSelectedPriority();
+			var cachedMgr = tool.conduitMgr;
+			PrioritySetting? cachedPriority = PlanScreen.Instance?.GetBuildingPriority() ?? null;
 
 			IHaveUtilityNetworkMgr conduitManagerHaver = def.BuildingComplete.GetComponent<IHaveUtilityNetworkMgr>();
 
 			tool.def = def;
-			tool.path = path;
+			tool.path = this.path;
 			tool.selectedElements = tags;
 			tool.conduitMgr = conduitManagerHaver.GetNetworkManager();
 
@@ -147,7 +167,8 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			tool.path = cachedPath;
 			tool.selectedElements = cachedMaterials;
 			tool.conduitMgr = cachedMgr;
-			ToolMenu.Instance.PriorityScreen.SetScreenPriority(cachedPriority);
+			if(cachedPriority.HasValue)
+				ToolMenu.Instance.PriorityScreen.SetScreenPriority(cachedPriority.Value);
 		}
 	}
 }

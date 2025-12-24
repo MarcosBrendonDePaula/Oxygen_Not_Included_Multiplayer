@@ -67,8 +67,10 @@ namespace ONI_MP.DebugTools
         {
             if (trigger_error_screen)
                 Debug.LogError($"[ONI_MP] {message}");
+			else //put it in the log file but don't trigger the error screen
+				Debug.LogWarning($"-[ERROR] [ONI_MP] {message}");
 
-            EnsureInstance();
+			EnsureInstance();
             _instance.AddLog(message, "", LogType.Error);
         }
 

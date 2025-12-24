@@ -95,8 +95,8 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			///mirrored from BuildMenu OnRecipeElementsFullySelected
 			BaseUtilityBuildTool tool = def.BuildingComplete.TryGetComponent<Wire>(out _) ? WireBuildTool.Instance : UtilityBuildTool.Instance;
 			var cachedDef = tool.def;
-			var cachedPath = tool.path;
-			var cachedMaterials = tool.selectedElements;
+			var cachedPath = tool.path.ToList();
+			var cachedMaterials = tool.selectedElements.ToList();
 
 			tool.def = def;
 			tool.path = path;

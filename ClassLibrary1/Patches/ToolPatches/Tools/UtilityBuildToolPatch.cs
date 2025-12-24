@@ -24,15 +24,19 @@ namespace ONI_MP.Patches.ToolPatches.Build
 
 			//prevent recursion
 			if (UtilityBuildPacket.ProcessingIncoming)
-				return;
-
-			if (__instance.path == null || __instance.path.Count < 2 || __instance.def == null)
 			{
+				DebugConsole.Log("UtilityBuildPacket currently processing");
+				return;
+			}
+
+			if (__instance.path == null || __instance.def == null)
+			{
+				DebugConsole.LogWarning("[UtilityBuildToolPatch] Path or Def is null, cannot send UtilityBuildPacket.");
 				return;
 			}
 
 			PacketSender.SendToAllOtherPeers(new UtilityBuildPacket(__instance.def.PrefabID, __instance.path, [.. __instance.selectedElements.Select(t => t.ToString())]));
-			DebugConsole.Log($"[UtilityBuild] Sent packet for {__instance.def.PrefabID} with {__instance.path} nodes.");
+			DebugConsole.Log($"[UtilityBuild] Sent packet for {__instance.def.PrefabID} with {__instance.path.Count} nodes.");
 		}
 	}
 }

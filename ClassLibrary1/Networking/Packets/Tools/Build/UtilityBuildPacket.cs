@@ -17,8 +17,8 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 		/// </summary>
 		public static bool ProcessingIncoming { get; private set; } = false;
 
-		public List<BaseUtilityBuildTool.PathNode> path = new List<BaseUtilityBuildTool.PathNode>();
-		public List<string> MaterialTags = new List<string>();
+		public List<BaseUtilityBuildTool.PathNode> path = [];
+		public List<string> MaterialTags = [];
 		public string PrefabID;
 
 		static void SerializePathNode(BinaryWriter writer, BaseUtilityBuildTool.PathNode node)
@@ -26,14 +26,14 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			writer.Write(node.cell);
 			writer.Write(node.valid);
 		}
-		void DeserializePathNode(BinaryReader reader)
+		void DeserializePathNode(BinaryReader reader, List<BaseUtilityBuildTool.PathNode> toAdd)
 		{
 			var node = new BaseUtilityBuildTool.PathNode
 			{
 				cell = reader.ReadInt32(),
 				valid = reader.ReadBoolean()
 			};
-			path.Add(node);
+			toAdd.Add(node);
 		}
 
 		public UtilityBuildPacket() { }
@@ -63,9 +63,10 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 		{
 			PrefabID = reader.ReadString();
 			int count = reader.ReadInt32();
+			path = new List<BaseUtilityBuildTool.PathNode>(count);
 			for (int i = 0; i < count; i++)
 			{
-				DeserializePathNode(reader);
+				DeserializePathNode(reader, path);
 			}
 			int matCount = reader.ReadInt32();
 			MaterialTags = new List<string>(matCount);
@@ -77,7 +78,12 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 
 		public void OnDispatched()
 		{
-			if (path.Count == 0) return;
+			DebugConsole.Log("[UtilityBuildPacket] OnDispatched");
+			if (path.Count == 0)
+			{
+				DebugConsole.LogWarning("[UtilityBuildPacket] Received empty path, ignoring.");
+				return;
+			}
 
 
 			var def = Assets.GetBuildingDef(PrefabID);
@@ -95,14 +101,15 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			///mirrored from BuildMenu OnRecipeElementsFullySelected
 			BaseUtilityBuildTool tool = def.BuildingComplete.TryGetComponent<Wire>(out _) ? WireBuildTool.Instance : UtilityBuildTool.Instance;
 			var cachedDef = tool.def;
-			var cachedPath = tool.path.ToList();
-			var cachedMaterials = tool.selectedElements.ToList();
+			var cachedPath = tool.path;
+			var cachedMaterials = tool.selectedElements;
 
 			tool.def = def;
 			tool.path = path;
 			tool.selectedElements = tags;
 
 			ProcessingIncoming = true;
+			DebugConsole.LogError($"[UtilityBuildPacket] Building path with {path.Count} nodes of prefab {def.PrefabID}");
 			tool.BuildPath();
 			ProcessingIncoming = false;
 

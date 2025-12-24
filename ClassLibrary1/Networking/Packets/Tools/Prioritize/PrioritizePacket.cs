@@ -18,6 +18,7 @@ namespace ONI_MP.Networking.Packets.Tools.Prioritize
 
 		public override void Serialize(BinaryWriter writer)
 		{
+			Priority = ToolMenu.Instance.PriorityScreen.GetLastSelectedPriority();
 			base.Serialize(writer);
 			writer.Write((int)Priority.priority_class);
 			writer.Write(Priority.priority_value);

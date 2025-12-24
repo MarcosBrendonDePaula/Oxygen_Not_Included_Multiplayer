@@ -16,7 +16,7 @@ namespace ONI_MP.Patches.ToolPatches
         [HarmonyPatch(typeof(DisconnectTool), nameof(DisconnectTool.OnDragComplete))]
         public class DisconnectTool_OnDragComplete_Patch
         {
-            public static void Postfix(Vector3 downPos, Vector3 upPos)
+            public static void Postfix(DisconnectTool __instance, Vector3 downPos, Vector3 upPos)
             {
                 if (!MultiplayerSession.InSession)
                     return;
@@ -24,7 +24,12 @@ namespace ONI_MP.Patches.ToolPatches
 				//prevent recursion
 				if (DisconnectPacket.ProcessingIncoming)
                     return;
-				PacketSender.SendToAllOtherPeers(new DisconnectPacket() { startPos = downPos, endPos = upPos});
+
+				if (__instance.singleDisconnectMode)
+				{
+					upPos = __instance.SnapToLine(upPos);
+				}
+				PacketSender.SendToAllOtherPeers(new DisconnectPacket() { downPos = downPos, upPos = upPos});
 			}
         }
 	}

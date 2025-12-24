@@ -30,7 +30,7 @@ namespace ONI_MP.Networking.Packets.Tools
 		protected FilteredDragTool ToolInstance;
 
 		HashSet<string> currentFilterTargets = [];
-		public Vector3 startPos, endPos;
+		public Vector3 downPos, upPos;
 		public int cell, distFromOrigin;
 
 		public virtual void Deserialize(BinaryReader reader)
@@ -48,8 +48,8 @@ namespace ONI_MP.Networking.Packets.Tools
 					distFromOrigin = reader.ReadInt32();
 					break;
 				case DragToolMode.OnDragComplete:
-					startPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-					endPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+					downPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+					upPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 					break;
 			}
 		}
@@ -70,8 +70,8 @@ namespace ONI_MP.Networking.Packets.Tools
 					writer.Write(distFromOrigin);
 					break;
 				case DragToolMode.OnDragComplete:
-					writer.Write(startPos.x); writer.Write(startPos.y); writer.Write(startPos.z);
-					writer.Write(endPos.x); writer.Write(endPos.y); writer.Write(endPos.z);
+					writer.Write(downPos.x); writer.Write(downPos.y); writer.Write(downPos.z);
+					writer.Write(upPos.x); writer.Write(upPos.y); writer.Write(upPos.z);
 					break;
 			}
 		}
@@ -90,8 +90,8 @@ namespace ONI_MP.Networking.Packets.Tools
 					ToolInstance.OnDragTool(cell, distFromOrigin);
 					break;
 				case DragToolMode.OnDragComplete:
-					DebugConsole.Log($"[FilteredDragToolPacket] OnDispatched OnDragComplete - startPos: {startPos}, endPos: {endPos}");
-					ToolInstance.OnDragComplete(startPos, endPos);
+					DebugConsole.Log($"[FilteredDragToolPacket] OnDispatched OnDragComplete - startPos: {downPos}, endPos: {upPos}");
+					ToolInstance.OnDragComplete(downPos, upPos);
 					break;
 				default:
 					DebugConsole.LogWarning("[FilteredDragToolPacket] OnDispatched called with invalid ToolMode");

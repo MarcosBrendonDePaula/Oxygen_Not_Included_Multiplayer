@@ -21,7 +21,6 @@ namespace ONI_MP.Patches.ToolPatches.Build
 			{
 				return;
 			}
-
 			//prevent recursion
 			if (UtilityBuildPacket.ProcessingIncoming)
 			{
@@ -29,13 +28,13 @@ namespace ONI_MP.Patches.ToolPatches.Build
 				return;
 			}
 
-			if (__instance.path == null || __instance.def == null)
+			if (__instance.path == null || __instance.def == null || __instance.path.Count < 2)
 			{
 				DebugConsole.LogWarning("[UtilityBuildToolPatch] Path or Def is null, cannot send UtilityBuildPacket.");
 				return;
 			}
 
-			PacketSender.SendToAllOtherPeers(new UtilityBuildPacket(__instance.def.PrefabID, __instance.path, [.. __instance.selectedElements.Select(t => t.ToString())]));
+			PacketSender.SendToAllOtherPeers(new UtilityBuildPacket(__instance.def.PrefabID, __instance.path, [.. __instance.selectedElements.Select(t => t.ToString())], __instance.facadeID));
 			DebugConsole.Log($"[UtilityBuild] Sent packet for {__instance.def.PrefabID} with {__instance.path.Count} nodes.");
 		}
 	}

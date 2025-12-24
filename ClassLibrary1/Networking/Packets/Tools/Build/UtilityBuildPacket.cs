@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking.Packets.Architecture;
 using Steamworks;
@@ -19,7 +20,7 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 
 		public List<BaseUtilityBuildTool.PathNode> path = [];
 		public List<string> MaterialTags = [];
-		public string PrefabID;
+		public string PrefabID, FacadeID;
 
 		static void SerializePathNode(BinaryWriter writer, BaseUtilityBuildTool.PathNode node)
 		{
@@ -38,15 +39,17 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 
 		public UtilityBuildPacket() { }
 
-		public UtilityBuildPacket(string prefabId, List<BaseUtilityBuildTool.PathNode> nodes, List<string> mats)
+		public UtilityBuildPacket(string prefabId, List<BaseUtilityBuildTool.PathNode> nodes, List<string> mats, string skin)
 		{
-			PrefabID = prefabId;
+			PrefabID = prefabId ?? string.Empty;
 			path = nodes;
 			MaterialTags = mats;
+			FacadeID = skin ?? string.Empty;
 		}
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(PrefabID);
+			writer.Write(FacadeID);
 			writer.Write(path.Count);
 			foreach (var node in path)
 			{
@@ -62,6 +65,7 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 		public void Deserialize(BinaryReader reader)
 		{
 			PrefabID = reader.ReadString();
+			FacadeID = reader.ReadString();
 			int count = reader.ReadInt32();
 			path = new List<BaseUtilityBuildTool.PathNode>(count);
 			for (int i = 0; i < count; i++)
@@ -100,13 +104,17 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			}
 			///mirrored from BuildMenu OnRecipeElementsFullySelected
 			BaseUtilityBuildTool tool = def.BuildingComplete.TryGetComponent<Wire>(out _) ? WireBuildTool.Instance : UtilityBuildTool.Instance;
-			var cachedDef = tool.def;
-			var cachedPath = tool.path;
-			var cachedMaterials = tool.selectedElements;
+			BuildingDef cachedDef = tool.def;
+			List<BaseUtilityBuildTool.PathNode> cachedPath = tool.path != null ? [.. tool.path] : [];
+			IList<Tag> cachedMaterials = tool.selectedElements != null?[..tool.selectedElements] : [];
+			var cachedMgr = tool.conduitMgr;
+
+			IHaveUtilityNetworkMgr conduitManagerHaver = def.BuildingComplete.GetComponent<IHaveUtilityNetworkMgr>();
 
 			tool.def = def;
 			tool.path = path;
 			tool.selectedElements = tags;
+			tool.conduitMgr = conduitManagerHaver.GetNetworkManager();
 
 			ProcessingIncoming = true;
 			DebugConsole.Log($"[UtilityBuildPacket] Building path with {path.Count} nodes of prefab {def.PrefabID}");
@@ -116,6 +124,7 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			tool.def = cachedDef;
 			tool.path = cachedPath;
 			tool.selectedElements = cachedMaterials;
+			tool.conduitMgr = cachedMgr;
 		}
 	}
 }

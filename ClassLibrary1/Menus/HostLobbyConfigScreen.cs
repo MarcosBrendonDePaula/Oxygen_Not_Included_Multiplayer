@@ -66,6 +66,86 @@ namespace ONI_MP.Menus
             return screen;
         }
 
+        private bool _wasPlayerControllerEnabled = true;
+        private bool _wasCameraControllerEnabled = true;
+        private GameObject _planScreenGO;
+        private bool _wasPlanScreenActive;
+
+        private void OnEnable()
+        {
+            // Disable PlayerController to block player input
+            if (PlayerController.Instance != null)
+            {
+                _wasPlayerControllerEnabled = PlayerController.Instance.enabled;
+                PlayerController.Instance.enabled = false;
+            }
+
+            // Disable CameraController to block WASD camera movement
+            if (CameraController.Instance != null)
+            {
+                _wasCameraControllerEnabled = CameraController.Instance.enabled;
+                CameraController.Instance.enabled = false;
+            }
+
+            // Hide ToolMenu
+            if (ToolMenu.Instance != null)
+            {
+                ToolMenu.Instance.gameObject.SetActive(false);
+            }
+
+            // Hide PlanScreen (building menu)
+            _planScreenGO = null;
+            var planScreen = UnityEngine.Object.FindObjectOfType<PlanScreen>();
+            if (planScreen != null)
+            {
+                _planScreenGO = planScreen.gameObject;
+                _wasPlanScreenActive = _planScreenGO.activeSelf;
+                _planScreenGO.SetActive(false);
+            }
+
+            // Disable all KScreen input handlers
+            KScreenManager.Instance?.DisableInput(true);
+        }
+
+        private void OnDisable()
+        {
+            // Re-enable PlayerController
+            if (PlayerController.Instance != null)
+            {
+                PlayerController.Instance.enabled = _wasPlayerControllerEnabled;
+            }
+
+            // Re-enable CameraController
+            if (CameraController.Instance != null)
+            {
+                CameraController.Instance.enabled = _wasCameraControllerEnabled;
+            }
+
+            // Re-enable ToolMenu
+            if (ToolMenu.Instance != null)
+            {
+                ToolMenu.Instance.gameObject.SetActive(true);
+            }
+
+            // Re-enable PlanScreen
+            if (_planScreenGO != null)
+            {
+                _planScreenGO.SetActive(_wasPlanScreenActive);
+            }
+
+            // Re-enable KScreen input handlers
+            KScreenManager.Instance?.DisableInput(false);
+        }
+
+        private void Update()
+        {
+            // Consume ESC key to close dialog
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Close();
+            }
+        }
+
         private void Initialize()
         {
             // Create content container

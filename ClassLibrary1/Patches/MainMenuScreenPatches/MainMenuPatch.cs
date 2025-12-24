@@ -17,7 +17,7 @@ internal static class MainMenuPatch
 	private static void Postfix(MainMenu __instance)
 	{
 		int normalFontSize = 20;
-		var normalStyle = Traverse.Create(__instance).Field("normalButtonStyle").GetValue<ColorStyleSetting>();
+		var normalStyle = __instance.normalButtonStyle; 
 
 		var buttonInfoType = __instance.GetType().GetNestedType("ButtonInfo", BindingFlags.NonPublic);
 
@@ -49,7 +49,7 @@ internal static class MainMenuPatch
 
 		// Join Game
 		var joinInfo = CreateButtonInfo(
-				"JOIN GAME",
+				MP_STRINGS.UI.MAINMENU.JOINGAME,
 				new System.Action(() =>
 				{
 					SteamFriends.ActivateGameOverlay("friends");
@@ -291,7 +291,7 @@ internal static class MainMenuPatch
 
 		// Example Discord button
 		var discordSprite = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.discord.png");
-		AddSocialButton(socialsContainer.transform, "Join ONI Together\non Discord", "https://discord.gg/jpxveK6mmY", discordSprite);
+		AddSocialButton(socialsContainer.transform, MP_STRINGS.UI.MAINMENU.DISCORD_INFO, "https://discord.gg/jpxveK6mmY", discordSprite);
 
 		/*
 		var statusSprite = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.cloud_status.png");

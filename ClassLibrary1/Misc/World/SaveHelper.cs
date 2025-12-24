@@ -50,7 +50,7 @@ public static class SaveHelper
 			}
 		}
 
-		if(!SavegameDlcListValid(data, out string errorMsg))
+		if (!SavegameDlcListValid(data, out string errorMsg))
 		{
 			ShowMessageAndReturnToMainMenu(errorMsg);
 			return;
@@ -61,7 +61,7 @@ public static class SaveHelper
 		GameClient.Disconnect();
 		GameClient.SetState(ClientState.LoadingWorld);
 		PacketHandler.readyToProcess = false;
-		MultiplayerOverlay.Show("Loading...");
+		MultiplayerOverlay.Show(global::STRINGS.UI.FRONTEND.LOADING);
 
 		LoadScreen.DoLoad(path);
 	}
@@ -70,8 +70,11 @@ public static class SaveHelper
 		CoroutineRunner.RunOne(ShowMessageAndReturnToTitle(msg));
 	}
 
-	private static IEnumerator ShowMessageAndReturnToTitle(string msg = "Connection to the host was lost!")
+	private static IEnumerator ShowMessageAndReturnToTitle(string msg = null)
 	{
+		if (msg == null)
+			msg = MP_STRINGS.UI.MP_OVERLAY.CLIENT.LOST_CONNECTION;
+
 		MultiplayerOverlay.Show(msg);
 
 		yield return new WaitForSeconds(5);
@@ -88,20 +91,20 @@ public static class SaveHelper
 		//read the gameInfo to advance the filereader
 		SaveGame.GameInfo gameInfo = SaveGame.GetHeader(reader, out SaveGame.Header header, "MP-Mod-Server-Save");
 		///check if all dlcs of the savegame are currently active
-		
+
 		HashSet<string> missingDLCs = new HashSet<string>();
 
 		bool spacedOutSave = gameInfo.dlcIds.Contains(DlcManager.EXPANSION1_ID);
 
 		foreach (var dlcId in gameInfo.dlcIds)
 		{
-			if(!DlcManager.IsContentSubscribed(dlcId))
+			if (!DlcManager.IsContentSubscribed(dlcId))
 			{
 				DebugConsole.LogWarning($"[SaveHelper] Missing DLC required by savegame: {dlcId}");
 				missingDLCs.Add(dlcId);
 			}
 		}
-		if(spacedOutSave != DlcManager.IsExpansion1Active())
+		if (spacedOutSave != DlcManager.IsExpansion1Active())
 		{
 			errorMsg = spacedOutSave
 				? "Server requires Spaced Out, cannot join without SpacedOut active!"
@@ -131,7 +134,7 @@ public static class SaveHelper
 
 		Debug.Assert(reader.ReadKleiString() == "world");
 		KSerialization.Deserializer deserializer = new KSerialization.Deserializer(reader);
-		SaveFileRoot saveFileRoot = new ();
+		SaveFileRoot saveFileRoot = new();
 		deserializer.Deserialize(saveFileRoot);
 		if ((gameInfo.saveMajorVersion == 7 || gameInfo.saveMinorVersion < 8) && saveFileRoot.requiredMods != null)
 		{
@@ -148,8 +151,34 @@ public static class SaveHelper
 		}
 
 		var activeSaveMods = saveFileRoot.active_mods;
-	}
 
+		KMod.Manager modManager = Global.Instance.modManager;
+		_differenceCount = 0;
+		HashSet<string> activeModsInSave = activeSaveMods.Select(mod => mod.defaultStaticID).ToHashSet(); //change to "id" if the check should be platform agnostic
+		_activeModListIdOrder = new(activeModsInSave);
+		ActiveModlistModIds = new(activeModsInSave);
+
+		foreach (var mod in modManager.mods)
+		{
+			bool isCurrentlyActive = mod.IsEnabledForActiveDlc();
+			if (activeModsInSave.Contains(mod.label.defaultStaticID))
+			{
+				if (!isCurrentlyActive)
+					++_differenceCount;
+				activeModsInSave.Remove(mod.label.defaultStaticID);
+			}
+			else
+			{
+				if (isCurrentlyActive)
+					++_differenceCount;
+			}
+		}
+		_missingMods = [.. activeModsInSave];
+	}
+	static int _differenceCount = 0;
+	static HashSet<string> _missingMods = [];
+	static List<string> _activeModListIdOrder = [];
+	static HashSet<string> ActiveModlistModIds = [];
 
 	public static string WorldName
 	{
@@ -170,17 +199,17 @@ public static class SaveHelper
 	/// <summary>
 	/// Saves the current world snapshot
 	/// </summary>
-    public static void CaptureWorldSnapshot()
-    {
-		if(Utils.IsInMenu())
+	public static void CaptureWorldSnapshot()
+	{
+		if (Utils.IsInMenu())
 		{
 			// We are not in game, ignore
 			return;
 		}
 
-        var path = SaveLoader.GetActiveSaveFilePath();
-        SaveLoader.Instance.Save(path); // Saves current state to that file
-    }
+		var path = SaveLoader.GetActiveSaveFilePath();
+		SaveLoader.Instance.Save(path); // Saves current state to that file
+	}
 
 	public static void LoadDownloadedSave(string fileName)
 	{
@@ -196,7 +225,7 @@ public static class SaveHelper
 
 		if (!File.Exists(targetFile))
 		{
-			MultiplayerOverlay.Show("Downloaded save file not found.");
+			MultiplayerOverlay.Show(MP_STRINGS.UI.MP_OVERLAY.CLIENT.MISSING_SAVE_FILE);
 			DebugConsole.LogError($"[SaveHelper] Could not find file to load: {targetFile}");
 			return;
 		}
@@ -206,7 +235,7 @@ public static class SaveHelper
 		GameClient.Disconnect();
 		GameClient.SetState(ClientState.LoadingWorld);
 		PacketHandler.readyToProcess = false;
-		MultiplayerOverlay.Show("Loading...");
+		MultiplayerOverlay.Show(global::STRINGS.UI.FRONTEND.LOADING);
 
 		LoadScreen.DoLoad(targetFile); // use the correct variable
 	}

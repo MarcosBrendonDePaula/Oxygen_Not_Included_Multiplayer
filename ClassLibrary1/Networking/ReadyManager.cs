@@ -95,7 +95,7 @@ namespace ONI_MP.Networking
 		{
 			int readyCount = GetReadyCount();
 			int maxPlayers = MultiplayerSession.ConnectedPlayers.Values.Count;
-			string message = $"Waiting for players ({readyCount}/{maxPlayers} ready)...\n";
+			string message = string.Format(MP_STRINGS.UI.MP_OVERLAY.SYNC.WAITING_FOR_PLAYERS_SYNC, readyCount, maxPlayers);
 			foreach (MultiplayerPlayer player in MultiplayerSession.ConnectedPlayers.Values)
 			{
 				message += $"{player.SteamName}: {GetReadyText(player.readyState)}\n";
@@ -121,11 +121,11 @@ namespace ONI_MP.Networking
 			switch (readyState)
 			{
 				case ClientReadyState.Ready:
-					return "Ready";
+					return MP_STRINGS.UI.MP_OVERLAY.SYNC.READYSTATE.READY;
 				case ClientReadyState.Unready:
-					return "Loading";
+					return MP_STRINGS.UI.MP_OVERLAY.SYNC.READYSTATE.UNREADY;
 			}
-			return "Unknown";
+			return MP_STRINGS.UI.MP_OVERLAY.SYNC.READYSTATE.UNKNOWN;
 		}
 
 		private static void UpdateReadyStateTracking(CSteamID id)

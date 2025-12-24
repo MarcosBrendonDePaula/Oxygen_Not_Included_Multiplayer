@@ -23,12 +23,12 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 		public string PrefabID, FacadeID;
 		public PrioritySetting Priority;
 
-		static void SerializePathNode(BinaryWriter writer, BaseUtilityBuildTool.PathNode node)
+		static void SerializePathNode(ref BinaryWriter writer, ref BaseUtilityBuildTool.PathNode node)
 		{
 			writer.Write(node.cell);
 			writer.Write(node.valid);
 		}
-		void DeserializePathNode(BinaryReader reader, List<BaseUtilityBuildTool.PathNode> toAdd)
+		void DeserializePathNode(ref BinaryReader reader, ref List<BaseUtilityBuildTool.PathNode> toAdd)
 		{
 			var node = new BaseUtilityBuildTool.PathNode
 			{
@@ -43,8 +43,8 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 		public UtilityBuildPacket(string prefabId, List<BaseUtilityBuildTool.PathNode> nodes, List<string> mats, string skin)
 		{
 			PrefabID = prefabId ?? string.Empty;
-			path = nodes;
-			MaterialTags = mats;
+			path = nodes ?? [];
+			MaterialTags = mats ?? [];
 			FacadeID = skin ?? string.Empty;
 		}
 		public void Serialize(BinaryWriter writer)
@@ -52,14 +52,21 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			writer.Write(PrefabID);
 			writer.Write(FacadeID);
 			writer.Write(path.Count);
-			foreach (var node in path)
+			if (path.Any())
 			{
-				SerializePathNode(writer, node);
+				for(int i = 0; i < path.Count; i++)
+				{
+					var node = path[i];
+					SerializePathNode(ref writer, ref node);
+				}
 			}
 			writer.Write(MaterialTags.Count);
-			foreach (var tag in MaterialTags)
+			if (MaterialTags.Any())
 			{
-				writer.Write(tag);
+				foreach (var tag in MaterialTags)
+				{
+					writer.Write(tag);
+				}
 			}
 			writer.Write((int)Priority.priority_class);
 			writer.Write(Priority.priority_value);
@@ -68,19 +75,23 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 
 		public void Deserialize(BinaryReader reader)
 		{
+			DebugConsole.Log("[UtilityBuildPacket] Deserializing UtilityBuildPacket");
 			PrefabID = reader.ReadString();
 			FacadeID = reader.ReadString();
 			int count = reader.ReadInt32();
 			path = new List<BaseUtilityBuildTool.PathNode>(count);
 			for (int i = 0; i < count; i++)
 			{
-				DeserializePathNode(reader, path);
+				DeserializePathNode(ref reader, ref path);
 			}
 			int matCount = reader.ReadInt32();
 			MaterialTags = new List<string>(matCount);
-			for (int i = 0; i < matCount; i++)
+			if (matCount > 0)
 			{
-				MaterialTags.Add(reader.ReadString());
+				for (int i = 0; i < matCount; i++)
+				{
+					MaterialTags.Add(reader.ReadString());
+				}
 			}
 			Priority = new PrioritySetting(
 					(PriorityScreen.PriorityClass)reader.ReadInt32(),
@@ -111,9 +122,11 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			}
 			///mirrored from BuildMenu OnRecipeElementsFullySelected
 			BaseUtilityBuildTool tool = def.BuildingComplete.TryGetComponent<Wire>(out _) ? WireBuildTool.Instance : UtilityBuildTool.Instance;
+
+			///caching existing stuff on the tool
 			BuildingDef cachedDef = tool.def;
 			List<BaseUtilityBuildTool.PathNode> cachedPath = tool.path != null ? [.. tool.path] : [];
-			IList<Tag> cachedMaterials = tool.selectedElements != null?[..tool.selectedElements] : [];
+			IList<Tag> cachedMaterials = tool.selectedElements != null ? [.. tool.selectedElements] : [];
 			IUtilityNetworkMgr cachedMgr = tool.conduitMgr;
 			PrioritySetting cachedPriority = ToolMenu.Instance.PriorityScreen.GetLastSelectedPriority();
 
@@ -123,7 +136,6 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			tool.path = path;
 			tool.selectedElements = tags;
 			tool.conduitMgr = conduitManagerHaver.GetNetworkManager();
-
 
 			ProcessingIncoming = true;
 			ToolMenu.Instance.PriorityScreen.SetScreenPriority(Priority);

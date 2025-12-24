@@ -1,6 +1,7 @@
 using HarmonyLib;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
+using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.Tools;
 using ONI_MP.Networking.Packets.Tools.Build;
 using System.Collections;
@@ -27,8 +28,8 @@ namespace ONI_MP.Patches.ToolPatches.Build
 				DebugConsole.Log("UtilityBuildPacket currently processing");
 				return;
 			}
-			
-			if (__instance.path == null || __instance.def == null || __instance.path.Count < 2)
+
+			if (__instance.path == null || __instance.def == null || __instance.path.Count == 0)
 			{
 				DebugConsole.LogWarning("[UtilityBuildToolPatch] Path or Def is null, cannot send UtilityBuildPacket.");
 				return;

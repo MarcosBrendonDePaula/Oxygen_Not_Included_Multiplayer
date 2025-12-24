@@ -25,6 +25,10 @@ namespace ONI_MP.Networking.Components
 		private float _initializationTime;
 		private const float INITIAL_DELAY = 5f;
 
+		// Game info update - runs regardless of client count for lobby browser
+		private float _lastGameInfoTime;
+		private const float GAME_INFO_INTERVAL = 5f;
+
 		private ushort[] _shadowElements;
 		private float[] _shadowMass;
 
@@ -46,7 +50,15 @@ namespace ONI_MP.Networking.Components
 			if (!MultiplayerSession.InSession || !MultiplayerSession.IsHost)
 				return;
 
-			// Skip if no clients connected
+			// Update game info even when no clients connected (for lobby browser)
+			// This runs every 5 seconds regardless of client count
+			if (Time.unscaledTime - _lastGameInfoTime > GAME_INFO_INTERVAL)
+			{
+				_lastGameInfoTime = Time.unscaledTime;
+				SteamLobby.UpdateGameInfo();
+			}
+
+			// Skip other syncs if no clients connected
 			if (MultiplayerSession.ConnectedPlayers.Count == 0)
 				return;
 
@@ -73,16 +85,17 @@ namespace ONI_MP.Networking.Components
 					SyncGasLiquid();
 				}
 
-				// Staggered syncs - one per second (each runs every 3s but distributed)
+				// Staggered syncs - one per second (each runs every 4s but distributed)
 				// NOTE: Priorities and Disinfect removed - already synced via event-driven patches
 				if (Time.unscaledTime - _lastSyncTime > STAGGERED_SYNC_INTERVAL)
 				{
 					_lastSyncTime = Time.unscaledTime;
-					switch (_syncCycleIndex++ % 3)
+					switch (_syncCycleIndex++ % 4)
 					{
 						case 0: SyncDigging(); break;
 						case 1: SyncChores(); break;
 						case 2: SyncResearchProgress(); break;
+						case 3: SteamLobby.UpdateGameInfo(); break; // Update lobby metadata
 					}
 				}
 			}

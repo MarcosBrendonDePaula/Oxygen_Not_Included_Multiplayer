@@ -47,18 +47,23 @@ internal static class MainMenuPatch
 		//);
 		//makeButton.Invoke(__instance, new object[] { hostInfo });
 
-		// Join Game
-		var joinInfo = CreateButtonInfo(
-				"JOIN GAME",
+		// Multiplayer - Opens the multiplayer screen with all options
+		var multiplayerInfo = CreateButtonInfo(
+				"MULTIPLAYER",
 				new System.Action(() =>
 				{
-					SteamFriends.ActivateGameOverlay("friends");
+					// Open the multiplayer screen
+					var canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+					if (canvas != null)
+					{
+						ONI_MP.Menus.MultiplayerScreen.Show(canvas.transform);
+					}
 				}),
 				normalFontSize,
 				normalStyle,
 				buttonInfoType
 		);
-		makeButton.Invoke(__instance, new object[] { joinInfo });
+		makeButton.Invoke(__instance, new object[] { multiplayerInfo });
 
 		/* I don't like this anymore - Luke
 		bool useCustomMenu = Configuration.GetClientProperty<bool>("UseCustomMainMenu");
@@ -95,20 +100,17 @@ internal static class MainMenuPatch
 
 			// Find "Load Game" button
 			var loadGameBtn = children.FirstOrDefault(b =>
-					b.GetComponentInChildren<LocText>().text.ToUpper().Contains("LOAD GAME"));
+					b.GetComponentInChildren<LocText>()?.text.ToUpper().Contains("LOAD GAME") == true);
 
-			// Find your buttons
-			//var hostBtn = children.FirstOrDefault(b =>
-			//		b.GetComponentInChildren<LocText>().text.ToUpper().Contains("HOST GAME"));
-			var joinBtn = children.FirstOrDefault(b =>
-					b.GetComponentInChildren<LocText>().text.ToUpper().Contains("JOIN GAME"));
+			// Find Multiplayer button
+			var multiplayerBtn = children.FirstOrDefault(b =>
+					b.GetComponentInChildren<LocText>()?.text.ToUpper().Contains("MULTIPLAYER") == true);
 
-			if (loadGameBtn != null /*&& hostBtn != null*/ && joinBtn != null)
+			if (loadGameBtn != null && multiplayerBtn != null)
 			{
 				int loadGameIdx = loadGameBtn.transform.GetSiblingIndex();
-				// Move host and join immediately after "Load Game"
-				//hostBtn.transform.SetSiblingIndex(loadGameIdx + 1);
-				joinBtn.transform.SetSiblingIndex(loadGameIdx + 1); // + 2
+				// Move Multiplayer immediately after "Load Game"
+				multiplayerBtn.transform.SetSiblingIndex(loadGameIdx + 1);
 			}
 		}
 	}

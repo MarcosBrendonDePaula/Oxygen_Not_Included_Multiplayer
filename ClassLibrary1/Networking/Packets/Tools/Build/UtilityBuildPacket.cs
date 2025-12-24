@@ -142,7 +142,7 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 						placedCount++;
 
 						// Set connection state using our connection flags
-						if (go.TryGetComponent<KAnimGraphTileVisualizer>(out var tileVis))
+						if (go.TryGetComponent<KAnimGraphTileVisualizer>(out var vis))
 						{
 							// Build the UtilityConnections bitmask: Left=1, Right=2, Up=4, Down=8
 							UtilityConnections newConnections = (UtilityConnections)0;
@@ -151,9 +151,9 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 							if (node.ConnectsUp) newConnections |= UtilityConnections.Up;
 							if (node.ConnectsDown) newConnections |= UtilityConnections.Down;
 
-							tileVis.Connections = newConnections;
+							vis.UpdateConnections(vis.Connections | newConnections);
+							vis.Refresh();
 							DebugConsole.Log($"[UtilityBuildPacket] Set connections for {go.name} at cell {cell} to {newConnections}");
-							tileVis.Refresh();
 						}
 						else
 							DebugConsole.LogWarning($"[UtilityBuildPacket] entity {go.name} had no tilevisualizer");

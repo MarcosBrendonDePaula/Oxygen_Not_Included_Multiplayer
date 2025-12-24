@@ -19,6 +19,14 @@ namespace ONI_MP.Menus
         private Vector2 scrollPosition = Vector2.zero;
         private Rect windowRect = new Rect(0, 0, 600, 400);
 
+        // Restart notification fields
+        private static bool showRestartNotification = false;
+        private static float restartNotificationTime = 0f;
+        private const float NOTIFICATION_DURATION = 5f; // Show for 5 seconds
+
+        // Track if mods were enabled and need restart
+        private static bool allModsEnabled = false;
+
         public static void ShowIncompatibilityError(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches)
         {
             try
@@ -30,6 +38,9 @@ namespace ONI_MP.Menus
                 dialogMissingMods = missingMods ?? new string[0];
                 dialogExtraMods = extraMods ?? new string[0];
                 dialogVersionMismatches = versionMismatches ?? new string[0];
+
+                // Reset enabled state
+                allModsEnabled = false;
 
                 // Create or get the GUI component
                 if (instance == null)
@@ -75,8 +86,37 @@ namespace ONI_MP.Menus
             }
         }
 
+        public static void ShowRestartNotification()
+        {
+            try
+            {
+                DebugConsole.Log("[ModCompatibilityGUI] Showing restart notification");
+
+                // Create or get the GUI component if not already present
+                if (instance == null)
+                {
+                    GameObject guiObject = new GameObject("ModCompatibilityGUI");
+                    DontDestroyOnLoad(guiObject);
+                    instance = guiObject.AddComponent<ModCompatibilityGUI>();
+                }
+
+                showRestartNotification = true;
+                restartNotificationTime = Time.realtimeSinceStartup;
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Failed to show restart notification: {ex.Message}");
+            }
+        }
+
         void OnGUI()
         {
+            // Draw restart notification if active
+            if (showRestartNotification)
+            {
+                DrawRestartNotification();
+            }
+
             if (!showDialog) return;
 
             // Dark semi-transparent background
@@ -91,6 +131,54 @@ namespace ONI_MP.Menus
 
             // Main dialog window
             windowRect = GUI.Window(12345, windowRect, DrawDialogWindow, "", windowStyle);
+        }
+
+        void DrawRestartNotification()
+        {
+            // Check if notification should still be visible
+            float elapsed = Time.realtimeSinceStartup - restartNotificationTime;
+            if (elapsed > NOTIFICATION_DURATION)
+            {
+                showRestartNotification = false;
+                return;
+            }
+
+            // Calculate fade out for last second
+            float alpha = 1f;
+            if (elapsed > NOTIFICATION_DURATION - 1f)
+            {
+                alpha = NOTIFICATION_DURATION - elapsed; // Fade from 1 to 0 in last second
+            }
+
+            // Position at top center of screen
+            float width = 500f;
+            float height = 80f;
+            float x = (Screen.width - width) / 2;
+            float y = 50f;
+
+            Rect notificationRect = new Rect(x, y, width, height);
+
+            // Draw background
+            GUI.color = new Color(0.2f, 0.2f, 0.2f, 0.95f * alpha);
+            GUI.DrawTexture(notificationRect, Texture2D.whiteTexture);
+
+            // Draw border
+            GUI.color = new Color(1f, 0.8f, 0f, alpha); // Yellow/orange border
+            GUI.Box(notificationRect, "");
+
+            GUI.color = new Color(1f, 1f, 1f, alpha);
+
+            // Draw text
+            GUIStyle textStyle = new GUIStyle(GUI.skin.label);
+            textStyle.fontSize = 14;
+            textStyle.fontStyle = FontStyle.Bold;
+            textStyle.alignment = TextAnchor.MiddleCenter;
+            textStyle.wordWrap = true;
+            textStyle.normal.textColor = new Color(1f, 1f, 1f, alpha);
+
+            GUI.Label(notificationRect, "Mods enabled successfully!\nPlease restart the game for changes to take effect.", textStyle);
+
+            GUI.color = Color.white;
         }
 
         void DrawDialogWindow(int windowID)
@@ -110,8 +198,31 @@ namespace ONI_MP.Menus
             // Scroll area for content
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Height(280));
 
+            // Restart required message (if all mods were enabled)
+            if (allModsEnabled)
+            {
+                GUIStyle restartStyle = new GUIStyle(GUI.skin.label);
+                restartStyle.fontSize = 16;
+                restartStyle.fontStyle = FontStyle.Bold;
+                restartStyle.wordWrap = true;
+                restartStyle.alignment = TextAnchor.MiddleCenter;
+                restartStyle.normal.textColor = Color.green;
+
+                GUILayout.Label("All mods have been enabled!", restartStyle);
+                GUILayout.Space(10);
+
+                GUIStyle restartInstructionStyle = new GUIStyle(GUI.skin.label);
+                restartInstructionStyle.fontSize = 14;
+                restartInstructionStyle.fontStyle = FontStyle.Bold;
+                restartInstructionStyle.wordWrap = true;
+                restartInstructionStyle.alignment = TextAnchor.MiddleCenter;
+                restartInstructionStyle.normal.textColor = Color.yellow;
+
+                GUILayout.Label("Please restart the game for changes to take effect.", restartInstructionStyle);
+                GUILayout.Space(10);
+            }
             // Reason text
-            if (!string.IsNullOrEmpty(dialogReason))
+            else if (!string.IsNullOrEmpty(dialogReason))
             {
                 GUIStyle reasonStyle = new GUIStyle(GUI.skin.label);
                 reasonStyle.fontStyle = FontStyle.Bold;
@@ -122,10 +233,10 @@ namespace ONI_MP.Menus
                 GUILayout.Space(10);
             }
 
-            // Missing mods section - só mostrar se realmente estão em falta
-            if (dialogMissingMods != null && dialogMissingMods.Length > 0)
+            // Missing mods section - only show if actually missing and not all enabled
+            if (!allModsEnabled && dialogMissingMods != null && dialogMissingMods.Length > 0)
             {
-                // Filtrar apenas mods que realmente não estão instalados/habilitados
+                // Filter only mods that are truly not installed/enabled
                 var trulyMissingMods = new List<string>();
                 var installedButDisabledMods = new List<string>();
 
@@ -133,8 +244,8 @@ namespace ONI_MP.Menus
                 {
                     if (IsModEnabled(mod))
                     {
-                        // Se está habilitado, não é realmente "missing"
-                        DebugConsole.Log($"[ModCompatibilityGUI] Mod {mod} está habilitado, ignorando da lista de missing");
+                        // If enabled, not really "missing"
+                        DebugConsole.Log($"[ModCompatibilityGUI] Mod {mod} is enabled, ignoring from missing list");
                         continue;
                     }
                     else if (IsModInstalled(mod))
@@ -202,62 +313,65 @@ namespace ONI_MP.Menus
 
             GUILayout.Space(10);
 
-            // Action buttons section
+            // Action buttons section (hide if all mods enabled)
             GUILayout.BeginHorizontal();
 
-            // Verificar se há mods realmente missing ou apenas desabilitados
-            bool hasTrulyMissing = false;
-            bool hasDisabled = false;
-
-            if (dialogMissingMods != null && dialogMissingMods.Length > 0)
+            if (!allModsEnabled)
             {
-                foreach (var mod in dialogMissingMods)
+                // Check if there are truly missing mods or just disabled ones
+                bool hasTrulyMissing = false;
+                bool hasDisabled = false;
+
+                if (dialogMissingMods != null && dialogMissingMods.Length > 0)
                 {
-                    if (IsModEnabled(mod))
+                    foreach (var mod in dialogMissingMods)
                     {
-                        // Mod está habilitado, ignorar
-                        continue;
-                    }
-                    else if (IsModInstalled(mod))
-                    {
-                        hasDisabled = true;
-                    }
-                    else
-                    {
-                        hasTrulyMissing = true;
+                        if (IsModEnabled(mod))
+                        {
+                            // Mod is enabled, ignore
+                            continue;
+                        }
+                        else if (IsModInstalled(mod))
+                        {
+                            hasDisabled = true;
+                        }
+                        else
+                        {
+                            hasTrulyMissing = true;
+                        }
                     }
                 }
-            }
 
-            // Install All button (apenas para mods realmente missing)
-            if (hasTrulyMissing)
-            {
-                GUIStyle installAllStyle = new GUIStyle(GUI.skin.button);
-                installAllStyle.fontSize = 12;
-                installAllStyle.fontStyle = FontStyle.Bold;
-                installAllStyle.normal.textColor = Color.cyan;
-
-                if (GUILayout.Button("Install All", installAllStyle, GUILayout.Height(35)))
+                // Install All button (only for truly missing mods)
+                if (hasTrulyMissing)
                 {
-                    InstallAllMods();
+                    GUIStyle installAllStyle = new GUIStyle(GUI.skin.button);
+                    installAllStyle.fontSize = 12;
+                    installAllStyle.fontStyle = FontStyle.Bold;
+                    installAllStyle.normal.textColor = Color.cyan;
+
+                    if (GUILayout.Button("Install All", installAllStyle, GUILayout.Height(35)))
+                    {
+                        InstallAllMods();
+                    }
+
+                    GUILayout.Space(10);
                 }
 
-                GUILayout.Space(10);
-            }
-
-            // Enable All button (apenas para mods instalados mas desabilitados)
-            if (hasDisabled)
-            {
-                GUIStyle enableAllStyle = new GUIStyle(GUI.skin.button);
-                enableAllStyle.fontSize = 12;
-                enableAllStyle.fontStyle = FontStyle.Bold;
-                enableAllStyle.normal.textColor = Color.green;
-
-                if (GUILayout.Button("Enable All", enableAllStyle, GUILayout.Height(35)))
+                // Enable All button (only for installed but disabled mods)
+                if (hasDisabled)
                 {
-                    EnableAllMods();
+                    GUIStyle enableAllStyle = new GUIStyle(GUI.skin.button);
+                    enableAllStyle.fontSize = 12;
+                    enableAllStyle.fontStyle = FontStyle.Bold;
+                    enableAllStyle.normal.textColor = Color.green;
+
+                    if (GUILayout.Button("Enable All", enableAllStyle, GUILayout.Height(35)))
+                    {
+                        EnableAllMods();
+                    }
                 }
-            }
+            } // End of !allModsEnabled check
 
             GUILayout.FlexibleSpace();
 
@@ -266,7 +380,7 @@ namespace ONI_MP.Menus
             buttonStyle.fontSize = 14;
             buttonStyle.fontStyle = FontStyle.Bold;
 
-            if (GUILayout.Button("Fechar", buttonStyle, GUILayout.Height(35)))
+            if (GUILayout.Button("Close", buttonStyle, GUILayout.Height(35)))
             {
                 CloseDialog();
             }
@@ -465,7 +579,7 @@ namespace ONI_MP.Menus
                 {
                     if (mod?.label != null && mod.label.id == modId)
                     {
-                        // Usar o método correto do modManager
+                        // Use the correct modManager method
                         return modManager.IsModEnabled(mod.label);
                     }
                 }
@@ -478,6 +592,39 @@ namespace ONI_MP.Menus
             return false;
         }
 
+        private void CheckAllModsEnabled()
+        {
+            try
+            {
+                if (dialogMissingMods == null || dialogMissingMods.Length == 0)
+                {
+                    allModsEnabled = false;
+                    return;
+                }
+
+                // Check if all missing mods are now enabled
+                bool allEnabled = true;
+                foreach (var mod in dialogMissingMods)
+                {
+                    if (!IsModEnabled(mod))
+                    {
+                        allEnabled = false;
+                        break;
+                    }
+                }
+
+                if (allEnabled)
+                {
+                    allModsEnabled = true;
+                    DebugConsole.Log("[ModCompatibilityGUI] All required mods are now enabled! Restart required.");
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Error checking all mods enabled: {ex.Message}");
+            }
+        }
+
         private void EnableMod(string modDisplayName)
         {
             try
@@ -487,42 +634,48 @@ namespace ONI_MP.Menus
 
                 if (modManager == null)
                 {
-                    DebugConsole.LogWarning("[ModCompatibilityGUI] ModManager não disponível");
+                    DebugConsole.LogWarning("[ModCompatibilityGUI] ModManager not available");
                     OpenSteamWorkshopPage(modDisplayName);
                     return;
                 }
 
-                // Procura o mod na lista
+                // Search for the mod in the list
                 foreach (var mod in modManager.mods)
                 {
                     if (mod?.label != null && mod.label.id == modId)
                     {
-                        // Verifica se já está ativado
+                        // Check if already enabled
                         if (modManager.IsModEnabled(mod.label))
                         {
-                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} já estava ativo");
+                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} was already enabled");
                             return;
                         }
 
                         try
                         {
-                            // Ativa o mod
+                            // Enable the mod
                             modManager.EnableMod(mod.label, true, null);
                             modManager.Save();
 
-                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} ativado com sucesso!");
+                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} enabled successfully!");
+
+                            // Check if all mods are now enabled
+                            CheckAllModsEnabled();
+
+                            // Show restart notification
+                            ShowRestartNotification();
                             return;
                         }
                         catch (Exception ex)
                         {
-                            DebugConsole.LogWarning($"[ModCompatibilityGUI] Erro ao ativar mod {modDisplayName}: {ex.Message}");
+                            DebugConsole.LogWarning($"[ModCompatibilityGUI] Error enabling mod {modDisplayName}: {ex.Message}");
                             OpenSteamWorkshopPage(modDisplayName);
                             return;
                         }
                     }
                 }
 
-                DebugConsole.LogWarning($"[ModCompatibilityGUI] Mod {modDisplayName} não encontrado na lista");
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Mod {modDisplayName} not found in list");
                 OpenSteamWorkshopPage(modDisplayName);
             }
             catch (Exception ex)
@@ -540,31 +693,37 @@ namespace ONI_MP.Menus
 
                 if (buttonText == "Install")
                 {
-                    // Tentar instalar automaticamente primeiro
-                    DebugConsole.Log($"[ModCompatibilityGUI] Tentando instalação automática do mod: {modDisplayName}");
+                    // Try automatic installation first
+                    DebugConsole.Log($"[ModCompatibilityGUI] Attempting automatic installation of mod: {modDisplayName}");
 
                     WorkshopInstaller.Instance.InstallAndActivateMod(modId, success => {
                         if (success)
                         {
-                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} instalado e ativado automaticamente!");
+                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} installed and activated automatically!");
                         }
                         else
                         {
-                            DebugConsole.Log($"[ModCompatibilityGUI] Instalação automática falhou para {modDisplayName}, abrindo Steam Workshop");
+                            DebugConsole.Log($"[ModCompatibilityGUI] Automatic installation failed for {modDisplayName}, opening Steam Workshop");
                             OpenSteamWorkshopPage(modDisplayName);
                         }
                     });
                 }
+                else if (buttonText == "Enable")
+                {
+                    // Enable installed but disabled mod
+                    DebugConsole.Log($"[ModCompatibilityGUI] Attempting to enable mod: {modDisplayName}");
+                    EnableMod(modDisplayName);
+                }
                 else
                 {
-                    // Outros botões (View, Update) - abrir página do Steam
+                    // Other buttons (View, Update) - open Steam page
                     OpenSteamWorkshopPage(modDisplayName);
                 }
             }
             catch (Exception ex)
             {
-                DebugConsole.LogWarning($"[ModCompatibilityGUI] Erro ao processar ação do mod {modDisplayName}: {ex.Message}");
-                // Fallback para abrir página
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Error processing mod action {modDisplayName}: {ex.Message}");
+                // Fallback to open page
                 OpenSteamWorkshopPage(modDisplayName);
             }
         }
@@ -576,9 +735,9 @@ namespace ONI_MP.Menus
                 if (dialogMissingMods == null || dialogMissingMods.Length == 0)
                     return;
 
-                DebugConsole.Log($"[ModCompatibilityGUI] Iniciando instalação de {dialogMissingMods.Length} mods...");
+                DebugConsole.Log($"[ModCompatibilityGUI] Starting installation of {dialogMissingMods.Length} mods...");
 
-                // Extrair IDs dos mods
+                // Extract mod IDs
                 List<string> modIds = new List<string>();
                 foreach (var mod in dialogMissingMods)
                 {
@@ -591,20 +750,20 @@ namespace ONI_MP.Menus
 
                 if (modIds.Count == 0)
                 {
-                    DebugConsole.LogWarning("[ModCompatibilityGUI] Nenhum ID de mod válido encontrado");
+                    DebugConsole.LogWarning("[ModCompatibilityGUI] No valid mod IDs found");
                     return;
                 }
 
-                // Usar o WorkshopInstaller para instalar todos
+                // Use WorkshopInstaller to install all
                 WorkshopInstaller.Instance.InstallMultipleItems(
                     modIds.ToArray(),
                     onProgress: (completed, total) => {
-                        DebugConsole.Log($"[ModCompatibilityGUI] Progresso da instalação: {completed}/{total}");
+                        DebugConsole.Log($"[ModCompatibilityGUI] Installation progress: {completed}/{total}");
                     },
                     onComplete: installedPaths => {
-                        DebugConsole.Log($"[ModCompatibilityGUI] Instalação em lote concluída! {installedPaths.Length} mods processados");
+                        DebugConsole.Log($"[ModCompatibilityGUI] Batch installation completed! {installedPaths.Length} mods processed");
 
-                        // Tentar ativar todos os mods instalados
+                        // Try to activate all installed mods
                         int activatedCount = 0;
                         for (int i = 0; i < modIds.Count && i < installedPaths.Length; i++)
                         {
@@ -617,17 +776,17 @@ namespace ONI_MP.Menus
                             }
                         }
 
-                        DebugConsole.Log($"[ModCompatibilityGUI] {activatedCount} mods ativados automaticamente");
+                        DebugConsole.Log($"[ModCompatibilityGUI] {activatedCount} mods activated automatically");
 
                         if (activatedCount < modIds.Count)
                         {
-                            DebugConsole.Log("[ModCompatibilityGUI] Alguns mods podem precisar de ativação manual ou reinicialização do jogo");
+                            DebugConsole.Log("[ModCompatibilityGUI] Some mods may need manual activation or game restart");
                         }
                     },
                     onError: error => {
-                        DebugConsole.LogWarning($"[ModCompatibilityGUI] Erro na instalação em lote: {error}");
+                        DebugConsole.LogWarning($"[ModCompatibilityGUI] Error in batch installation: {error}");
 
-                        // Fallback: abrir primeira página do Steam Workshop
+                        // Fallback: open first Steam Workshop page
                         if (dialogMissingMods.Length > 0)
                         {
                             OpenSteamWorkshopPage(dialogMissingMods[0]);
@@ -637,7 +796,7 @@ namespace ONI_MP.Menus
             }
             catch (Exception ex)
             {
-                DebugConsole.LogWarning($"[ModCompatibilityGUI] Erro em InstallAllMods: {ex.Message}");
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Error in InstallAllMods: {ex.Message}");
             }
         }
 
@@ -651,8 +810,8 @@ namespace ONI_MP.Menus
                 var modManager = Global.Instance?.modManager;
                 if (modManager == null)
                 {
-                    DebugConsole.LogWarning("[ModCompatibilityGUI] ModManager não disponível");
-                    // Fallback para abrir Steam Workshop
+                    DebugConsole.LogWarning("[ModCompatibilityGUI] ModManager not available");
+                    // Fallback to open Steam Workshop
                     if (dialogMissingMods.Length > 0)
                     {
                         OpenSteamWorkshopPage(dialogMissingMods[0]);
@@ -679,12 +838,12 @@ namespace ONI_MP.Menus
                                     modManager.EnableMod(mod.label, true, null);
                                     enabledCount++;
                                     modFound = true;
-                                    DebugConsole.Log($"[ModCompatibilityGUI] Ativado: {modDisplayName}");
+                                    DebugConsole.Log($"[ModCompatibilityGUI] Enabled: {modDisplayName}");
                                     break;
                                 }
                                 catch (Exception ex)
                                 {
-                                    DebugConsole.LogWarning($"[ModCompatibilityGUI] Erro ao ativar {modDisplayName}: {ex.Message}");
+                                    DebugConsole.LogWarning($"[ModCompatibilityGUI] Error enabling {modDisplayName}: {ex.Message}");
                                 }
                             }
                         }
@@ -692,37 +851,43 @@ namespace ONI_MP.Menus
                         if (!modFound)
                         {
                             notFoundCount++;
-                            DebugConsole.LogWarning($"[ModCompatibilityGUI] Mod não encontrado: {modDisplayName}");
+                            DebugConsole.LogWarning($"[ModCompatibilityGUI] Mod not found: {modDisplayName}");
                         }
                     }
                 }
 
                 if (enabledCount > 0)
                 {
-                    // Salva as mudanças
+                    // Save changes
                     try
                     {
                         modManager.Save();
-                        DebugConsole.Log($"[ModCompatibilityGUI] {enabledCount} mods ativados com sucesso!");
+                        DebugConsole.Log($"[ModCompatibilityGUI] {enabledCount} mods enabled successfully!");
 
                         if (notFoundCount > 0)
                         {
-                            DebugConsole.LogWarning($"[ModCompatibilityGUI] {notFoundCount} mods não foram encontrados na lista");
+                            DebugConsole.LogWarning($"[ModCompatibilityGUI] {notFoundCount} mods were not found in the list");
                         }
+
+                        // Check if all mods are now enabled
+                        CheckAllModsEnabled();
+
+                        // Show restart notification
+                        ShowRestartNotification();
                     }
                     catch (Exception ex)
                     {
-                        DebugConsole.LogWarning($"[ModCompatibilityGUI] Erro ao salvar configurações: {ex.Message}");
+                        DebugConsole.LogWarning($"[ModCompatibilityGUI] Error saving settings: {ex.Message}");
                     }
                 }
                 else
                 {
-                    DebugConsole.Log("[ModCompatibilityGUI] Nenhum mod desabilitado foi encontrado para ativar");
+                    DebugConsole.Log("[ModCompatibilityGUI] No disabled mods found to enable");
 
-                    // Se não conseguiu ativar nenhum, abre Steam Workshop como fallback
+                    // If none could be enabled, open Steam Workshop as fallback
                     if (dialogMissingMods.Length > 0)
                     {
-                        DebugConsole.Log("[ModCompatibilityGUI] Abrindo Steam Workshop como fallback");
+                        DebugConsole.Log("[ModCompatibilityGUI] Opening Steam Workshop as fallback");
                         OpenSteamWorkshopPage(dialogMissingMods[0]);
                     }
                 }

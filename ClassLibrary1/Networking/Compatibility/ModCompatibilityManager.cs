@@ -14,7 +14,7 @@ namespace ONI_MP.Networking.Compatibility
         private static bool _strictModeEnabled = true;
         private static bool _allowVersionMismatches = false;
 
-        // Ignora verificação de versão por enquanto - foca apenas em presença do mod
+        // Ignore version checking for now - focus only on mod presence
         private const bool IGNORE_VERSION_CHECKS = true;
 
         public static void Initialize()
@@ -26,7 +26,7 @@ namespace ONI_MP.Networking.Compatibility
                 CollectHostMods();
             }
 
-            // Limpar cache de clientes
+            // Clear client cache
             _clientModCache.Clear();
         }
 
@@ -64,10 +64,10 @@ namespace ONI_MP.Networking.Compatibility
                             mod.label.id,
                             mod.packagedModInfo?.version?.ToString() ?? "unknown",
                             mod.title,
-                            true // Por padrão, todos os mods são requeridos
+                            true // By default, all mods are required
                         );
 
-                        // Configurar se permite incompatibilidade de versão
+                        // Configure if version mismatch is allowed
                         modInfo.AllowVersionMismatch = _allowVersionMismatches;
 
                         _hostMods.Add(modInfo);
@@ -100,14 +100,14 @@ namespace ONI_MP.Networking.Compatibility
                 CollectHostMods();
             }
 
-            // Cache do pacote do cliente
+            // Cache client packet
             _clientModCache[clientPacket.ClientSteamID] = clientPacket;
 
             var result = new CompatibilityResult();
 
             try
             {
-                // Verificar versão do jogo
+                // Check game version
                 var hostGameVersion = LaunchInitializer.BuildPrefix();
                 if (clientPacket.GameVersion != hostGameVersion)
                 {
@@ -143,7 +143,7 @@ namespace ONI_MP.Networking.Compatibility
                     DebugConsole.Log($"  Client: {clientMod.StaticID} - {clientMod.Version}");
                 }
 
-                // Verificar mods necessários que estão faltando no cliente
+                // Check required mods that are missing on client
                 foreach (var hostMod in _hostMods)
                 {
                     var clientMod = clientMods.FirstOrDefault(c => c.StaticID == hostMod.StaticID);
@@ -182,21 +182,21 @@ namespace ONI_MP.Networking.Compatibility
                     }
                 }
 
-                // Verificar hash geral dos mods para validação rápida
+                // Check overall mod hash for quick validation
                 if (result.IsCompatible && clientMods.Count == _hostMods.Count)
                 {
-                    // Se o número de mods é igual, podemos usar hash para verificação rápida
+                    // If mod count is equal, we can use hash for quick verification
                     var hostHash = CalculateHostModsHash();
                     if (clientPacket.ModsHash != hostHash)
                     {
                         DebugConsole.Log($"[ModCompatibilityManager] Hash mismatch: Host={hostHash:X16}, Client={clientPacket.ModsHash:X16}");
-                        // Não rejeitar por hash, pois pode ser diferença de ordem
+                        // Don't reject by hash, as it could be mod order difference
                         result.AddWarning("Mod hash mismatch - possible mod order difference");
                     }
                 }
 
-                // Determinar resultado final - só rejeitar para missing mods ou version mismatches
-                // Extra mods são permitidos (política permissiva)
+                // Determine final result - only reject for missing mods or version mismatches
+                // Extra mods are allowed (permissive policy)
                 if (result.MissingMods.Count == 0 && result.VersionMismatches.Count == 0)
                 {
                     result.IsCompatible = true;

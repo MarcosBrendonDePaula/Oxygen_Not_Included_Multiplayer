@@ -234,8 +234,8 @@ namespace ONI_MP.Networking
 			// Reset mod verification state on new connection
 			_modVerificationSent = false;
 
-			// CRÍTICO: Habilitar processamento de pacotes ANTES de mod verification
-			// Caso contrário, a resposta de mod verification será descartada!
+			// CRITICAL: Enable packet processing BEFORE mod verification
+			// Otherwise, the mod verification response will be discarded!
 			PacketHandler.readyToProcess = true;
 			DebugConsole.Log("[GameClient] PacketHandler.readyToProcess = true (before mod verification)");
 
@@ -243,7 +243,7 @@ namespace ONI_MP.Networking
 			if (!_modVerificationSent)
 			{
 				DebugConsole.Log("[GameClient] Sending mod verification to host...");
-				// Overlay removido a pedido do usuário - verificação acontece silenciosamente
+				// Overlay removed at user's request - verification happens silently
 
 				try
 				{
@@ -272,7 +272,7 @@ namespace ONI_MP.Networking
 
 		private static void ContinueConnectionFlow()
 		{
-			// CRÍTICO: Só executar no cliente, nunca no servidor
+			// CRITICAL: Only execute on client, never on server
 			if (MultiplayerSession.IsHost)
 			{
 				DebugConsole.Log("[GameClient] ContinueConnectionFlow called on host - ignoring");
@@ -285,12 +285,12 @@ namespace ONI_MP.Networking
 			{
 				DebugConsole.Log("[GameClient] Client is in menu - requesting save file or sending ready status");
 
-				// CRÍTICO: Habilitar processamento de pacotes ANTES de solicitar save file
-				// Caso contrário, pacotes do host serão descartados!
+				// CRITICAL: Enable packet processing BEFORE requesting save file
+				// Otherwise, host packets will be discarded!
 				PacketHandler.readyToProcess = true;
 				DebugConsole.Log("[GameClient] PacketHandler.readyToProcess = true (menu)");
 
-				// Mostrar overlay apenas se não estiver já visível
+				// Show overlay only if not already visible
 				if (!MultiplayerOverlay.IsOpen)
 				{
 					MultiplayerOverlay.Show($"Syncing with {SteamFriends.GetFriendPersonaName(MultiplayerSession.HostSteamID)}...");
@@ -459,7 +459,7 @@ namespace ONI_MP.Networking
 		{
 			DebugConsole.Log("[GameClient] Mod verification approved by host!");
 
-			// NÃO fechar o overlay aqui - deixar para o fluxo de conexão gerenciar
+			// DO NOT close overlay here - let connection flow manage it
 			DebugConsole.Log("[GameClient] Mod verification approved, continuing connection flow");
 
 			// Continue with normal connection flow

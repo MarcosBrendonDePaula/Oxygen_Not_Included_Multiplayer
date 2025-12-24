@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Packets.Tools;
 using System;
@@ -16,11 +17,12 @@ namespace ONI_MP.Patches.ToolPatches
         [HarmonyPatch(typeof(DisconnectTool), nameof(DisconnectTool.OnDragComplete))]
         public class DisconnectTool_OnDragComplete_Patch
         {
-            public static void Postfix(DisconnectTool __instance, Vector3 downPos, Vector3 upPos)
+            public static void Prefix(DisconnectTool __instance, Vector3 downPos, Vector3 upPos)
             {
                 if (!MultiplayerSession.InSession)
                     return;
 
+				DebugConsole.Log("Disconnecting from " + downPos.x + "," + downPos.y + " to " + upPos.x + "," + upPos.y);
 				//prevent recursion
 				if (DisconnectPacket.ProcessingIncoming)
                     return;

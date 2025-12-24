@@ -90,6 +90,7 @@ namespace ONI_MP.Networking.Packets.Tools
 					ToolInstance.OnDragTool(cell, distFromOrigin);
 					break;
 				case DragToolMode.OnDragComplete:
+					ToolInstance.downPos = downPos;
 					DebugConsole.Log($"[FilteredDragToolPacket] OnDispatched OnDragComplete - startPos: {downPos}, endPos: {upPos}");
 					ToolInstance.OnDragComplete(downPos, upPos);
 					break;

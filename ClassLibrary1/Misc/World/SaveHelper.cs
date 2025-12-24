@@ -74,11 +74,7 @@ public static class SaveHelper
 	{
 		MultiplayerOverlay.Show(msg);
 
-		yield return new WaitForSeconds(4f);
-
-		ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
-		yield return new WaitForSeconds(1f);
-
+		yield return new WaitForSeconds(5);
 		MultiplayerOverlay.Close();
 		NetworkIdentityRegistry.Clear();
 		SteamLobby.LeaveLobby();

@@ -242,6 +242,7 @@ namespace ONI_MP.Networking
 				LobbyMembers.Add(member);
 				_OnLobbyMembersRefreshed?.Invoke(member);
 			}
+			ReadyManager.RefreshReadyState();
 
 			if (Utils.IsInGame())
 			{

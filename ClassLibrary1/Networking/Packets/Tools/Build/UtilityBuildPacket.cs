@@ -112,6 +112,7 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			var tags = MaterialTags.Select(t => new Tag(t)).ToList();
 			if (tags.Count == 0)
 			{
+				//this should potentially be drawn from the building def's construction material types instead
 				tags.Add(SimHashes.Copper.CreateTag());
 			}
 
@@ -119,21 +120,23 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 			int placedCount = 0;
 			foreach (var node in Path)
 			{
-				if (!node.Valid) continue;
+				if (!node.Valid) 
+					continue;
 				int cell = node.Cell;
-				if (!Grid.IsValidCell(cell)) continue;
+				if (!Grid.IsValidCell(cell)) 
+					continue;
 
 				try
 				{
-					var existingObj = Grid.Objects[cell, (int)def.ObjectLayer];
-					if (existingObj != null) continue;
-
 					Vector3 pos = Grid.CellToPosCBC(cell, def.SceneLayer);
 					///check if there is a conduit on the layer already
 					GameObject go = Grid.Objects[cell, (int)def.ObjectLayer];
 					///if not, try placing a new planned building
 					if (go == null)
+					{
+						DebugConsole.Log($"[UtilityBuildPacket] Placing construction site for {PrefabID} at cell {cell}");
 						def.TryPlace(null, pos, Orientation.Neutral, tags, "DEFAULT_FACADE");
+					}
 					if (go != null)
 					{
 						placedCount++;
@@ -152,12 +155,15 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 							tileVis.Refresh();
 						}
 					}
+					else 
+						DebugConsole.LogWarning($"[UtilityBuildPacket] Failed to place construction site at cell {cell}");
 				}
 				catch (System.Exception e)
 				{
 					DebugConsole.LogError($"[UtilityBuildPacket] Failed at cell {cell}: {e.Message}");
 				}
 			}
+			DebugConsole.Log("[UtilityBuildPacket] Placed " + placedCount + " construction sites for " + PrefabID);
 
 			// Rebroadcast if Host
 			if (MultiplayerSession.IsHost)

@@ -135,7 +135,7 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 					if (go == null)
 					{
 						DebugConsole.Log($"[UtilityBuildPacket] Placing construction site for {PrefabID} at cell {cell}");
-						def.TryPlace(null, pos, Orientation.Neutral, tags, "DEFAULT_FACADE");
+						go = def.TryPlace(null, pos, Orientation.Neutral, tags, "DEFAULT_FACADE");
 					}
 					if (go != null)
 					{
@@ -152,8 +152,12 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 							if (node.ConnectsDown) newConnections |= UtilityConnections.Down;
 
 							tileVis.Connections = newConnections;
+							DebugConsole.Log($"[UtilityBuildPacket] Set connections for {go.name} at cell {cell} to {newConnections}");
 							tileVis.Refresh();
 						}
+						else
+							DebugConsole.LogWarning($"[UtilityBuildPacket] entity {go.name} had no tilevisualizer");
+
 					}
 					else 
 						DebugConsole.LogWarning($"[UtilityBuildPacket] Failed to place construction site at cell {cell}");

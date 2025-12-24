@@ -22,6 +22,8 @@ namespace ONI_MP.Patches
 				case "SelectTool":
 					CursorManager.Instance.cursorState = CursorState.SELECT;
 					break;
+				case "WireBuildTool":
+				case "UtilityBuildTool":
 				case "BuildTool":
 					CursorManager.Instance.cursorState = CursorState.BUILD;
 					break;

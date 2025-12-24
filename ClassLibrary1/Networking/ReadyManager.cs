@@ -84,6 +84,9 @@ namespace ONI_MP.Networking
 
 		public static void RefreshScreen()
 		{
+			if (!MultiplayerSession.InSession)
+				return;
+
 			string text = GetScreenText();
 			MultiplayerOverlay.Show(text);
 		}
@@ -155,6 +158,9 @@ namespace ONI_MP.Networking
 
 		internal static void RefreshReadyState()
 		{
+			if (!MultiplayerSession.InSession)
+				return;
+
 			DebugConsole.Log("Refreshing ready state...");
 			if (MultiplayerSession.ConnectedPlayers.Count <= 1)
 			{

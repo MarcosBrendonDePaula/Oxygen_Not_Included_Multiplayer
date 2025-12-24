@@ -10,12 +10,20 @@ namespace ONI_MP.Networking.Components
 	{
 		public static WorldStateSyncer Instance { get; private set; }
 
-		private const float SYNC_INTERVAL = 5f; // Faster sync for other things
+		// Staggered sync - each sync runs every 5s but distributed across frames
+		private const float STAGGERED_SYNC_INTERVAL = 1f;
 		private float _lastSyncTime;
+		private int _syncCycleIndex = 0;
 
-		// Gas/Liquid Sync
+		// Gas/Liquid Sync - adaptive based on FPS
 		private float _lastGasSyncTime;
-		private const float GAS_SYNC_INTERVAL = 0.2f; // 5 FPS for gas/liquid visual changes
+		private const float GAS_SYNC_INTERVAL = 1.5f; // Increased from 0.2s
+		private float _effectiveGasInterval = GAS_SYNC_INTERVAL;
+
+		// Grace period - skip syncs for first few seconds after world load
+		private bool _initialized = false;
+		private float _initializationTime;
+		private const float INITIAL_DELAY = 5f;
 
 		private ushort[] _shadowElements;
 		private float[] _shadowMass;
@@ -38,23 +46,44 @@ namespace ONI_MP.Networking.Components
 			if (!MultiplayerSession.InSession || !MultiplayerSession.IsHost)
 				return;
 
+			// Skip if no clients connected
+			if (MultiplayerSession.ConnectedPlayers.Count == 0)
+				return;
+
+			// Grace period after world load
+			if (!_initialized)
+			{
+				_initializationTime = Time.unscaledTime;
+				_initialized = true;
+				return;
+			}
+
+			if (Time.unscaledTime - _initializationTime < INITIAL_DELAY)
+				return;
+
 			try
 			{
-				if (Time.unscaledTime - _lastGasSyncTime > GAS_SYNC_INTERVAL)
+				// Adaptive gas sync - double interval if FPS is low
+				float fps = 1f / Time.unscaledDeltaTime;
+				_effectiveGasInterval = fps < 30 ? 3f : GAS_SYNC_INTERVAL;
+
+				if (Time.unscaledTime - _lastGasSyncTime > _effectiveGasInterval)
 				{
 					_lastGasSyncTime = Time.unscaledTime;
 					SyncGasLiquid();
 				}
 
-				if (Time.unscaledTime - _lastSyncTime > SYNC_INTERVAL)
+				// Staggered syncs - one per second (each runs every 3s but distributed)
+				// NOTE: Priorities and Disinfect removed - already synced via event-driven patches
+				if (Time.unscaledTime - _lastSyncTime > STAGGERED_SYNC_INTERVAL)
 				{
 					_lastSyncTime = Time.unscaledTime;
-					SyncDigging();
-					SyncChores();
-					SyncResearchProgress();
-					// SyncResearch() - REMOVED: Research is now synced only when selected (via ResearchPatch/ResearchRequestPacket)
-					SyncPriorities();
-					SyncDisinfectImpl();
+					switch (_syncCycleIndex++ % 3)
+					{
+						case 0: SyncDigging(); break;
+						case 1: SyncChores(); break;
+						case 2: SyncResearchProgress(); break;
+					}
 				}
 			}
 			catch (System.Exception)
@@ -65,17 +94,10 @@ namespace ONI_MP.Networking.Components
 
 		// --- Digging Logic ---
 
-		private void SyncDigging()
+			private void SyncDigging()
 		{
+			var sw = System.Diagnostics.Stopwatch.StartNew();
 			var digPacket = new DiggingStatePacket();
-
-			// Efficient scan: Iterate DigPlacers? 
-			// ONI doesn't expose a global list of DigPlacers easily.
-			// But we know DigPlacers have a 'Diggable' component.
-			// Diggable.GetDiggable(cell) is a lookup.
-			// We might have to scan the Grid or keep track.
-			// Scanning the whole grid is heavy.
-			// Better: Components.Diggables.Items
 
 			try
 			{
@@ -90,6 +112,9 @@ namespace ONI_MP.Networking.Components
 				}
 
 				PacketSender.SendToAllClients(digPacket, SteamNetworkingSend.Unreliable);
+				
+				sw.Stop();
+				SyncStats.RecordSync(SyncStats.Digging, digPacket.DigCells.Count, digPacket.DigCells.Count * 4, sw.ElapsedMilliseconds);
 			}
 			catch (System.Exception ex)
 			{
@@ -159,6 +184,7 @@ namespace ONI_MP.Networking.Components
 
 		private void SyncChores()
 		{
+			var sw = System.Diagnostics.Stopwatch.StartNew();
 			var chorePacket = new ChoreStatePacket();
 
 			try
@@ -175,6 +201,9 @@ namespace ONI_MP.Networking.Components
 				}
 
 				PacketSender.SendToAllClients(chorePacket, SteamNetworkingSend.Unreliable);
+				
+				sw.Stop();
+				SyncStats.RecordSync(SyncStats.Chores, chorePacket.Chores.Count, chorePacket.Chores.Count * 5, sw.ElapsedMilliseconds);
 			}
 			catch (System.Exception ex)
 			{
@@ -316,6 +345,7 @@ namespace ONI_MP.Networking.Components
 		{
 			if (Research.Instance == null) return;
 
+			var sw = System.Diagnostics.Stopwatch.StartNew();
 			try
 			{
 				var activeResearch = Research.Instance.GetActiveResearch();
@@ -348,6 +378,9 @@ namespace ONI_MP.Networking.Components
 				};
 				
 				PacketSender.SendToAllClients(packet, SteamNetworkingSend.Unreliable);
+				
+				sw.Stop();
+				SyncStats.RecordSync(SyncStats.Research, 1, 20, sw.ElapsedMilliseconds);
 			}
 			catch (System.Exception ex)
 			{
@@ -355,7 +388,7 @@ namespace ONI_MP.Networking.Components
 			}
 		}
 
-		// --- Priorities Logic ---
+		// --- Priorities Logic (NOT USED - synced via event-driven patches) ---
 		private void SyncPriorities()
 		{
 			try
@@ -389,8 +422,9 @@ namespace ONI_MP.Networking.Components
 			}
 		}
 
-		private System.Reflection.FieldInfo _disinfectChoreField;
+	private System.Reflection.FieldInfo _disinfectChoreField;
 
+	// --- Disinfect Logic (NOT USED - synced via event-driven patches) ---
 		private void SyncDisinfectImpl()
 		{
 			try
@@ -474,6 +508,9 @@ namespace ONI_MP.Networking.Components
 		// --- Gas and Liquid Logic ---
 		private void SyncGasLiquid()
 		{
+			var sw = System.Diagnostics.Stopwatch.StartNew();
+			int cellsScanned = 0;
+			
 			if (Grid.WidthInCells == 0 || Grid.HeightInCells == 0) return;
 
 			// Initialize Shadow Grid if needed
@@ -491,15 +528,9 @@ namespace ONI_MP.Networking.Components
 				return; // Wait for next tick to sync *changes*
 			}
 
-			// Iterate over Active Viewports
-			// Union of all viewports to avoid duplicate checks? 
-			// Or just simple iteration (duplicates are cheap to check against shadow grid).
-
 			// Add local player viewport
 			if (CursorManager.Instance != null && Camera.main != null)
 			{
-				// We don't have a CSteamID for local in the dict usually, or we can just calculate it here.
-				// Let's just create a temp rect.
 				Camera cam = Camera.main;
 				Vector3 bl = cam.ViewportToWorldPoint(new Vector3(0, 0, 0));
 				Vector3 tr = cam.ViewportToWorldPoint(new Vector3(1, 1, 0));
@@ -513,6 +544,7 @@ namespace ONI_MP.Networking.Components
 				x2 = Mathf.Min(Grid.WidthInCells, x2 + margin);
 				y2 = Mathf.Min(Grid.HeightInCells, y2 + margin);
 
+				cellsScanned += (x2 - x1) * (y2 - y1);
 				ScanArea(x1, y1, x2, y2);
 			}
 
@@ -525,11 +557,15 @@ namespace ONI_MP.Networking.Components
 				int x2 = Mathf.Min(Grid.WidthInCells, rect.xMax + 2);
 				int y2 = Mathf.Min(Grid.HeightInCells, rect.yMax + 2);
 
+				cellsScanned += (x2 - x1) * (y2 - y1);
 				ScanArea(x1, y1, x2, y2);
 			}
 
 			// Flush the batcher
-			ONI_MP.Misc.World.WorldUpdateBatcher.Flush();
+			int packetSize = ONI_MP.Misc.World.WorldUpdateBatcher.Flush();
+			
+			sw.Stop();
+			SyncStats.RecordSync(SyncStats.Gas, cellsScanned, packetSize, sw.ElapsedMilliseconds);
 		}
 
 		private void ScanArea(int x1, int y1, int x2, int y2)

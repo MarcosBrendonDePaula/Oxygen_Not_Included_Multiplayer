@@ -4,6 +4,7 @@ using ONI_MP.Networking.Packets.Architecture;
 using Steamworks;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 namespace ONI_MP.Networking.Packets.World
@@ -13,8 +14,6 @@ namespace ONI_MP.Networking.Packets.World
 		public CSteamID Requester;
 
 		public const float SAVE_DATA_SEND_DELAY = 0.05f;
-
-		public PacketType Type => PacketType.SaveFileRequest;
 
 		public void Serialize(BinaryWriter writer)
 		{
@@ -56,7 +55,21 @@ namespace ONI_MP.Networking.Packets.World
 			}
 		}
 
-		private static IEnumerator StreamChunks(byte[] data, string fileName, CSteamID steamID)
+        public static void SendSaveFileToAll()
+        {
+            if (!MultiplayerSession.IsHost)
+                return;
+
+            foreach(CSteamID steamId in SteamLobby.GetAllLobbyMembers())
+			{
+				if (steamId != MultiplayerSession.HostSteamID) {
+                    SendSaveFile(steamId);
+                }
+            }
+        }
+
+
+        private static IEnumerator StreamChunks(byte[] data, string fileName, CSteamID steamID)
 		{
 			int chunkSize = SaveHelper.SAVEFILE_CHUNKSIZE_KB * 1024;
 			int totalChunks = (int)Math.Ceiling((double)data.Length / chunkSize);
@@ -106,5 +119,5 @@ namespace ONI_MP.Networking.Packets.World
 			DebugConsole.Log($"[SaveFileRequest] Transfer complete. Sent {totalChunks} chunks to {steamID}.");
 		}
 
-	}
+    }
 }

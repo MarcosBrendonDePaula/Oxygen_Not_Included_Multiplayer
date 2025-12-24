@@ -17,8 +17,6 @@ namespace ONI_MP.Networking.Packets.World
 			Triple = 2
 		}
 
-		public PacketType Type => PacketType.SpeedChange;
-
 		public SpeedState Speed { get; set; }
 
 		public SpeedChangePacket() { }

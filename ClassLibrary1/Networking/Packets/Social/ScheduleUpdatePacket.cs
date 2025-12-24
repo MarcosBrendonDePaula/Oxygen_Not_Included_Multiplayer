@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.Social
 {
 	public class ScheduleUpdatePacket : IPacket
 	{
-		public PacketType Type => PacketType.ScheduleUpdate;
-
 		public int ScheduleIndex;
 		public string Name;
 		public bool Alarm;

@@ -66,16 +66,39 @@ namespace ONI_MP.Patches
 				{
                     AddButton(__instance, "Invite", () =>
                     {
-                        //SteamFriends.ActivateGameOverlayInviteDialog(MultiplayerSession.HostSteamID); // Whilst the menu opens, sending an invite this way doesn't work
-                        SteamFriends.ActivateGameOverlay("friends");
+                        SteamFriends.ActivateGameOverlayInviteDialog(SteamLobby.CurrentLobby); // Whilst the menu opens, sending an invite this way doesn't work
                     });
 
-                    AddButton(__instance, "End Multiplayer Session", () =>
+					if (!GameServerHardSync.hardSyncDoneThisCycle)
+					{
+                        AddButton(__instance, "Perform Hard Sync", () =>
+                        {
+							if (MultiplayerSession.ConnectedPlayers.Count > 0)
+							{
+								PauseScreen.Instance.Show(false); // Hide pause screen
+								SpeedControlScreen.Instance?.Unpause(false);
+								GameServerHardSync.PerformHardSync(); // Manually trigger the hard sync
+							} else
+							{
+                                PauseScreen.Instance.Show(false); // Hide pause screen
+                                SpeedControlScreen.Instance?.Unpause(false);
+								GameServerHardSync.hardSyncDoneThisCycle = true; // No one is here, skip hard sync
+                            }
+                        });
+                    } else
+					{
+                        AddButton(__instance, "Already hard synced this cycle!", () =>
+                        {
+                            
+                        });
+                    }
+
+					AddButton(__instance, "End Multiplayer Session", () =>
 					{
 						SteamLobby.LeaveLobby();
-                        PauseScreen.Instance.Show(false); // Hide pause screen
-                        SpeedControlScreen.Instance?.Unpause(false);
-                    }, "Invite");
+						PauseScreen.Instance.Show(false); // Hide pause screen
+						SpeedControlScreen.Instance?.Unpause(false);
+					}, "Invite");
 				}
 
             }

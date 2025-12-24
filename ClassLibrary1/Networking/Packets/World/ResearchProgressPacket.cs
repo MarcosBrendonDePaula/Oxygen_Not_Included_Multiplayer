@@ -11,7 +11,6 @@ namespace ONI_MP.Networking.Packets.World
 	/// </summary>
 	public class ResearchProgressPacket : IPacket
 	{
-		public PacketType Type => PacketType.ResearchProgress;
 
 		public string TechId;
 		public float Progress; // 0.0 to 1.0
@@ -43,8 +42,8 @@ namespace ONI_MP.Networking.Packets.World
 			// Set the progress on each research type via reflection
 			try
 			{
-				// Get the PointsByTypeID dictionary
-				var pointsDict = HarmonyLib.Traverse.Create(techInstance.progressInventory)
+                // Get the PointsByTypeID dictionary
+                var pointsDict = HarmonyLib.Traverse.Create(techInstance.progressInventory)
 					.Field("PointsByTypeID")
 					.GetValue<Dictionary<string, float>>();
 				

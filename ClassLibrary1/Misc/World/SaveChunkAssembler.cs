@@ -9,6 +9,8 @@ namespace ONI_MP.Misc.World
 {
 	public static class SaveChunkAssembler
 	{
+		public static bool isDownloading = false;
+
 		private class InProgressSave
 		{
 			public byte[] Data;
@@ -29,7 +31,9 @@ namespace ONI_MP.Misc.World
 				InProgress[chunk.FileName] = save;
 			}
 
-			Buffer.BlockCopy(chunk.Chunk, 0, save.Data, chunk.Offset, chunk.Chunk.Length);
+			isDownloading = true;
+
+            Buffer.BlockCopy(chunk.Chunk, 0, save.Data, chunk.Offset, chunk.Chunk.Length);
 			save.ReceivedBytes += chunk.Chunk.Length;
 
 			DebugConsole.Log($"[ChunkReceiver] Received {chunk.Chunk.Length} bytes for '{chunk.FileName}' (offset {chunk.Offset})");
@@ -40,15 +44,16 @@ namespace ONI_MP.Misc.World
 			{
 				DebugConsole.Log($"[ChunkReceiver] Completed receive of '{chunk.FileName}' ({Utils.FormatBytes(save.ReceivedBytes)})");
 				InProgress.Remove(chunk.FileName);
+                isDownloading = false;
 
-				var fullSave = new WorldSave(chunk.FileName, save.Data);
+                var fullSave = new WorldSave(chunk.FileName, save.Data);
 				CoroutineRunner.RunOne(DelayedLoad(fullSave));
 			}
 		}
 
 		private static System.Collections.IEnumerator DelayedLoad(WorldSave save)
 		{
-			yield return new WaitForSecondsRealtime(1f);
+            yield return new WaitForSecondsRealtime(1f);
 			SaveHelper.RequestWorldLoad(save);
 		}
 	}

@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.Social
 {
 	public class ScheduleAssignmentPacket : IPacket
 	{
-		public PacketType Type => PacketType.ScheduleAssignment;
-
 		public int NetId;
 		public int ScheduleIndex;
 

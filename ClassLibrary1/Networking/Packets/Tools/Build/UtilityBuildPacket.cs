@@ -10,8 +10,6 @@ namespace ONI_MP.Networking.Packets.Tools.Build
 {
 	public class UtilityBuildPacket : IPacket
 	{
-		public ONI_MP.Networking.Packets.Architecture.PacketType Type => ONI_MP.Networking.Packets.Architecture.PacketType.WireBuild;
-
 		// Actually, let's stick to the existing enum if we can, or add a new one.
 		// If I can't edit the enum easily without breaking things (I can, it's my code), I will add UtilityBuild.
 		// For now, let's assume I'll add UtilityBuild to PacketType.

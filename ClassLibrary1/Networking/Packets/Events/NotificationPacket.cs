@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.Events
 	// Host -> Client: Syncs notifications like "Research Complete", "Starvation", etc.
 	public class NotificationPacket : IPacket
 	{
-		public PacketType Type => PacketType.Notification;
-
 		public string Title;
 		public string Text;
 		// We can't easily sync the "Type" enum because it might rely on game assembly enums not visible or complex.

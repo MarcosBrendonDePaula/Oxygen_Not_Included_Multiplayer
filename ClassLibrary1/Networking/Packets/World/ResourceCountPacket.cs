@@ -7,7 +7,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class ResourceCountPacket : IPacket
 	{
-		public PacketType Type => PacketType.ResourceCount;
 
 		// Using a dictionary is heavy, so let's Serialize a list of tag hashes/names and amounts.
 		// Tag (string) -> Amount (float)

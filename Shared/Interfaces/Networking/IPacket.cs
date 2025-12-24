@@ -1,16 +1,12 @@
 ﻿using System.IO;
 
 namespace ONI_MP.Networking.Packets.Architecture
-{
-	public interface IPacket
+{	public interface IPacket
 	{
-		PacketType Type { get; }
-
 		void Serialize(BinaryWriter writer);
 		void Deserialize(BinaryReader reader);
 
 		void OnDispatched();
 
 	}
-
 }

@@ -1,4 +1,5 @@
 using HarmonyLib;
+using ONI_MP.DebugTools;
 using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.World;
@@ -11,14 +12,56 @@ namespace ONI_MP.Patches.World
 		// Use flag from packet to prevent loops
 		private static bool IgnoreEvents => BuildingConfigPacket.IsApplyingPacket;
 
-		// Sync Logic Switches (User Toggles)
-		[HarmonyPatch(typeof(Switch), "SetState")]
-		public static class LogicSwitchPatch
+		// Sync Logic Switches (User Toggles) - patch LogicSwitch.Toggle()
+		// Toggle is called by ToggledByPlayer() when the player clicks the switch
+		[HarmonyPatch(typeof(LogicSwitch), "Toggle")]
+		public static class LogicSwitchTogglePatch
 		{
-			public static void Postfix(Switch __instance, bool on)
+			public static void Postfix(LogicSwitch __instance)
 			{
-				if (IgnoreEvents) return;
-				SyncBuildingConfig(__instance, "LogicState", on ? 1f : 0f);
+				try
+				{
+					DebugConsole.Log($"[LogicSwitch] Toggle Postfix called on {__instance?.name ?? "null"}");
+					
+					if (IgnoreEvents)
+					{
+						DebugConsole.Log($"[LogicSwitch] Ignoring sync - IsApplyingPacket=true");
+						return;
+					}
+					if (!MultiplayerSession.InSession)
+					{
+						DebugConsole.Log($"[LogicSwitch] Not in session, skipping");
+						return;
+					}
+
+					// Read the current state after toggle was applied
+					// Use Traverse to access the protected/private switchedOn field
+					bool switchedOn = Traverse.Create(__instance).Field("switchedOn").GetValue<bool>();
+					DebugConsole.Log($"[LogicSwitch] switchedOn = {switchedOn}");
+
+					var identity = __instance.gameObject.AddOrGet<NetworkIdentity>();
+					identity.RegisterIdentity();
+
+					var packet = new BuildingConfigPacket
+					{
+						NetId = identity.NetId,
+						Cell = Grid.PosToCell(__instance.gameObject),
+						ConfigHash = "LogicSwitchState".GetHashCode(),
+						Value = switchedOn ? 1f : 0f,
+						ConfigType = BuildingConfigType.Boolean
+					};
+
+					DebugConsole.Log($"[LogicSwitch] Sending state={switchedOn} for {__instance.name} (NetId={identity.NetId})");
+					
+					if (MultiplayerSession.IsHost)
+						PacketSender.SendToAllClients(packet);
+					else
+						PacketSender.SendToHost(packet);
+				}
+				catch (System.Exception ex)
+				{
+					DebugConsole.Log($"[LogicSwitch] ERROR in Postfix: {ex.Message}");
+				}
 			}
 		}
 

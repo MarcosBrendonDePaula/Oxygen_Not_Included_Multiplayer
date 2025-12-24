@@ -8,8 +8,9 @@ namespace ONI_MP
 {
     class Configuration
     {
+        private static string ConfigDirectory = Path.Combine(KMod.Manager.GetDirectory(), "config");
         private static readonly string ConfigPath = Path.Combine(
-            Path.GetDirectoryName(typeof(Configuration).Assembly.Location),
+            ConfigDirectory,
             "multiplayer_settings.json"
         );
         private static Configuration _instance;
@@ -37,11 +38,6 @@ namespace ONI_MP
             return Instance.GetProperty<T>(Instance.Client, propertyName);
         }
 
-        public static T GetGoogleDriveProperty<T>(string propertyName)
-        {
-            return Instance.GetProperty<T>(Instance.Host.GoogleDrive, propertyName);
-        }
-
         private T GetProperty<T>(object obj, string propertyName)
         {
             var prop = obj.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
@@ -57,6 +53,11 @@ namespace ONI_MP
 
         public static Configuration LoadOrCreate()
         {
+            if (!Directory.Exists(ConfigDirectory))
+            {
+                Directory.CreateDirectory(ConfigDirectory);
+            }
+
             if (!File.Exists(ConfigPath))
             {
                 var defaultConfig = new Configuration();
@@ -108,7 +109,6 @@ namespace ONI_MP
         public int MaxMessagesPerPoll { get; set; } = 128;
         public int SaveFileTransferChunkKB { get; set; } = 256;
 
-        public GoogleDriveSettings GoogleDrive { get; set; } = new GoogleDriveSettings();
     }
 
     class ClientSettings
@@ -117,12 +117,6 @@ namespace ONI_MP
         public bool UseRandomPlayerColor { get; set; } = true;
         public ColorRGB PlayerColor { get; set; } = new ColorRGB(255, 255, 255);
     }
-
-    class GoogleDriveSettings
-    {
-        public string ApplicationName { get; set; } = "ONI Multiplayer Mod";
-    }
-
 
     class ColorRGB
     {

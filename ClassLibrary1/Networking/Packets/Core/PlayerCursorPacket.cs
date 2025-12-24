@@ -20,8 +20,6 @@ namespace ONI_MP.Networking.Packets.Core
 		// Viewport for targeted sync
 		public int ViewMinX, ViewMinY, ViewMaxX, ViewMaxY;
 
-		public PacketType Type => PacketType.PlayerCursor;
-
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(SteamID.m_SteamID);

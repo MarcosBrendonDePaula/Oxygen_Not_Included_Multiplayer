@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 	// Host -> Client only. Vitals are simulated on Host.
 	public class VitalStatsPacket : IPacket
 	{
-		public PacketType Type => PacketType.VitalStats;
-
 		public int NetId;
 		public float Health;
 		public float Calories;

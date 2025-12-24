@@ -5,8 +5,6 @@ using UnityEngine;
 
 public class DigCompletePacket : IPacket
 {
-	public PacketType Type => PacketType.DigComplete;
-
 	public int Cell;
 	public float Mass;
 	public float Temperature;

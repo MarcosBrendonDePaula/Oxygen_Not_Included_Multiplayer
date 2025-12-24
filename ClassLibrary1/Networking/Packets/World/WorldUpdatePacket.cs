@@ -7,7 +7,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class WorldUpdatePacket : IPacket
 	{
-		public PacketType Type => PacketType.WorldUpdate;
 		public List<CellUpdate> Updates = new List<CellUpdate>();
 
 		public struct CellUpdate

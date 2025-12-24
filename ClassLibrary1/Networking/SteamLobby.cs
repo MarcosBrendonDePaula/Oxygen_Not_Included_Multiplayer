@@ -1,12 +1,13 @@
-﻿using ONI_MP.Cloud;
-using ONI_MP.DebugTools;
+﻿using ONI_MP.DebugTools;
 using ONI_MP.Misc;
+using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Patches.ToolPatches;
 using ONI_MP.UI;
 using Steamworks;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace ONI_MP.Networking
 {
@@ -40,7 +41,6 @@ namespace ONI_MP.Networking
 
 			try
 			{
-				PacketRegistry.RegisterDefaults();
 				_lobbyCreated = Callback<LobbyCreated_t>.Create(OnLobbyCreated);
 				_lobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnLobbyJoinRequested);
 				_lobbyEntered = Callback<LobbyEnter_t>.Create(OnLobbyEntered);
@@ -92,7 +92,9 @@ namespace ONI_MP.Networking
 				CurrentLobby = CSteamID.Nil;
 				MaxLobbySize = 0;
 				SteamRichPresence.Clear();
-			}
+
+                SelectToolPatch.UpdateColor();
+            }
 		}
 
 		private static void OnLobbyCreated(LobbyCreated_t callback)
@@ -112,6 +114,8 @@ namespace ONI_MP.Networking
 				SteamRichPresence.SetLobbyInfo(CurrentLobby, "Multiplayer – Hosting Lobby");
 				_onLobbyCreatedSuccess?.Invoke();
 				_onLobbyCreatedSuccess = null;
+
+				//CursorManager.Instance.AssignColor();
 				SelectToolPatch.UpdateColor();
 			}
 			else

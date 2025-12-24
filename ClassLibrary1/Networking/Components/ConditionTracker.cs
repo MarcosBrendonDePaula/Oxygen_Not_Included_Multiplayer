@@ -24,7 +24,12 @@ namespace ONI_MP.Networking.Components
 		private float nextSyncTime = 0f;
 		private const float SyncInterval = 1f;
 
-		protected override void OnSpawn()
+		// Cached reflection fields
+		private static System.Reflection.FieldInfo _maxHpField;
+		private static System.Reflection.FieldInfo _attributeField;
+		private static System.Reflection.FieldInfo _baseValueField;
+
+		public override void OnSpawn()
 		{
 			base.OnSpawn();
 			minion = GetComponent<MinionIdentity>();
@@ -46,6 +51,10 @@ namespace ONI_MP.Networking.Components
 			if (!MultiplayerSession.IsHost)
 				return;
 
+			// Skip if no clients connected
+			if (MultiplayerSession.ConnectedPlayers.Count == 0)
+				return;
+
 			if (Time.time >= nextSyncTime)
 			{
 				nextSyncTime = Time.time + SyncInterval;
@@ -60,14 +69,13 @@ namespace ONI_MP.Networking.Components
 			if (component != null)
 			{
 				component.hitPoints = health;
-				var maxHpField = typeof(Health).GetField("maxHitPoints", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-				if (maxHpField != null)
+				if (_maxHpField == null)
 				{
-					maxHpField.SetValue(component, maxHealth);
+					_maxHpField = typeof(Health).GetField("maxHitPoints", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 				}
-				else
+				if (_maxHpField != null)
 				{
-					//DebugConsole.LogWarning("[ConditionTracker] Could not reflect maxHitPoints field.");
+					_maxHpField.SetValue(component, maxHealth);
 				}
 
 				Health = health;
@@ -108,28 +116,24 @@ namespace ONI_MP.Networking.Components
 			var moraleAttr = Db.Get().Attributes.QualityOfLife.Lookup(gameObject);
 			if (moraleAttr != null)
 			{
-				// Use reflection to set private baseValue inside AttributeInstance.Attribute
-				var attributeField = typeof(AttributeInstance)
-						.GetField("attribute", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+				// Use cached reflection to set private baseValue inside AttributeInstance.Attribute
+				if (_attributeField == null)
+				{
+					_attributeField = typeof(AttributeInstance).GetField("attribute", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+				}
 
-				var attribute = attributeField?.GetValue(moraleAttr);
+				var attribute = _attributeField?.GetValue(moraleAttr);
 				if (attribute != null)
 				{
-					var baseValueField = attribute.GetType()
-							.GetField("BaseValue", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+					if (_baseValueField == null)
+					{
+						_baseValueField = attribute.GetType().GetField("BaseValue", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+					}
 
-					if (baseValueField != null)
+					if (_baseValueField != null)
 					{
-						baseValueField.SetValue(attribute, morale);
+						_baseValueField.SetValue(attribute, morale);
 					}
-					else
-					{
-						//DebugConsole.LogWarning("[ConditionTracker] Failed to reflect BaseValue on Attribute.");
-					}
-				}
-				else
-				{
-					//DebugConsole.LogWarning("[ConditionTracker] Failed to reflect attribute field on AttributeInstance.");
 				}
 			}
 		}

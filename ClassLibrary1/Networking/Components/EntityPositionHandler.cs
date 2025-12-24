@@ -15,7 +15,7 @@ namespace ONI_MP.Networking.Components
 		private bool facingLeft;
 		private Vector3 velocity;
 
-		protected override void OnSpawn()
+		public override void OnSpawn()
 		{
 			base.OnSpawn();
 
@@ -38,6 +38,10 @@ namespace ONI_MP.Networking.Components
 				return;
 
 			if (!MultiplayerSession.InSession || MultiplayerSession.IsClient)
+				return;
+
+			// Skip if no clients connected
+			if (MultiplayerSession.ConnectedPlayers.Count == 0)
 				return;
 
 			SendPositionPacket();

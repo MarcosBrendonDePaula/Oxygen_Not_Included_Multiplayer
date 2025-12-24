@@ -6,8 +6,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class DisinfectStatePacket : IPacket
 	{
-		public PacketType Type => PacketType.DisinfectState;
-
 		public List<int> DisinfectCells = new List<int>();
 
 		public void Serialize(BinaryWriter writer)

@@ -20,8 +20,8 @@ namespace ONI_MP.Networking.Packets.Architecture
 			{
 				using (var reader = new BinaryReader(ms))
 				{
-					PacketType type = (PacketType)reader.ReadInt32();
-                    if (!Enum.IsDefined(typeof(PacketType), type))
+					int type = (int)reader.ReadInt32();
+                    if (!PacketRegistry.HasRegisteredPacket(type))
                     {
                         DebugConsole.LogError($"Invalid PacketType received: {type}", false);
                         return;
@@ -30,7 +30,13 @@ namespace ONI_MP.Networking.Packets.Architecture
                     var packet = PacketRegistry.Create(type);
 					packet.Deserialize(reader);
 					Dispatch(packet);
-				}
+
+                    PacketTracker.TrackIncoming(new PacketTracker.PacketTrackData
+                    {
+						packet = packet,
+						size = data.Length
+                    });
+                }
 			}
 		}
 

@@ -1,7 +1,7 @@
-﻿using ONI_MP.Cloud;
-using ONI_MP.DebugTools;
+﻿using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Networking.Packets.Architecture;
+using ONI_MP.Networking.Packets.World;
 using ONI_MP.Networking.States;
 using Steamworks;
 using System.IO;
@@ -10,8 +10,6 @@ namespace ONI_MP.Networking.Packets.Core
 {
 	class ClientReadyStatusPacket : IPacket
 	{
-		public PacketType Type => PacketType.ClientReadyStatus;
-
 		public CSteamID SenderId;
 		public ClientReadyState Status = ClientReadyState.Unready;
 
@@ -43,29 +41,31 @@ namespace ONI_MP.Networking.Packets.Core
 				return;
 			}
 
-			ReadyManager.SetPlayerReadyState(SenderId, Status);
-			DebugConsole.Log($"[ClientReadyStatusPacket] {SenderId} marked as {Status}");
+			MultiplayerPlayer player;
+			MultiplayerSession.ConnectedPlayers.TryGetValue(SenderId, out player);
 
-			// Build the overlay message
-			string message = "Waiting for players to be ready!\n";
-			bool allReady = ReadyManager.AreAllPlayersReady(
-					OnIteration: () => { MultiplayerOverlay.Show(message); },
-					OnPlayerChecked: (steamName, readyState) =>
-					{
-						message += $"{steamName} : {readyState}\n";
-					});
-
-			MultiplayerOverlay.Show(message);
-
-			if (GameServerHardSync.IsHardSyncInProgress)
+			if (player == null)
 			{
-				if (allReady)
-				{
-					ReadyManager.MarkAllAsUnready(); // Reset player ready states
-					GoogleDriveUtils.UploadAndSendToAllClients();
-				}
+				DebugConsole.LogError("Tried to update ready state for a null player");
 				return;
 			}
+
+            ReadyManager.SetPlayerReadyState(player, Status);
+			DebugConsole.Log($"[ClientReadyStatusPacket] {SenderId} marked as {Status}");
+
+			ReadyManager.RefreshScreen();
+			bool allReady = ReadyManager.IsEveryoneReady();
+            DebugConsole.Log($"[ClientReadyStatusPacket] Is everyone ready? {allReady}");
+
+            //if (GameServerHardSync.IsHardSyncInProgress)
+			//{
+			//	if (allReady)
+			//	{
+			//		ReadyManager.MarkAllAsUnready(); // Reset player ready states
+			//		SaveFileRequestPacket.SendSaveFileToAll();
+			//	}
+			//	return;
+			//}
 
 			if (allReady)
 			{
@@ -74,7 +74,7 @@ namespace ONI_MP.Networking.Packets.Core
 			else
 			{
 				// Broadcast updated overlay message to all clients
-				ReadyManager.SendStatusUpdatePacketToClients(message);
+				ReadyManager.SendStatusUpdatePacketToClients();
 			}
 		}
 	}

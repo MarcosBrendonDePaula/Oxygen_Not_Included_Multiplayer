@@ -5,35 +5,43 @@ using ONI_MP.Networking.Components;
 namespace ONI_MP.Patches.World
 {
 	// Adds NetworkIdentity to buildings that need it for BuildingConfigPacket or other interactions
-	[HarmonyPatch(typeof(BuildingComplete), "OnSpawn")]
+	// Adds NetworkIdentity to buildings that need it
+	[HarmonyPatch(typeof(Building), "OnSpawn")]
 	public static class BuildingSpawnPatch
 	{
-		public static void Postfix(BuildingComplete __instance)
+		public static void Postfix(Building __instance)
 		{
-			if (!MultiplayerSession.InSession) return;
-
 			var go = __instance.gameObject;
+			
+			// We skip construction for configuration sync usually, 
+			// but having an ID early doesn't hurt.
+			// Let's focus on BuildingComplete for settings sync.
+			if (!(__instance is BuildingComplete)) return;
+
 			bool needsIdentity = false;
 
 			// Check for components that require NetID
 			if (go.GetComponent<LogicSwitch>() != null) needsIdentity = true;
 			else if (go.GetComponent<Valve>() != null) needsIdentity = true;
-			else if (go.GetComponent<LogicTemperatureSensor>() != null) needsIdentity = true;
-			else if (go.GetComponent<LogicPressureSensor>() != null) needsIdentity = true;
-			else if (go.GetComponent<LogicWattageSensor>() != null) needsIdentity = true;
-			else if (go.GetComponent<LogicTimeOfDaySensor>() != null) needsIdentity = true;
-			else if (go.GetComponent<IThresholdSwitch>() != null) needsIdentity = true; // Smart Battery, etc
+			else if (go.GetComponent<IThresholdSwitch>() != null) needsIdentity = true;
 			else if (go.GetComponent<IActivationRangeTarget>() != null) needsIdentity = true;
 			else if (go.GetComponent<ISliderControl>() != null) needsIdentity = true;
-
-			// Should we add it to everything?
-			// DeconstructablePatch uses Cell, so we don't need it there.
-			// Wires/Pipes use Cell for build.
-			// Only config sync needs NetID.
+			else if (go.GetComponent<ISingleSliderControl>() != null) needsIdentity = true;
+			else if (go.GetComponent<ICheckboxControl>() != null) needsIdentity = true;
+			else if (go.GetComponent<IUserControlledCapacity>() != null) needsIdentity = true;
+			else if (go.GetComponent<ISidescreenButtonControl>() != null) needsIdentity = true;
+			else if (go.GetComponent<Door>() != null) needsIdentity = true;
+			else if (go.GetComponent<LimitValve>() != null) needsIdentity = true;
+			else if (go.GetComponent<Compost>() != null) needsIdentity = true;
+			else if (go.GetComponent<StorageLocker>() != null) needsIdentity = true;
+			else if (go.GetComponent<Refrigerator>() != null) needsIdentity = true;
+			else if (go.GetComponent<RationBox>() != null) needsIdentity = true;
 
 			if (needsIdentity)
 			{
 				var identity = go.AddOrGet<NetworkIdentity>();
+				// We call RegisterIdentity explicitly to ensure it happens 
+				// even if the component was already there but not registered.
 				identity.RegisterIdentity();
 			}
 		}

@@ -416,3 +416,7 @@ FodyWeavers.xsd
 /dev_build
 build_install.bat
 build_install.sh
+/Directory.Build.props.user
+/PublicisedAssembly
+CLAUDE.md
+.claude/

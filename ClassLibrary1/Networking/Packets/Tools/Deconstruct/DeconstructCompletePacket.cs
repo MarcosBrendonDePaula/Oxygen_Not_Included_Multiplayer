@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.Tools.Deconstruct
 {
 	public class DeconstructCompletePacket : IPacket
 	{
-		public PacketType Type => PacketType.DeconstructComplete;
-
 		public int Cell;
 
 		public void Serialize(BinaryWriter writer)

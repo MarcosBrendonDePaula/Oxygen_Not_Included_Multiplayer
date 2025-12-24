@@ -9,8 +9,6 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 {
 	public class ToolEquipPacket : IPacket
 	{
-		public PacketType Type => PacketType.ToolEquip;
-
 		public int TargetNetId;
 		public string PrefabName;
 		public string ParentBoneName;

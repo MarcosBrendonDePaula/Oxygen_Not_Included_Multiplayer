@@ -12,8 +12,6 @@ namespace ONI_MP.Networking.Packets.World
 
 	public class BuildingStatePacket : IPacket
 	{
-		public PacketType Type => PacketType.BuildingState;
-
 		public List<BuildingState> Buildings = new List<BuildingState>();
 
 		public void Serialize(BinaryWriter writer)

@@ -7,8 +7,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class DiggingStatePacket : IPacket
 	{
-		public PacketType Type => PacketType.DiggingState;
-
 		public List<int> DigCells = new List<int>();
 
 		public void Serialize(BinaryWriter writer)

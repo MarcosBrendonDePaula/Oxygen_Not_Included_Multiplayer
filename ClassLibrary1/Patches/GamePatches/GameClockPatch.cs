@@ -57,7 +57,9 @@ namespace ONI_MP.Patches.GamePatches
 			{
 				_lastCycle = currentCycle;
 
-				DebugConsole.Log($"[HardSync] New cycle detected ({currentCycle}) — Hard Sync disabled.");
+				GameServerHardSync.hardSyncDoneThisCycle = false;
+
+                DebugConsole.Log($"[HardSync] New cycle detected ({currentCycle}) — Hard Sync disabled.");
 
 				// Hard Sync Removed by request
 				// CoroutineRunner.RunOne(DelayedHardSync());

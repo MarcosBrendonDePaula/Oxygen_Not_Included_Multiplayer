@@ -8,8 +8,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class ResearchRequestPacket : IPacket
 	{
-		public PacketType Type => PacketType.ResearchRequest;
-
 		public string TechId { get; set; }
 
 		public void Serialize(BinaryWriter writer)

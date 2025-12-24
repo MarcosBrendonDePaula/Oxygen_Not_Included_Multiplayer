@@ -9,8 +9,6 @@ using System.Reflection;
 
 public class PlayAnimPacket : IPacket
 {
-	public PacketType Type => PacketType.PlayAnim;
-
 	public int NetId;
 	public bool IsMulti;
 	public List<int> AnimHashes = new List<int>();  // For multi

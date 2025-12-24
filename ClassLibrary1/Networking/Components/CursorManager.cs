@@ -31,16 +31,25 @@ namespace ONI_MP.Networking.Components
 
 		private void Start()
 		{
-			bool useRandom = Configuration.GetClientProperty<bool>("UseRandomPlayerColor");
-			if (useRandom)
-				color = UnityEngine.Random.ColorHSV(0f, 1f, 0.6f, 1f, 0.8f, 1f);
-			else
-			{
-				ColorRGB color_rgb = Configuration.GetClientProperty<ColorRGB>("PlayerColor");
-				color = color_rgb.ToColor();
+			AssignColor();
+        }
 
-			}
+		public void ResetColor()
+		{
+			color = Color.white;
 		}
+
+		public void AssignColor()
+		{
+            bool useRandom = Configuration.GetClientProperty<bool>("UseRandomPlayerColor");
+            if (useRandom)
+                color = UnityEngine.Random.ColorHSV(0f, 1f, 0.6f, 1f, 0.8f, 1f);
+            else
+            {
+                ColorRGB color_rgb = Configuration.GetClientProperty<ColorRGB>("PlayerColor");
+                color = color_rgb.ToColor();
+            }
+        }
 
 		private void Update()
 		{
@@ -58,9 +67,22 @@ namespace ONI_MP.Networking.Components
 			}
 		}
 
+		private Vector3 lastSentPosition;
+		private CursorState lastSentState;
+
 		private void SendCursorPosition()
 		{
 			Vector3 cursorWorldPos = GetCursorWorldPosition();
+
+			// Only send if cursor moved significantly or state changed
+			bool positionChanged = Vector3.Distance(cursorWorldPos, lastSentPosition) > 0.5f;
+			bool stateChanged = cursorState != lastSentState;
+			
+			if (!positionChanged && !stateChanged)
+				return;
+
+			lastSentPosition = cursorWorldPos;
+			lastSentState = cursorState;
 
 			// Calculate Viewport
 			int minX = 0, minY = 0, maxX = 0, maxY = 0;

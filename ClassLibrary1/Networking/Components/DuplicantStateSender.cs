@@ -23,7 +23,7 @@ namespace ONI_MP.Networking.Components
 		private string lastSentAnimName;
 		private bool lastSentIsWorking;
 
-		protected override void OnSpawn()
+		public override void OnSpawn()
 		{
 			base.OnSpawn();
 
@@ -50,6 +50,10 @@ namespace ONI_MP.Networking.Components
 		private void Update()
 		{
 			if (!MultiplayerSession.InSession || MultiplayerSession.IsClient)
+				return;
+
+			// Skip if no clients connected
+			if (MultiplayerSession.ConnectedPlayers.Count == 0)
 				return;
 
 			timer += Time.unscaledDeltaTime;

@@ -9,7 +9,6 @@ namespace ONI_MP.Networking.Packets.World
 {
 	public class WorldDataPacket : IPacket
 	{
-		public PacketType Type => PacketType.WorldData;
 		public List<ChunkData> Chunks = new List<ChunkData>();
 
 		public void Serialize(BinaryWriter writer)

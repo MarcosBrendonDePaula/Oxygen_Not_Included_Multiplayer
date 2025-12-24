@@ -1,6 +1,7 @@
 ﻿using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Misc;
+using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using ONI_MP.Networking.Packets.World;
 using ONI_MP.Networking.Packets.Handshake;
@@ -30,6 +31,8 @@ namespace ONI_MP.Networking
 		public static bool IsHardSyncInProgress = false;
 		private static bool _modVerificationSent = false;
 
+		private static SteamNetConnectionRealTimeStatus_t? connectionHealth = null;
+
 		private struct CachedConnectionInfo
 		{
 			public CSteamID HostSteamID;
@@ -38,6 +41,23 @@ namespace ONI_MP.Networking
 			{
 				HostSteamID = id;
 			}
+		}
+
+		/// <summary>
+		/// Returns true if we have cached connection info from a previous session
+		/// (used to determine if we need to reconnect after world load)
+		/// </summary>
+		public static bool HasCachedConnection()
+		{
+			return _cachedConnectionInfo.HasValue;
+		}
+
+		/// <summary>
+		/// Clears the cached connection info after successful reconnection or on error
+		/// </summary>
+		public static void ClearCachedConnection()
+		{
+			_cachedConnectionInfo = null;
 		}
 
 		public static void SetState(ClientState newState)
@@ -95,8 +115,7 @@ namespace ONI_MP.Networking
 				Connection = null;
 				SetState(ClientState.Disconnected);
 				MultiplayerSession.InSession = false;
-
-				SaveHelper.CaptureWorldSnapshot();
+				//SaveHelper.CaptureWorldSnapshot();
 			}
 			else
 			{
@@ -130,8 +149,9 @@ namespace ONI_MP.Networking
 				return;
 
 			SteamNetworkingSockets.RunCallbacks();
+			EvaluateConnectionHealth();
 
-			switch (State)
+            switch (State)
 			{
 				case ClientState.Connected:
 				case ClientState.InGame:
@@ -281,6 +301,8 @@ namespace ONI_MP.Networking
 
 			DebugConsole.Log($"[GameClient] ContinueConnectionFlow - IsInMenu: {Utils.IsInMenu()}, IsInGame: {Utils.IsInGame()}, HardSyncInProgress: {IsHardSyncInProgress}");
 
+			ReadyManager.SendReadyStatusPacket(ClientReadyState.Unready);
+
 			if (Utils.IsInMenu())
 			{
 				DebugConsole.Log("[GameClient] Client is in menu - requesting save file or sending ready status");
@@ -335,6 +357,8 @@ namespace ONI_MP.Networking
 
 				ReadyManager.SendReadyStatusPacket(ClientReadyState.Ready);
 				MultiplayerSession.CreateConnectedPlayerCursors();
+
+				//CursorManager.Instance.AssignColor();
 				SelectToolPatch.UpdateColor();
 
 				// Fechar overlay se reconectou com sucesso
@@ -351,12 +375,14 @@ namespace ONI_MP.Networking
 		private static void OnDisconnected(string reason, CSteamID remote, ESteamNetworkingConnectionState state)
 		{
             DebugConsole.LogWarning($"[GameClient] Connection closed or failed ({state}) for {remote}. Reason: {reason}");
-   //         if (remote == MultiplayerSession.LocalSteamID)
-  //		  {
-				// We disconnected
-   //             MultiplayerSession.InSession = false;
-   //             SetState(ClientState.Disconnected);
-   //         }
+
+			// If we're intentionally disconnecting for world loading, don't show error or return to title
+			// We will reconnect automatically after the world finishes loading via ReconnectFromCache()
+			if (_state == ClientState.LoadingWorld)
+			{
+				DebugConsole.Log("[GameClient] Ignoring disconnect callback - world is loading, will reconnect after.");
+				return;
+			}
 
 			switch(state)
 			{
@@ -377,7 +403,7 @@ namespace ONI_MP.Networking
 		private static IEnumerator ShowMessageAndReturnToTitle()
 		{
 			MultiplayerOverlay.Show("Connection to the host was lost!");
-            SaveHelper.CaptureWorldSnapshot();
+            //SaveHelper.CaptureWorldSnapshot();
             yield return new WaitForSeconds(3f);
             //PauseScreen.TriggerQuitGame(); // Force exit to frontend, getting a crash here
 
@@ -386,33 +412,134 @@ namespace ONI_MP.Networking
             Sim.Shutdown();
             App.LoadScene("frontend");
 
-            MultiplayerOverlay.Close();
+			MultiplayerOverlay.Close();
 			NetworkIdentityRegistry.Clear();
 			SteamLobby.LeaveLobby();
 		}
 
-		public static int? GetPingToHost()
+        #region Connection Health
+        public static SteamNetConnectionRealTimeStatus_t? QueryConnectionHealth()
 		{
-			if (Connection.HasValue)
-			{
-				SteamNetConnectionRealTimeStatus_t status = default;
-				SteamNetConnectionRealTimeLaneStatus_t laneStatus = default;
+            if (Connection.HasValue)
+            {
+                SteamNetConnectionRealTimeStatus_t status = default;
+                SteamNetConnectionRealTimeLaneStatus_t laneStatus = default;
 
-				EResult res = SteamNetworkingSockets.GetConnectionRealTimeStatus(
-						Connection.Value,
-						ref status,
-						0,
-						ref laneStatus
-				);
+                EResult res = SteamNetworkingSockets.GetConnectionRealTimeStatus(
+                        Connection.Value,
+                        ref status,
+                        0,
+                        ref laneStatus
+                );
 
-				if (res == EResult.k_EResultOK)
-				{
-					return status.m_nPing >= 0 ? (int?)status.m_nPing : null;
-				}
-			}
+                if (res == EResult.k_EResultOK)
+                {
+                    return status;
+                }
+            }
 			return null;
+        }
+
+		public static void EvaluateConnectionHealth()
+		{
+			connectionHealth = QueryConnectionHealth();
+        }
+
+		public static SteamNetConnectionRealTimeStatus_t? GetConnectionHealth()
+		{
+			return connectionHealth;
 		}
 
+        public static float GetLocalPacketQuality()
+        {
+            if (!connectionHealth.HasValue)
+                return 0f;
+
+            return connectionHealth.Value.m_flConnectionQualityLocal;
+        }
+
+        public static float GetRemotePacketQuality()
+        {
+            if (!connectionHealth.HasValue)
+                return 0f;
+
+            return connectionHealth.Value.m_flConnectionQualityRemote;
+        }
+
+        public static int GetPingToHost()
+		{
+			if (!connectionHealth.HasValue)
+				return -1;
+
+			return connectionHealth.Value.m_nPing;
+		}
+
+        public static bool HasPacketLoss()
+        {
+            if (!connectionHealth.HasValue)
+                return false;
+
+			float localQuality = GetLocalPacketQuality();
+            return localQuality < 0.7f;
+        }
+
+        public static bool HasReliablePacketLoss()
+        {
+            if (!connectionHealth.HasValue)
+                return false;
+
+            return connectionHealth.Value.m_cbSentUnackedReliable > 0;
+        }
+
+        public static bool HasSevereReliableLoss()
+        {
+            if (!connectionHealth.HasValue)
+                return false;
+
+            return connectionHealth.Value.m_cbSentUnackedReliable > 32 * 1024; // 32 KB backlog
+        }
+
+        public static bool HasUnreliablePacketLoss()
+        {
+            if (!connectionHealth.HasValue)
+                return false;
+
+            return connectionHealth.Value.m_cbPendingUnreliable > 0;
+        }
+
+        public static bool HasNetworkJitter()
+        {
+            if (!connectionHealth.HasValue)
+                return false;
+
+            // > 50ms queued
+            return (long) connectionHealth.Value.m_usecQueueTime > 50_000;
+        }
+
+		public static int GetUnackedReliable()
+		{
+			if (!connectionHealth.HasValue)
+				return -1;
+
+			return connectionHealth.Value.m_cbSentUnackedReliable;
+		}
+
+		public static int GetPendingUnreliable()
+		{
+			if (!connectionHealth.HasValue)
+				return -1;
+
+			return connectionHealth.Value.m_cbPendingUnreliable;
+		}
+
+		public static long GetUsecQueueTime()
+		{
+			if (!connectionHealth.HasValue)
+				return -1;
+
+			return (long) connectionHealth.Value.m_usecQueueTime;
+		}
+		#endregion
 		public static void CacheCurrentServer()
 		{
 			if (MultiplayerSession.HostSteamID != CSteamID.Nil)
@@ -433,7 +560,9 @@ namespace ONI_MP.Networking
 			if (_cachedConnectionInfo.HasValue)
 			{
 				DebugConsole.Log($"[GameClient] Reconnecting to cached server: {_cachedConnectionInfo.Value.HostSteamID}");
-				ConnectToHost(_cachedConnectionInfo.Value.HostSteamID, false);
+				var hostId = _cachedConnectionInfo.Value.HostSteamID;
+				_cachedConnectionInfo = null; // Clear cache to prevent re-triggering
+				ConnectToHost(hostId, false);
 			}
 			else
 			{

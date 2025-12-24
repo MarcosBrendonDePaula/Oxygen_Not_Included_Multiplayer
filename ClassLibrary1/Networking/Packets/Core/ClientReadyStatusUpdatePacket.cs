@@ -1,4 +1,5 @@
 ﻿using ONI_MP.Menus;
+using ONI_MP.Misc.World;
 using ONI_MP.Networking.Packets.Architecture;
 using System.IO;
 
@@ -6,8 +7,6 @@ namespace ONI_MP.Networking.Packets.Core
 {
 	public class ClientReadyStatusUpdatePacket : IPacket
 	{
-		public PacketType Type => PacketType.ClientReadyStatusUpdate;
-
 		public string Message;
 
 		public ClientReadyStatusUpdatePacket() { }
@@ -31,6 +30,10 @@ namespace ONI_MP.Networking.Packets.Core
 		{
 			// Host updates theirs on each ready status packet so we dont do anything here
 			if (MultiplayerSession.IsHost)
+				return;
+
+			// We are actively downloading the save file, ignore
+			if (SaveChunkAssembler.isDownloading)
 				return;
 
 			MultiplayerOverlay.Show(Message);

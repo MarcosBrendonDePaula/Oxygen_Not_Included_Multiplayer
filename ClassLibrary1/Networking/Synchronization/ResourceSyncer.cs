@@ -14,12 +14,17 @@ namespace ONI_MP.Networking.Synchronization
 
 		private void Update()
 		{
+			// Disabled - world inventory sync not working correctly
+			return;
+
+			/*
 			if (!MultiplayerSession.InSession) return;
 
 			if (MultiplayerSession.IsHost)
 			{
 				HostUpdate();
 			}
+			*/
 		}
 
 		private void HostUpdate()

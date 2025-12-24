@@ -137,6 +137,8 @@ namespace ONI_MP.Networking
 				case ClientState.InGame:
 					if (Connection.HasValue)
 						ProcessIncomingMessages(Connection.Value);
+					else
+						DebugConsole.LogWarning($"[GameClient] Poll() - Connection is null! State: {State}");
 					break;
 				case ClientState.Connecting:
 				case ClientState.Disconnected:
@@ -152,6 +154,11 @@ namespace ONI_MP.Networking
 			IntPtr[] messages = new IntPtr[maxMessagesPerConnectionPoll];
 			int msgCount = SteamNetworkingSockets.ReceiveMessagesOnConnection(conn, messages, maxMessagesPerConnectionPoll);
 
+			if (msgCount > 0)
+			{
+				DebugConsole.Log($"[GameClient] ProcessIncomingMessages() - Received {msgCount} messages");
+			}
+
 			for (int i = 0; i < msgCount; i++)
 			{
 				var msg = Marshal.PtrToStructure<SteamNetworkingMessage_t>(messages[i]);
@@ -160,6 +167,7 @@ namespace ONI_MP.Networking
 
 				try
 				{
+					DebugConsole.Log($"[GameClient] Processing packet {i+1}/{msgCount}, size: {msg.m_cbSize} bytes, readyToProcess: {PacketHandler.readyToProcess}");
 					PacketHandler.HandleIncoming(data);
 				}
 				catch (Exception ex)
@@ -226,6 +234,11 @@ namespace ONI_MP.Networking
 			// Reset mod verification state on new connection
 			_modVerificationSent = false;
 
+			// CRÍTICO: Habilitar processamento de pacotes ANTES de mod verification
+			// Caso contrário, a resposta de mod verification será descartada!
+			PacketHandler.readyToProcess = true;
+			DebugConsole.Log("[GameClient] PacketHandler.readyToProcess = true (before mod verification)");
+
 			// First step: Send mod verification packet to host (CLIENTS ONLY)
 			if (!_modVerificationSent)
 			{
@@ -271,6 +284,11 @@ namespace ONI_MP.Networking
 			if (Utils.IsInMenu())
 			{
 				DebugConsole.Log("[GameClient] Client is in menu - requesting save file or sending ready status");
+
+				// CRÍTICO: Habilitar processamento de pacotes ANTES de solicitar save file
+				// Caso contrário, pacotes do host serão descartados!
+				PacketHandler.readyToProcess = true;
+				DebugConsole.Log("[GameClient] PacketHandler.readyToProcess = true (menu)");
 
 				// Mostrar overlay apenas se não estiver já visível
 				if (!MultiplayerOverlay.IsOpen)
@@ -450,13 +468,16 @@ namespace ONI_MP.Networking
 
 		public static void OnModVerificationRejected(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches)
 		{
-			DebugConsole.Log($"[GameClient] Mod verification rejected: {reason}");
+			DebugConsole.Log($"[GameClient] Mod verification REJECTED by host: {reason}");
+			DebugConsole.Log("[GameClient] Disconnecting client due to mod incompatibility...");
 
 			// Show detailed error to user
 			ShowModIncompatibilityError(reason, missingMods, extraMods, versionMismatches);
 
-			// Disconnect from host
+			// Disconnect from host immediately
 			Disconnect();
+
+			DebugConsole.Log("[GameClient] Client disconnected successfully due to mod incompatibility");
 		}
 
 		private static void ShowModIncompatibilityError(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches)

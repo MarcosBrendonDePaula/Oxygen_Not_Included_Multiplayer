@@ -146,6 +146,13 @@ namespace ONI_MP.Networking.Packets.Handshake
 
                 DebugConsole.Log($"[ModVerificationPacket] Validation complete - Result: {(result.IsCompatible ? "APPROVED" : "REJECTED")}");
 
+                // Mostrar mensagem no chat do host se cliente foi rejeitado
+                if (!result.IsCompatible)
+                {
+                    var clientName = SteamFriends.GetFriendPersonaName(ClientSteamID);
+                    ONI_MP.UI.ChatScreen.QueueMessage($"<color=red>System:</color> {clientName} was rejected due to mod incompatibility: {result.RejectReason}");
+                }
+
                 // Enviar resposta de volta
                 DebugConsole.Log($"[ModVerificationPacket] Sending response to client {ClientSteamID}...");
                 var response = new ModVerificationResponsePacket(ClientSteamID, result);

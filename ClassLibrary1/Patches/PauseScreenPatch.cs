@@ -4,6 +4,7 @@ using ONI_MP.Networking;
 using Steamworks;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace ONI_MP.Patches
@@ -51,17 +52,35 @@ namespace ONI_MP.Patches
 				{
 					AddButton(__instance, MP_STRINGS.UI.PAUSESCREEN.HOSTGAME.LABEL, () =>
 					{
-                        SteamLobby.CreateLobby(onSuccess: () =>
-                        {
-                            PauseScreen.Instance.Show(false); // Hide pause screen
-                            SpeedControlScreen.Instance?.Unpause(false);
-                        });
+						PauseScreen.Instance.Show(false); // Hide pause screen
+						// Show lobby config screen - it will handle lobby creation
+						var canvas = Object.FindObjectOfType<Canvas>();
+						if (canvas != null)
+						{
+							ONI_MP.Menus.HostLobbyConfigScreen.Show(canvas.transform, () =>
+							{
+								// Config closed - create lobby with settings
+								SteamLobby.CreateLobby(onSuccess: () =>
+								{
+									SpeedControlScreen.Instance?.Unpause(false);
+								});
+							});
+						}
                     });
                     return;
 				}
 
-				if (MultiplayerSession.IsHost)
+				// In multiplayer session - show single Multiplayer button
+				AddButton(__instance, "Multiplayer", () =>
 				{
+					PauseScreen.Instance.Show(false); // Hide pause screen
+					// Show multiplayer info screen
+					var canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+					if (canvas != null)
+					{
+						ONI_MP.Menus.MultiplayerInfoScreen.Show(canvas.transform);
+					}
+				});
                     AddButton(__instance, MP_STRINGS.UI.PAUSESCREEN.INVITE.LABEL, () =>
                     {
                         SteamFriends.ActivateGameOverlayInviteDialog(SteamLobby.CurrentLobby); // Whilst the menu opens, sending an invite this way doesn't work

@@ -140,7 +140,7 @@ namespace ONI_MP.Menus
             layout.childControlWidth = true;
 
             // Title
-            CreateLabel("Multiplayer Session", 24, FontStyles.Bold, 35);
+            CreateLabel(MP_STRINGS.UI.SERVERBROWSER.MULTIPLAYER_SESSION_TITLE, 24, FontStyles.Bold, 35);
 
             // Divider
             CreateDivider();
@@ -180,7 +180,7 @@ namespace ONI_MP.Menus
             var labelRT = labelGO.GetComponent<RectTransform>();
             labelRT.sizeDelta = new Vector2(100, 40);
             var labelTMP = labelGO.GetComponent<TextMeshProUGUI>();
-            labelTMP.text = "Lobby Code:";
+            labelTMP.text = MP_STRINGS.UI.SERVERBROWSER.LOBBY_CODE;
             labelTMP.fontSize = 16;
             labelTMP.alignment = TextAlignmentOptions.MidlineRight;
             labelTMP.color = new Color(0.7f, 0.7f, 0.7f);
@@ -229,7 +229,7 @@ namespace ONI_MP.Menus
             textRT.anchorMax = Vector2.one;
             textRT.sizeDelta = Vector2.zero;
             var textTMP = textGO.GetComponent<TextMeshProUGUI>();
-            textTMP.text = "Copy";
+            textTMP.text = MP_STRINGS.UI.SERVERBROWSER.COPY;
             textTMP.fontSize = 14;
             textTMP.alignment = TextAlignmentOptions.Center;
             textTMP.color = Color.white;
@@ -238,7 +238,7 @@ namespace ONI_MP.Menus
             button.onClick.AddListener(() =>
             {
                 GUIUtility.systemCopyBuffer = textToCopy;
-                textTMP.text = "Copied!";
+                textTMP.text = MP_STRINGS.UI.SERVERBROWSER.COPIED;
                 // Reset after delay
                 StartCoroutine(ResetCopyButtonText(textTMP));
             });
@@ -248,7 +248,7 @@ namespace ONI_MP.Menus
         {
             yield return new WaitForSeconds(1.5f);
             if (tmp != null)
-                tmp.text = "Copy";
+                tmp.text = MP_STRINGS.UI.SERVERBROWSER.COPY;
         }
 
         private void CreatePlayersSection()
@@ -267,7 +267,7 @@ namespace ONI_MP.Menus
 
             var tmp = textGO.GetComponent<TextMeshProUGUI>();
             int playerCount = MultiplayerSession.ConnectedPlayers.Count + 1; // +1 for host
-            tmp.text = $"Connected Players: {playerCount}";
+            tmp.text = string.Format(MP_STRINGS.UI.SERVERBROWSER.CONNECTED_PLAYERS, playerCount);
             tmp.fontSize = 16;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = new Color(0.8f, 0.8f, 0.8f);
@@ -290,7 +290,7 @@ namespace ONI_MP.Menus
             if (MultiplayerSession.IsHost)
             {
                 // Invite button
-                CreateActionButton(container.transform, "Invite Friends", () =>
+                CreateActionButton(container.transform, MP_STRINGS.UI.PAUSESCREEN.INVITE.LABEL, () =>
                 {
                     Steamworks.SteamFriends.ActivateGameOverlayInviteDialog(SteamLobby.CurrentLobby);
                 });
@@ -298,7 +298,7 @@ namespace ONI_MP.Menus
                 // Hard Sync button
                 if (!GameServerHardSync.hardSyncDoneThisCycle)
                 {
-                    CreateActionButton(container.transform, "Perform Hard Sync", () =>
+                    CreateActionButton(container.transform, MP_STRINGS.UI.PAUSESCREEN.DOHARDSYNC.LABEL, () =>
                     {
                         Close();
                         if (MultiplayerSession.ConnectedPlayers.Count > 0)
@@ -313,11 +313,11 @@ namespace ONI_MP.Menus
                 }
                 else
                 {
-                    CreateActionButton(container.transform, "Hard Sync Done", null, true);
+                    CreateActionButton(container.transform, MP_STRINGS.UI.PAUSESCREEN.HARDSYNCNOTAVAILABLE.LABEL, null, true);
                 }
 
                 // End Session button
-                CreateActionButton(container.transform, "End Session", () =>
+                CreateActionButton(container.transform, MP_STRINGS.UI.PAUSESCREEN.ENDSESSION.LABEL, () =>
                 {
                     Close();
                     SteamLobby.LeaveLobby();
@@ -327,7 +327,7 @@ namespace ONI_MP.Menus
             else
             {
                 // Leave Session button for clients
-                CreateActionButton(container.transform, "Leave Session", () =>
+                CreateActionButton(container.transform, MP_STRINGS.UI.PAUSESCREEN.LEAVESESSION.LABEL, () =>
                 {
                     Close();
                     SteamLobby.LeaveLobby();

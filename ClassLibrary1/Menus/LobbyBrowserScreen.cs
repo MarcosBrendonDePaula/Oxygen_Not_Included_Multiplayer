@@ -104,7 +104,7 @@ namespace ONI_MP.Menus
             CreateLobbyList();
 
             // Status text
-            _statusText = CreateLabel(_screenGO.transform, "Loading lobbies...", 14, 25);
+            _statusText = CreateLabel(_screenGO.transform, MP_STRINGS.UI.SERVERBROWSER.LOADING_LOBBIES, 14, 25);
             _statusText.color = new Color(0.7f, 0.7f, 0.7f);
 
             // Bottom buttons
@@ -132,7 +132,7 @@ namespace ONI_MP.Menus
             titleRT.sizeDelta = new Vector2(250, 50);
 
             var titleTmp = titleGO.GetComponent<TextMeshProUGUI>();
-            titleTmp.text = "Public Lobby Browser";
+            titleTmp.text = MP_STRINGS.UI.SERVERBROWSER.TITLE;
             titleTmp.fontSize = 26;
             titleTmp.alignment = TextAlignmentOptions.Center;
             titleTmp.color = Color.white;
@@ -142,7 +142,7 @@ namespace ONI_MP.Menus
             CreateSearchField(headerGO.transform);
 
             // Refresh button
-            CreateButton(headerGO.transform, "Refresh", () => RefreshLobbyList(), 100, 40);
+            CreateButton(headerGO.transform, MP_STRINGS.UI.SERVERBROWSER.REFRESH, () => RefreshLobbyList(), 100, 40);
         }
 
         private TMP_InputField _searchInput;
@@ -177,7 +177,7 @@ namespace ONI_MP.Menus
             placeholderRT.sizeDelta = Vector2.zero;
 
             var placeholderTMP = placeholderGO.GetComponent<TextMeshProUGUI>();
-            placeholderTMP.text = "🔍 Search...";
+            placeholderTMP.text = string.Format(MP_STRINGS.UI.SERVERBROWSER.SEARCH, "🔍");
             placeholderTMP.fontSize = 14;
             placeholderTMP.color = new Color(0.5f, 0.5f, 0.5f);
             placeholderTMP.alignment = TextAlignmentOptions.MidlineLeft;
@@ -229,12 +229,12 @@ namespace ONI_MP.Menus
             rt.sizeDelta = new Vector2(0, 40);
 
             // Column headers - Mixed flexible and fixed widths
-            CreateHeaderCell(headerContainer.transform, "Colony", 0, 1f);      // Flexible
-            CreateHeaderCell(headerContainer.transform, "Host", 0, 0.8f);      // Flexible
-            CreateHeaderCell(headerContainer.transform, "Players", 65, 0);     // Fixed
-            CreateHeaderCell(headerContainer.transform, "Cycle", 55, 0);       // Fixed
-            CreateHeaderCell(headerContainer.transform, "Dupes", 55, 0);       // Fixed
-            CreateHeaderCell(headerContainer.transform, "Ping", 55, 0);        // Fixed
+            CreateHeaderCell(headerContainer.transform, MP_STRINGS.UI.SERVERBROWSER.HEADERS.COLONY, 0, 1f);      // Flexible
+            CreateHeaderCell(headerContainer.transform, MP_STRINGS.UI.SERVERBROWSER.HEADERS.HOST, 0, 0.8f);      // Flexible
+            CreateHeaderCell(headerContainer.transform, MP_STRINGS.UI.SERVERBROWSER.HEADERS.PLAYERS, 65, 0);     // Fixed
+            CreateHeaderCell(headerContainer.transform, MP_STRINGS.UI.SERVERBROWSER.HEADERS.CYCLE, 55, 0);       // Fixed
+            CreateHeaderCell(headerContainer.transform, MP_STRINGS.UI.SERVERBROWSER.HEADERS.DUPES, 55, 0);       // Fixed
+            CreateHeaderCell(headerContainer.transform, MP_STRINGS.UI.SERVERBROWSER.HEADERS.PING, 55, 0);        // Fixed
             CreateHeaderCell(headerContainer.transform, "", 70, 0);            // Join button
         }
 
@@ -321,7 +321,7 @@ namespace ONI_MP.Menus
             rt.sizeDelta = new Vector2(0, 55);
 
             // Join by Code button
-            CreateButton(buttonContainer.transform, "Join by Code", () =>
+            CreateButton(buttonContainer.transform, MP_STRINGS.UI.SERVERBROWSER.JOIN_BY_CODE, () =>
             {
                 var parent = _screenGO.transform.parent;
                 Close();
@@ -329,12 +329,12 @@ namespace ONI_MP.Menus
             }, 140, 45);
 
             // Back button
-            CreateButton(buttonContainer.transform, "Back", () => Close(), 100, 45);
+            CreateButton(buttonContainer.transform, MP_STRINGS.UI.SERVERBROWSER.BACK, () => Close(), 100, 45);
         }
 
         private void RefreshLobbyList()
         {
-            _statusText.text = "Loading lobbies...";
+            _statusText.text = MP_STRINGS.UI.SERVERBROWSER.LOADING_LOBBIES;
             ClearLobbyRows();
 
             SteamLobby.RequestLobbyList(OnLobbyListReceived);
@@ -346,11 +346,11 @@ namespace ONI_MP.Menus
 
             if (_allLobbies.Count == 0)
             {
-                _statusText.text = "No public lobbies found. Try hosting your own!";
+                _statusText.text = MP_STRINGS.UI.SERVERBROWSER.NO_PUBLIC_LOBBIES_FOUND;
             }
             else
             {
-                _statusText.text = $"Found {_allLobbies.Count} lobby(s)";
+                _statusText.text = string.Format(MP_STRINGS.UI.SERVERBROWSER.FOUND_X_LOBBIES, _allLobbies.Count);
             }
 
             ApplyFiltersAndSort();
@@ -447,7 +447,7 @@ namespace ONI_MP.Menus
             CreateCell(rowGO.transform, lobby.PingDisplay, 55, 0);             // Fixed
 
             // Join button
-            CreateButton(rowGO.transform, "Join", () => JoinLobby(lobby), 70, 30);
+            CreateButton(rowGO.transform, MP_STRINGS.UI.SERVERBROWSER.JOIN_BUTTON, () => JoinLobby(lobby), 70, 30);
 
             return rowGO;
         }
@@ -534,7 +534,7 @@ namespace ONI_MP.Menus
             var titleRT = titleGO.GetComponent<RectTransform>();
             titleRT.sizeDelta = new Vector2(0, 30);
             var titleTMP = titleGO.GetComponent<TextMeshProUGUI>();
-            titleTMP.text = "Password Required";
+            titleTMP.text = MP_STRINGS.UI.SERVERBROWSER.PASSWORD_REQUIRED;
             titleTMP.fontSize = 20;
             titleTMP.alignment = TextAlignmentOptions.Center;
             titleTMP.color = Color.white;
@@ -595,7 +595,7 @@ namespace ONI_MP.Menus
             btnLayout.childControlWidth = false;
 
             // Join button
-            CreateButton(btnContainer.transform, "Join", () =>
+            CreateButton(btnContainer.transform, MP_STRINGS.UI.SERVERBROWSER.JOIN_BUTTON, () =>
             {
                 string password = inputField.text;
                 if (SteamLobby.ValidateLobbyPassword(lobby.LobbyId, password))
@@ -609,12 +609,12 @@ namespace ONI_MP.Menus
                 }
                 else
                 {
-                    errorTMP.text = "Incorrect password";
+                    errorTMP.text = MP_STRINGS.UI.SERVERBROWSER.PASSWORD_INCORRECT;
                 }
             }, 100, 35);
 
             // Cancel button
-            CreateButton(btnContainer.transform, "Cancel", () =>
+            CreateButton(btnContainer.transform, MP_STRINGS.UI.SERVERBROWSER.CANCEL, () =>
             {
                 Destroy(dialogGO);
             }, 100, 35);

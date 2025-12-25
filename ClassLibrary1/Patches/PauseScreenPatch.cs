@@ -71,7 +71,7 @@ namespace ONI_MP.Patches
 				}
 
 				// In multiplayer session - show single Multiplayer button
-				AddButton(__instance, "Multiplayer", () =>
+				AddButton(__instance, MP_STRINGS.UI.PAUSESCREEN.MULTIPLAYER.LABEL, () =>
 				{
 					PauseScreen.Instance.Show(false); // Hide pause screen
 					// Show multiplayer info screen
@@ -81,6 +81,8 @@ namespace ONI_MP.Patches
 						ONI_MP.Menus.MultiplayerInfoScreen.Show(canvas.transform);
 					}
 				});
+				
+				/*
                     AddButton(__instance, MP_STRINGS.UI.PAUSESCREEN.INVITE.LABEL, () =>
                     {
                         SteamFriends.ActivateGameOverlayInviteDialog(SteamLobby.CurrentLobby); // Whilst the menu opens, sending an invite this way doesn't work
@@ -116,7 +118,7 @@ namespace ONI_MP.Patches
 						PauseScreen.Instance.Show(false); // Hide pause screen
 						SpeedControlScreen.Instance?.Unpause(false);
 					}, MP_STRINGS.UI.PAUSESCREEN.INVITE.LABEL);
-				}
+				}*/
 
             }
 		}

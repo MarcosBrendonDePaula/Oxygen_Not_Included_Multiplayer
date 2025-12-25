@@ -49,7 +49,7 @@ internal static class MainMenuPatch
 
 		// Multiplayer - Opens the multiplayer screen with all options
 		var multiplayerInfo = CreateButtonInfo(
-				"MULTIPLAYER",
+				MP_STRINGS.UI.MAINMENU.MULTIPLAYER.LABEL,
 				new System.Action(() =>
 				{
 					// Open the multiplayer screen

@@ -17,6 +17,7 @@ namespace ONI_MP.Patches.World.SideScreen
 		{
 			if (AssignmentPacket.IsApplying) return;
 			if (!MultiplayerSession.InSession) return;
+			if (__instance == null || __instance.gameObject == null) return;
 
 			var buildingIdentity = __instance.gameObject.AddOrGet<NetworkIdentity>();
 			buildingIdentity.RegisterIdentity();
@@ -76,6 +77,7 @@ namespace ONI_MP.Patches.World.SideScreen
 		{
 			if (AssignmentPacket.IsApplying) return;
 			if (!MultiplayerSession.InSession) return;
+			if (__instance == null || __instance.gameObject == null) return;
 
 			var buildingIdentity = __instance.gameObject.AddOrGet<NetworkIdentity>();
 			buildingIdentity.RegisterIdentity();

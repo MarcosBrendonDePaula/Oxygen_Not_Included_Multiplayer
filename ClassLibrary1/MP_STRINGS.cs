@@ -63,8 +63,8 @@ namespace ONI_MP
 				public static LocString CANCEL = "Cancel";
 
 				public static LocString ERR_ENTER_CODE = "Please enter a lobby code";
-                public static LocString ERR_INVALID_CODE = "Please enter a lobby code";
-                public static LocString ERR_PARSE_CODE_FAILED = "Please enter a lobby code";
+                public static LocString ERR_INVALID_CODE = "Invalid lobby code format";
+                public static LocString ERR_PARSE_CODE_FAILED = "Could not parse lobby code";
 
 				public static LocString CHECKING_LOBBY = "Checking lobby...";
 				public static LocString LOBBY_REQUIRES_PASSWORD = "This lobby requires a password";

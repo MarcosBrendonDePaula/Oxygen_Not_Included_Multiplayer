@@ -57,12 +57,14 @@ namespace ONI_MP.Networking.Packets.Core
 			using var ms = new MemoryStream(InnerPacketData);
 			using var reader = new BinaryReader(ms);
 			innerPacket.Deserialize(reader);
+			DebugConsole.Log("[HostBroadcastPacket] received packet of type " + innerPacket.GetType().Name+", dispatching");
 			//this packet should only be sent by clients to the host
 			if (MultiplayerSession.IsHost)
 			{
-				PacketSender.SendToAllExcluding(innerPacket, [MultiplayerSession.HostSteamID, SenderId]);
-				//trigger it on the host as well
+				//trigger it on the host
 				innerPacket.OnDispatched();
+				//send it to all other clients except the sender
+				PacketSender.SendToAllExcluding(innerPacket, [MultiplayerSession.HostSteamID, SenderId]);
 			}
 		}
 

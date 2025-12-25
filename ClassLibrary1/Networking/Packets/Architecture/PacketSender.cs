@@ -123,6 +123,12 @@ namespace ONI_MP.Networking
 			}
 		}
 
+		/// <summary>
+		/// Sends a packet to all other players.
+		/// if sent from the host, it goes to all clients.
+		/// otherwise it is wrapped in a HostBroadcastPacket and sent to the host for rebroadcasting.
+		/// </summary>
+		/// <param name="packet"></param>
 		public static void SendToAllOtherPeers(IPacket packet)
 		{
 			if (!MultiplayerSession.InSession)
@@ -130,6 +136,7 @@ namespace ONI_MP.Networking
 				DebugConsole.LogWarning("[PacketSender] Not in a multiplayer session, cannot send to other peers");
 				return;
 			}
+			DebugConsole.Log("[PacketSender] Sending packet to all other peers: " + packet.GetType().Name);
 
 			if (MultiplayerSession.IsHost)
 				SendToAllClients(packet);

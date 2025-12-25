@@ -43,16 +43,14 @@ namespace ONI_MP.Patches
 		[HarmonyPatch(typeof(PauseScreen), "ConfigureButtonInfos")]
 		public static class PauseScreen_AddInviteButton
 		{
-			static void Postfix(PauseScreen __instance)
+			public static void Postfix(PauseScreen __instance)
 			{
-                var buttonsField = AccessTools.Field(typeof(KModalButtonMenu), "buttons");
-                var buttonInfos = ((KModalButtonMenu.ButtonInfo[])buttonsField.GetValue(__instance))?.ToList()
-                                                    ?? new List<KModalButtonMenu.ButtonInfo>();
+				var buttonInfos = __instance.buttons;
 
                 // Only in multiplayer
                 if (!MultiplayerSession.InSession)
 				{
-					AddButton(__instance, "Host Game", () =>
+					AddButton(__instance, MP_STRINGS.UI.PAUSESCREEN.HOSTGAME.LABEL, () =>
 					{
 						PauseScreen.Instance.Show(false); // Hide pause screen
 						// Show lobby config screen - it will handle lobby creation
@@ -83,15 +81,49 @@ namespace ONI_MP.Patches
 						ONI_MP.Menus.MultiplayerInfoScreen.Show(canvas.transform);
 					}
 				});
+                    AddButton(__instance, MP_STRINGS.UI.PAUSESCREEN.INVITE.LABEL, () =>
+                    {
+                        SteamFriends.ActivateGameOverlayInviteDialog(SteamLobby.CurrentLobby); // Whilst the menu opens, sending an invite this way doesn't work
+                    });
+
+					if (!GameServerHardSync.hardSyncDoneThisCycle)
+					{
+                        AddButton(__instance, MP_STRINGS.UI.PAUSESCREEN.DOHARDSYNC.LABEL, () =>
+                        {
+							if (MultiplayerSession.ConnectedPlayers.Count > 0)
+							{
+								PauseScreen.Instance.Show(false); // Hide pause screen
+								SpeedControlScreen.Instance?.Unpause(false);
+								GameServerHardSync.PerformHardSync(); // Manually trigger the hard sync
+							} else
+							{
+                                PauseScreen.Instance.Show(false); // Hide pause screen
+                                SpeedControlScreen.Instance?.Unpause(false);
+								GameServerHardSync.hardSyncDoneThisCycle = true; // No one is here, skip hard sync
+                            }
+                        });
+                    } else
+					{
+                        AddButton(__instance, MP_STRINGS.UI.PAUSESCREEN.HARDSYNCNOTAVAILABLE.LABEL, () =>
+                        {
+                            
+                        });
+                    }
+
+					AddButton(__instance, MP_STRINGS.UI.PAUSESCREEN.ENDSESSION.LABEL, () =>
+					{
+						SteamLobby.LeaveLobby();
+						PauseScreen.Instance.Show(false); // Hide pause screen
+						SpeedControlScreen.Instance?.Unpause(false);
+					}, MP_STRINGS.UI.PAUSESCREEN.INVITE.LABEL);
+				}
+
             }
 		}
 
 		private static void AddButton(PauseScreen __instance, string label, System.Action onClicked, string placeAfter = "Resume")
 		{
-            var buttonsField = AccessTools.Field(typeof(KModalButtonMenu), "buttons");
-            var buttonInfos = ((KModalButtonMenu.ButtonInfo[])buttonsField.GetValue(__instance))?.ToList()
-                                                ?? new List<KModalButtonMenu.ButtonInfo>();
-
+			var buttonInfos = __instance.buttons.ToList();
             if (buttonInfos.Any(b => b.text == label))
                 return; // Ignore duplicates
 
@@ -106,7 +138,7 @@ namespace ONI_MP.Patches
                     })
             ));
 
-            buttonsField.SetValue(__instance, buttonInfos.ToArray());
+			__instance.buttons = buttonInfos.ToArray();
         }
 	}
 }

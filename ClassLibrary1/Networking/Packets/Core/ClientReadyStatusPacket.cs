@@ -56,26 +56,7 @@ namespace ONI_MP.Networking.Packets.Core
 			ReadyManager.RefreshScreen();
 			bool allReady = ReadyManager.IsEveryoneReady();
             DebugConsole.Log($"[ClientReadyStatusPacket] Is everyone ready? {allReady}");
-
-            //if (GameServerHardSync.IsHardSyncInProgress)
-			//{
-			//	if (allReady)
-			//	{
-			//		ReadyManager.MarkAllAsUnready(); // Reset player ready states
-			//		SaveFileRequestPacket.SendSaveFileToAll();
-			//	}
-			//	return;
-			//}
-
-			if (allReady)
-			{
-				ReadyManager.SendAllReadyPacket();
-			}
-			else
-			{
-				// Broadcast updated overlay message to all clients
-				ReadyManager.SendStatusUpdatePacketToClients();
-			}
+			ReadyManager.RefreshReadyState();
 		}
 	}
 }

@@ -22,6 +22,8 @@ namespace ONI_MP.Patches
 				case "SelectTool":
 					CursorManager.Instance.cursorState = CursorState.SELECT;
 					break;
+				case "WireBuildTool":
+				case "UtilityBuildTool":
 				case "BuildTool":
 					CursorManager.Instance.cursorState = CursorState.BUILD;
 					break;
@@ -35,27 +37,17 @@ namespace ONI_MP.Patches
 					CursorManager.Instance.cursorState = CursorState.DECONSTRUCT;
 					break;
 				case "PrioritizeTool":
-					{
-						var priorityTool = PlayerController.Instance?.ActiveTool as PrioritizeTool;
-						if (priorityTool != null)
-						{
-							var priority = ToolMenu.Instance.PriorityScreen.GetLastSelectedPriority();
+					var priority = ToolMenu.Instance.PriorityScreen.GetLastSelectedPriority();
 
-							if (priority.priority_value >= 5)
-							{
-								CursorManager.Instance.cursorState = CursorState.PRIORITIZE;
-							}
-							else
-							{
-								CursorManager.Instance.cursorState = CursorState.DEPRIORITIZE;
-							}
-						}
-						else
-						{
-							CursorManager.Instance.cursorState = CursorState.PRIORITIZE; // Fallback to prioritize
-						}
-						break;
+					if (priority.priority_value >= 5)
+					{
+						CursorManager.Instance.cursorState = CursorState.PRIORITIZE;
 					}
+					else
+					{
+						CursorManager.Instance.cursorState = CursorState.DEPRIORITIZE;
+					}
+					break;
 				case "ClearTool":
 					CursorManager.Instance.cursorState = CursorState.SWEEP;
 					break;

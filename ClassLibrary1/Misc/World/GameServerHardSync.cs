@@ -35,7 +35,7 @@ namespace ONI_MP.Networking
 			}
 
 			SpeedControlScreen.Instance?.Pause(false); // Pause the game
-			MultiplayerOverlay.Show("Hard sync in progress!");
+			MultiplayerOverlay.Show(MP_STRINGS.UI.MP_OVERLAY.SYNC.HARDSYNC_INPROGRESS);
 
             numberOfClientsAtTimeOfSync = MultiplayerSession.ConnectedPlayers.Count;
 			var packet = new HardSyncPacket();

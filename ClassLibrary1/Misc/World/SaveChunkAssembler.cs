@@ -38,7 +38,7 @@ namespace ONI_MP.Misc.World
 
 			DebugConsole.Log($"[ChunkReceiver] Received {chunk.Chunk.Length} bytes for '{chunk.FileName}' (offset {chunk.Offset})");
 			int percent = save.ReceivedBytes * 100 / chunk.TotalSize;
-			MultiplayerOverlay.Show($"Downloading world: {percent}%");
+			MultiplayerOverlay.Show(string.Format(MP_STRINGS.UI.MP_OVERLAY.CLIENT.DOWNLOADING_GAME, percent));
 
 			if (save.ReceivedBytes >= chunk.TotalSize)
 			{

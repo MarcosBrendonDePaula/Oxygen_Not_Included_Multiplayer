@@ -5,11 +5,20 @@ using ONI_MP.Networking.Packets.World;
 
 namespace ONI_MP.Patches.World.SideScreen
 {
-	/// <summary>
-	/// Patches for SingleEntityReceptacle synchronization (planters, incubators selecting items)
-	/// </summary>
+    /// <summary>
+    /// Patches for SingleEntityReceptacle synchronization (planters, incubators selecting items)
+    /// </summary> 
+    [HarmonyPatch(typeof(SingleEntityReceptacle), nameof(SingleEntityReceptacle.OnSpawn))]
+    public static class SingleEntityReceptacle_OnSpawn_Patch
+    {
+        public static void Postfix(SingleEntityReceptacle __instance)
+        {
+            var receptacleIdentity = __instance.gameObject.AddOrGet<NetworkIdentity>();
+            receptacleIdentity.RegisterIdentity();
+        }
+    }
 
-	[HarmonyPatch(typeof(SingleEntityReceptacle), nameof(SingleEntityReceptacle.CreateOrder))]
+    [HarmonyPatch(typeof(SingleEntityReceptacle), nameof(SingleEntityReceptacle.CreateOrder))]
 	public static class SingleEntityReceptacle_CreateOrder_Patch
 	{
 		public static void Postfix(SingleEntityReceptacle __instance, Tag entityTag, Tag additionalFilterTag)
@@ -17,8 +26,9 @@ namespace ONI_MP.Patches.World.SideScreen
 			if (BuildingConfigPacket.IsApplyingPacket) return;
 			if (!MultiplayerSession.InSession) return;
 
-			var identity = __instance.gameObject.AddOrGet<NetworkIdentity>();
-			identity.RegisterIdentity();
+			var identity = __instance.gameObject.GetComponent<NetworkIdentity>();
+			if (!identity)
+				return;
 
 			var packetEntity = new BuildingConfigPacket
 			{
@@ -61,8 +71,9 @@ namespace ONI_MP.Patches.World.SideScreen
 			if (BuildingConfigPacket.IsApplyingPacket) return;
 			if (!MultiplayerSession.InSession) return;
 
-			var identity = __instance.gameObject.AddOrGet<NetworkIdentity>();
-			identity.RegisterIdentity();
+			var identity = __instance.gameObject.GetComponent<NetworkIdentity>();
+			if (!identity)
+				return;
 
 			var packet = new BuildingConfigPacket
 			{

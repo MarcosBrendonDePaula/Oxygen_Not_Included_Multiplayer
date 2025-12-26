@@ -413,6 +413,9 @@ namespace ONI_MP.Menus
 
             foreach (var lobby in _filteredLobbies)
             {
+                if (lobby.IsPrivate)
+                    continue;
+
                 var rowGO = CreateLobbyRow(lobby);
                 _lobbyRowObjects.Add(rowGO);
             }

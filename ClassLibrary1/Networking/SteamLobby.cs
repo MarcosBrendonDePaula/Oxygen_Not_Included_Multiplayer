@@ -480,8 +480,8 @@ namespace ONI_MP.Networking
 
 				// Failsafe ignore "private" lobbies
 				string visibility = SteamMatchmaking.GetLobbyData(lobbyId, "visibility");
-				if (visibility.Equals("private"))
-					continue;
+				//if (visibility.Equals("private"))
+				//	continue;
 
 				// Get host Steam ID
 				CSteamID hostSteamId = CSteamID.Nil;
@@ -521,7 +521,7 @@ namespace ONI_MP.Networking
 					HasPassword = SteamMatchmaking.GetLobbyData(lobbyId, "has_password") == "1",
 					LobbyCode = SteamMatchmaking.GetLobbyData(lobbyId, "lobby_code"),
 					IsFriend = isFriend,
-					IsPrivate = visibility.Equals("public"),
+					IsPrivate = visibility.Equals("public") || SteamFriends.HasFriend(hostSteamId, EFriendFlags.k_EFriendFlagImmediate),
 					PingMs = pingMs,
 					// Game info
 					ColonyName = SteamMatchmaking.GetLobbyData(lobbyId, "colony_name"),

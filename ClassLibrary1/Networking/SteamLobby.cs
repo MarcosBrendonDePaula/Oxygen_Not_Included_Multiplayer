@@ -115,6 +115,8 @@ namespace ONI_MP.Networking
 				SteamMatchmaking.SetLobbyData(CurrentLobby, "name", SteamFriends.GetPersonaName() + "'s Lobby");
 				SteamMatchmaking.SetLobbyData(CurrentLobby, "host", SteamUser.GetSteamID().ToString());
 				SteamMatchmaking.SetLobbyData(CurrentLobby, "hostname", SteamFriends.GetPersonaName());
+				bool isPrivate = Configuration.Instance.Host.Lobby.IsPrivate;
+				SteamMatchmaking.SetLobbyData(CurrentLobby, "visibility", isPrivate ? "private" : "public");
 
 				// Generate and store lobby code
 				CurrentLobbyCode = LobbyCodeHelper.GenerateCode(CurrentLobby);
@@ -521,7 +523,7 @@ namespace ONI_MP.Networking
 					HasPassword = SteamMatchmaking.GetLobbyData(lobbyId, "has_password") == "1",
 					LobbyCode = SteamMatchmaking.GetLobbyData(lobbyId, "lobby_code"),
 					IsFriend = isFriend,
-					IsPrivate = visibility.Equals("public") || SteamFriends.HasFriend(hostSteamId, EFriendFlags.k_EFriendFlagImmediate),
+					IsPrivate = SteamMatchmaking.GetLobbyData(lobbyId, "visibility") == "private",
 					PingMs = pingMs,
 					// Game info
 					ColonyName = SteamMatchmaking.GetLobbyData(lobbyId, "colony_name"),

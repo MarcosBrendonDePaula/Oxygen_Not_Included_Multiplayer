@@ -413,8 +413,9 @@ namespace ONI_MP.Menus
 
             foreach (var lobby in _filteredLobbies)
             {
-                if (lobby.IsPrivate)
-                    continue;
+                // Its private AND we are not friends with the host then HIDE from the list
+                //if (lobby.IsPrivate && !SteamFriends.HasFriend(lobby.HostSteamId, EFriendFlags.k_EFriendFlagImmediate))
+                //    continue;
 
                 var rowGO = CreateLobbyRow(lobby);
                 _lobbyRowObjects.Add(rowGO);
@@ -450,7 +451,8 @@ namespace ONI_MP.Menus
             CreateCell(rowGO.transform, lobby.PingDisplay, 55, 0);             // Fixed
 
             // Join button
-            CreateButton(rowGO.transform, MP_STRINGS.UI.SERVERBROWSER.JOIN_BUTTON, () => JoinLobby(lobby), 70, 30);
+            bool join_interactable = !lobby.IsPrivate || SteamFriends.HasFriend(lobby.HostSteamId, EFriendFlags.k_EFriendFlagImmediate);
+            CreateButton(rowGO.transform, MP_STRINGS.UI.SERVERBROWSER.JOIN_BUTTON, () => JoinLobby(lobby), 70, 30, join_interactable);
 
             return rowGO;
         }
@@ -640,7 +642,7 @@ namespace ONI_MP.Menus
             return tmp;
         }
 
-        private void CreateButton(Transform parent, string text, System.Action onClick, float width, float height)
+        private void CreateButton(Transform parent, string text, System.Action onClick, float width, float height, bool is_button_interactable = true)
         {
             var mainMenu = FindObjectOfType<MainMenu>();
             var templateButton = mainMenu?.Button_ResumeGame;
@@ -661,6 +663,7 @@ namespace ONI_MP.Menus
                 var btn = buttonGO.GetComponent<KButton>();
                 btn.ClearOnClick();
                 btn.onClick += onClick;
+                btn.interactable = is_button_interactable;
 
                 var locTexts = buttonGO.GetComponentsInChildren<LocText>(true);
                 if (locTexts.Length > 0)
@@ -703,6 +706,7 @@ namespace ONI_MP.Menus
 
                 var button = buttonGO.GetComponent<Button>();
                 button.onClick.AddListener(() => onClick?.Invoke());
+                button.interactable = is_button_interactable;
             }
         }
     }

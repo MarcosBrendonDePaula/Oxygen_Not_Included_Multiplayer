@@ -1,3 +1,4 @@
+using System;
 using ONI_MP.DebugTools;
 using ONI_MP.Misc;
 using ONI_MP.Networking;
@@ -19,6 +20,7 @@ namespace ONI_MP.Menus
         private Toggle _privateToggle;
         private TMP_InputField _passwordInput;
         private TextMeshProUGUI _privateLabel;
+        private TMP_InputField _lobbySizeInput;
         private static System.Action _onContinue;
 
         public static void Show(Transform parent, System.Action onContinue = null)
@@ -176,6 +178,9 @@ namespace ONI_MP.Menus
             // Private/Public Toggle
             CreateVisibilityOption(contentGO.transform);
 
+            // Lobby Size input
+            CreateLobbySizeOption(contentGO.transform);
+
             // Password Input
             CreatePasswordOption(contentGO.transform);
 
@@ -184,6 +189,27 @@ namespace ONI_MP.Menus
 
             // Buttons
             CreateButtons(contentGO.transform);
+        }
+
+        private void CreateLobbySizeOption(Transform parent)
+        {
+            var container = new GameObject("LobbySizeOption", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            container.transform.SetParent(parent, false);
+
+            var layout = container.GetComponent<VerticalLayoutGroup>();
+            layout.spacing = 8;
+            layout.childAlignment = TextAnchor.UpperLeft;
+            layout.childControlHeight = false;
+            layout.childControlWidth = true;
+
+            var rt = container.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(0, 75);
+
+            // Label
+            CreateLabel(container.transform, MP_STRINGS.UI.HOSTLOBBYCONFIGSCREEN.LOBBY_SIZE, 16, 25);
+
+            // Input field
+            _lobbySizeInput = CreateInputField(container.transform, "4", 45, TMP_InputField.ContentType.IntegerNumber);
         }
 
         private void CreateVisibilityOption(Transform parent)
@@ -298,10 +324,10 @@ namespace ONI_MP.Menus
             CreateLabel(container.transform, MP_STRINGS.UI.HOSTLOBBYCONFIGSCREEN.PASSWORD_TITLE, 16, 25);
 
             // Input field
-            _passwordInput = CreateInputField(container.transform, MP_STRINGS.UI.HOSTLOBBYCONFIGSCREEN.PASSWORD_NOTE, 45);
+            _passwordInput = CreateInputField(container.transform, MP_STRINGS.UI.HOSTLOBBYCONFIGSCREEN.PASSWORD_NOTE, 45, TMP_InputField.ContentType.Password);
         }
 
-        private TMP_InputField CreateInputField(Transform parent, string placeholder, float height)
+        private TMP_InputField CreateInputField(Transform parent, string placeholder, float height, TMP_InputField.ContentType contentType = TMP_InputField.ContentType.Standard)
         {
             var inputGO = new GameObject("PasswordInput", typeof(RectTransform), typeof(Image), typeof(TMP_InputField));
             inputGO.transform.SetParent(parent, false);
@@ -353,7 +379,7 @@ namespace ONI_MP.Menus
             inputField.textComponent = textTMP;
             inputField.placeholder = placeholderTMP;
             inputField.text = "";
-            inputField.contentType = TMP_InputField.ContentType.Password;
+            inputField.contentType = contentType;
 
             return inputField;
         }
@@ -382,6 +408,19 @@ namespace ONI_MP.Menus
         {
             // Save settings to config
             Configuration.Instance.Host.Lobby.IsPrivate = _privateToggle.isOn;
+
+            string input = _lobbySizeInput.text ?? "";
+            if(!string.IsNullOrEmpty(input))
+            {
+                int max_size = int.Parse(input);
+                if (max_size <= 0)
+                    max_size = 1;
+
+                Configuration.Instance.Host.MaxLobbySize = max_size;
+            } else
+            {
+                Configuration.Instance.Host.MaxLobbySize = 4;
+            }
 
             string password = _passwordInput?.text ?? "";
             if (!string.IsNullOrEmpty(password))

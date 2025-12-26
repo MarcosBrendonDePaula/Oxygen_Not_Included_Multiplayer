@@ -50,6 +50,7 @@ namespace ONI_MP
 				public static LocString PASSWORD_NOTE = "Leave empty for no password";
                 public static LocString CONTINUE = "Continue";
                 public static LocString CANCEL = "Cancel";
+				public static LocString LOBBY_SIZE = "Lobby Size:";
             }
 
             public class JOINBYDIALOGMENU

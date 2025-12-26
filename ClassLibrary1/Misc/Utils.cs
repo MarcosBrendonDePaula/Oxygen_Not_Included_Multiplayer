@@ -226,8 +226,20 @@ namespace ONI_MP.Misc
 			return null;
 		}
 
-		#region SaveLoadRoot Extensions
-		private static readonly FieldInfo optionalComponentListField =
+        public static string TrucateName(string name, int len = 24)
+        {
+            if (name.Length > len)
+            {
+                return name.Substring(0, len) + "...";
+            }
+            else
+            {
+                return name;
+            }
+        }
+
+        #region SaveLoadRoot Extensions
+        private static readonly FieldInfo optionalComponentListField =
 				typeof(SaveLoadRoot).GetField("m_optionalComponentTypeNames", BindingFlags.NonPublic | BindingFlags.Instance);
 
 		public static void TryDeclareOptionalComponent<T>(this SaveLoadRoot root) where T : KMonoBehaviour

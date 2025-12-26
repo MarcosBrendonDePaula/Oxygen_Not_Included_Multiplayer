@@ -1,4 +1,5 @@
-﻿using ONI_MP.Networking.States;
+﻿using ONI_MP.Misc;
+using ONI_MP.Networking.States;
 using Steamworks;
 
 public class MultiplayerPlayer
@@ -16,19 +17,8 @@ public class MultiplayerPlayer
     public MultiplayerPlayer(CSteamID steamID)
 	{
 		SteamID = steamID;
-		SteamName = TrucatedName(SteamFriends.GetFriendPersonaName(steamID));
+		SteamName = Utils.TrucateName(SteamFriends.GetFriendPersonaName(steamID));
 		AvatarImageId = SteamFriends.GetLargeFriendAvatar(steamID);
-	}
-
-	private string TrucatedName(string steamName)
-	{
-		if (steamName.Length > 24)
-		{
-			return steamName.Substring(0, 24) + "...";
-		} else
-		{
-			return steamName;
-		}
 	}
 
 	public override string ToString()

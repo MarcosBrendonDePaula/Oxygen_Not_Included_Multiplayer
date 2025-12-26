@@ -18,6 +18,8 @@ namespace ONI_MP.Networking
         public string LobbyCode { get; set; }
         public bool IsFriend { get; set; } = false;
 
+        public bool IsPrivate { get; set; } = false;
+
         // Game info
         public string ColonyName { get; set; } = "";
         public int Cycle { get; set; } = 0;

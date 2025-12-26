@@ -273,7 +273,7 @@ namespace ONI_MP.Menus
             scrollViewGO.transform.SetParent(_screenGO.transform, false);
 
             var scrollRT = scrollViewGO.GetComponent<RectTransform>();
-            scrollRT.sizeDelta = new Vector2(0, 320);
+            scrollRT.sizeDelta = new Vector2(0, 600); //320
 
             var scrollImage = scrollViewGO.GetComponent<Image>();
             scrollImage.color = new Color(0.08f, 0.08f, 0.12f);

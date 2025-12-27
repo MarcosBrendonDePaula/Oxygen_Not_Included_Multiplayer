@@ -452,7 +452,8 @@ namespace ONI_MP.Menus
 
             // Join button
             bool join_interactable = !lobby.IsPrivate || SteamFriends.HasFriend(lobby.HostSteamId, EFriendFlags.k_EFriendFlagImmediate);
-            CreateButton(rowGO.transform, MP_STRINGS.UI.SERVERBROWSER.JOIN_BUTTON, () => JoinLobby(lobby), 70, 30, join_interactable);
+            string label = join_interactable ? MP_STRINGS.UI.SERVERBROWSER.JOIN_BUTTON : MP_STRINGS.UI.SERVERBROWSER.FRIEND_ONLY; 
+            CreateButton(rowGO.transform, label, () => JoinLobby(lobby), 70, 30, join_interactable);
 
             return rowGO;
         }

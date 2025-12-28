@@ -70,7 +70,7 @@ namespace ONI_MP.Networking.Components
 				stateList.Add(new BuildingState
 				{
 					Cell = cell,
-					PrefabHash = kpid.PrefabTag.GetHash()
+					PrefabName = kpid.PrefabTag.Name  // Send string name instead of hash
 				});
 			}
 
@@ -94,13 +94,14 @@ namespace ONI_MP.Networking.Components
 
 		private IEnumerator Reconcile(List<BuildingState> remoteBuildings)
 		{
-			// Create a lookup for remote buildings: Cell -> List of PrefabHashes (in case multiple buildings on one cell, e.g. pipes)
-			// Using a dictionary of lists to handle multiple objects per cell if necessary, though mainly buildings are layer-separated.
-			// For simplicity, let's just use a HashSet of unique identifiers (Cell + Hash)
-			var remoteSet = new HashSet<(int, int)>();
+			// Create a lookup for remote buildings: Cell -> List of PrefabNames
+			var remoteSet = new HashSet<(int, string)>();
 			foreach (var b in remoteBuildings)
 			{
-				remoteSet.Add((b.Cell, b.PrefabHash));
+				if (!string.IsNullOrEmpty(b.PrefabName))
+				{
+					remoteSet.Add((b.Cell, b.PrefabName));
+				}
 			}
 
 			var localBuildings = global::Components.BuildingCompletes.Items;
@@ -116,11 +117,11 @@ namespace ONI_MP.Networking.Components
 				var kpid = building.GetComponent<KPrefabID>();
 				if (kpid == null) continue;
 
-				int hash = kpid.PrefabTag.GetHash();
+				string prefabName = kpid.PrefabTag.Name;
 
-				if (!remoteSet.Contains((cell, hash)))
+				if (!remoteSet.Contains((cell, prefabName)))
 				{
-					DebugConsole.Log($"[BuildingSyncer] Removing phantom building {kpid.PrefabTag.Name} at {cell}");
+					DebugConsole.Log($"[BuildingSyncer] Removing phantom building {prefabName} at {cell}");
 					// Use standard deconstruction or immediate destroy? Immediate is safer for sync fix
 					Util.KDestroyGameObject(building.gameObject);
 				}
@@ -128,48 +129,40 @@ namespace ONI_MP.Networking.Components
 
 			// 2. Spawn Missing Buildings (Remote but not Local)
 			// This is O(N*M) if naive. Let's build a local set first.
-			var localSet = new HashSet<(int, int)>();
+			var localSet = new HashSet<(int, string)>();
 			foreach (var building in localList)
 			{
 				if (building == null) continue;
 				int cell = Grid.PosToCell(building);
 				var kpid = building.GetComponent<KPrefabID>();
 				if (kpid == null) continue;
-				localSet.Add((cell, kpid.PrefabTag.GetHash()));
+				localSet.Add((cell, kpid.PrefabTag.Name));
 			}
 
 			foreach (var remote in remoteBuildings)
 			{
-				if (!localSet.Contains((remote.Cell, remote.PrefabHash)))
+				if (string.IsNullOrEmpty(remote.PrefabName)) continue;
+				
+				if (!localSet.Contains((remote.Cell, remote.PrefabName)))
 				{
-					DebugConsole.Log($"[BuildingSyncer] Spawning missing building Hash:{remote.PrefabHash} at {remote.Cell}");
-					SpawnBuilding(remote.Cell, remote.PrefabHash);
+					DebugConsole.Log($"[BuildingSyncer] Spawning missing building {remote.PrefabName} at {remote.Cell}");
+					SpawnBuilding(remote.Cell, remote.PrefabName);
 					yield return null; // Spread out instantiation to avoid frame spikes
 				}
 			}
 		}
 
-		private void SpawnBuilding(int cell, int prefabHash)
+		private void SpawnBuilding(int cell, string prefabName)
 		{
 			if (Grid.WidthInCells == 0) return;
+			if (string.IsNullOrEmpty(prefabName)) return;
 
-			Tag prefabTag = new Tag(prefabHash);
-			var def = Assets.GetBuildingDef(prefabTag.Name);
+			var def = Assets.GetBuildingDef(prefabName);
 
 			if (def == null)
 			{
-				// Try to find by hash if name lookup fails, but BuildingDef usually needs string ID.
-				// Assets.GetBuildingDef expects a string ID.
-				// We need to map Hash -> String. KPrefabID doesn't easily store the reverse map globally potentially.
-				// However, Assets.BuildingDefs is a list. We might need to search it?
-				// optimization: The PrefabTag.Name IS the ID string usually. 
-				// Wait, Tag.GetHash() is just the integer. We need the string to lookup the Def.
-				// TagManager might help, or we assume we can get the string from the Tag if it's in the system.
-				// Actually Tag structure has 'Name' property if it was created from string.
-				// But we deserialized an int. We need to look up the Tag name from the Hash.
-				// ONI has `Assets.GetPrefab(Tag)`
-
-				GameObject prefab = Assets.GetPrefab(prefabTag);
+				// Try fallback via prefab lookup
+				GameObject prefab = Assets.GetPrefab(prefabName);
 				if (prefab != null)
 				{
 					var wBuilding = prefab.GetComponent<Building>();
@@ -215,7 +208,7 @@ namespace ONI_MP.Networking.Components
 			}
 			else
 			{
-				// DebugConsole.LogWarning($"[BuildingSyncer] Could not find BuildingDef for hash {prefabHash}");
+				DebugConsole.LogWarning($"[BuildingSyncer] Could not find BuildingDef for {prefabName}");
 			}
 		}
 	}

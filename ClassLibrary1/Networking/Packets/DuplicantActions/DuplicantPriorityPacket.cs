@@ -1,4 +1,5 @@
 using ONI_MP.DebugTools;
+using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Architecture;
 using System.IO;
 
@@ -32,10 +33,7 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 				Apply();
 
 				// Broadcast to other clients
-				if (NetworkIdentityRegistry.TryGet(NetId, out var identity))
-				{
-					PacketSender.SendToAllClients(this);
-				}
+				PacketSender.SendToAllClients(this);
 			}
 			else
 			{
@@ -46,10 +44,16 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 
 		private void Apply()
 		{
-			if (!NetworkIdentityRegistry.TryGet(NetId, out var identity))
+			// First try normal registry lookup
+			if (!NetworkIdentityRegistry.TryGet(NetId, out var identity) || identity == null)
 			{
-				DebugConsole.LogWarning($"[DuplicantPriorityPacket] NetId {NetId} not found.");
-				return;
+				// Not in registry - try to find and force-register
+				identity = TryFindAndRegisterIdentity(NetId);
+				if (identity == null)
+				{
+					DebugConsole.LogWarning($"[DuplicantPriorityPacket] NetId {NetId} not found anywhere.");
+					return;
+				}
 			}
 
 			var consumer = identity.GetComponent<ChoreConsumer>();
@@ -72,12 +76,6 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 
 			if (targetGroup != null)
 			{
-				// SetPersonalPriority expects (ChoreGroup, int)
-				// We must ensure we don't trigger infinite loop if we patch this method.
-				// We'll handle re-entrancy in the Patch or use a flag here?
-				// The Patch usually checks "IsApplying".
-				// Let's assume we add a static flag in this packet class or the patch class.
-
 				IsApplying = true;
 				try
 				{
@@ -93,6 +91,30 @@ namespace ONI_MP.Networking.Packets.DuplicantActions
 			{
 				DebugConsole.LogWarning($"[DuplicantPriorityPacket] ChoreGroup {ChoreGroupId} not found.");
 			}
+		}
+
+		/// <summary>
+		/// Searches all live duplicants for one with the matching NetId component,
+		/// and if found, forces registration with the NetworkIdentityRegistry.
+		/// </summary>
+		private static NetworkIdentity TryFindAndRegisterIdentity(int netId)
+		{
+			// Search all live duplicants
+			foreach (var minionIdentity in global::Components.LiveMinionIdentities.Items)
+			{
+				if (minionIdentity == null) continue;
+				
+				var identity = minionIdentity.GetComponent<NetworkIdentity>();
+				if (identity != null && identity.NetId == netId)
+				{
+					// Found it! Force register using RegisterOverride to bypass any checks
+					NetworkIdentityRegistry.RegisterOverride(identity, netId);
+					DebugConsole.Log($"[DuplicantPriorityPacket] Force-registered NetId {netId} for {minionIdentity.name}");
+					return identity;
+				}
+			}
+
+			return null;
 		}
 
 		public static bool IsApplying = false;

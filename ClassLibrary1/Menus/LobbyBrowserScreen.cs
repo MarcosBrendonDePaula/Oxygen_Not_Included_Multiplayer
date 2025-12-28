@@ -349,7 +349,7 @@ namespace ONI_MP.Menus
             int lobbyCount = 0;
             PopulateLobbyList(out lobbyCount);
 
-            if (_allLobbies.Count == 0)
+            if (lobbyCount == 0)
             {
                 _statusText.text = MP_STRINGS.UI.SERVERBROWSER.NO_PUBLIC_LOBBIES_FOUND;
             }

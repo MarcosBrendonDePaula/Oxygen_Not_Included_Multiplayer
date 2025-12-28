@@ -206,7 +206,8 @@ namespace ONI_MP.Menus
         {
             _searchQuery = query?.ToLower() ?? "";
             ApplyFiltersAndSort();
-            PopulateLobbyList();
+            int lobbyCount;
+            PopulateLobbyList(out lobbyCount);
         }
 
         private void CreateColumnHeaders()
@@ -344,17 +345,18 @@ namespace ONI_MP.Menus
         {
             _allLobbies = lobbies ?? new List<LobbyListEntry>();
 
+            ApplyFiltersAndSort();
+            int lobbyCount = 0;
+            PopulateLobbyList(out lobbyCount);
+
             if (_allLobbies.Count == 0)
             {
                 _statusText.text = MP_STRINGS.UI.SERVERBROWSER.NO_PUBLIC_LOBBIES_FOUND;
             }
             else
             {
-                _statusText.text = string.Format(MP_STRINGS.UI.SERVERBROWSER.FOUND_X_LOBBIES, _allLobbies.Count);
+                _statusText.text = string.Format(MP_STRINGS.UI.SERVERBROWSER.FOUND_X_LOBBIES, lobbyCount);
             }
-
-            ApplyFiltersAndSort();
-            PopulateLobbyList();
         }
 
         private void ApplyFiltersAndSort()
@@ -407,19 +409,20 @@ namespace ONI_MP.Menus
             _lobbyRowObjects.Clear();
         }
 
-        private void PopulateLobbyList()
+        private void PopulateLobbyList(out int lobbyCount)
         {
             ClearLobbyRows();
 
             foreach (var lobby in _filteredLobbies)
             {
                 // Its private AND we are not friends with the host then HIDE from the list
-                //if (lobby.IsPrivate && !SteamFriends.HasFriend(lobby.HostSteamId, EFriendFlags.k_EFriendFlagImmediate))
-                //    continue;
+                if (lobby.IsPrivate && !SteamFriends.HasFriend(lobby.HostSteamId, EFriendFlags.k_EFriendFlagImmediate))
+                    continue;
 
                 var rowGO = CreateLobbyRow(lobby);
                 _lobbyRowObjects.Add(rowGO);
             }
+            lobbyCount = _lobbyRowObjects.Count;
         }
 
         private GameObject CreateLobbyRow(LobbyListEntry lobby)

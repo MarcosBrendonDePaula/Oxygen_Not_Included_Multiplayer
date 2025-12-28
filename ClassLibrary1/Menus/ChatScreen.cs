@@ -3,6 +3,7 @@ using ONI_MP.Networking;
 using ONI_MP.Networking.Components;
 using ONI_MP.Networking.Packets.Social;
 using Steamworks;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -169,8 +170,8 @@ namespace ONI_MP.UI
 				return;
 			}
 
-			// Create a new message object
-			var go = new GameObject("Message", typeof(RectTransform), typeof(TextMeshProUGUI));
+            // Create a new message object
+            var go = new GameObject("Message", typeof(RectTransform), typeof(TextMeshProUGUI));
 			go.transform.SetParent(messageContainer, false);
 
 			var rt = go.GetComponent<RectTransform>();
@@ -195,7 +196,7 @@ namespace ONI_MP.UI
 			fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 			fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
-			messages.Add(tmp);
+            messages.Add(tmp);
 
 			// Manually rebuild layout and force scroll to bottom
 			LayoutRebuilder.ForceRebuildLayoutImmediate(messageContainer);

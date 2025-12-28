@@ -16,7 +16,7 @@ namespace ONI_MP.UI
 	{
 		public TMP_InputField inputField;
 		private RectTransform messageContainer;
-		private List<TextMeshProUGUI> messages = new List<TextMeshProUGUI>();
+		private Dictionary<long, TextMeshProUGUI> messages = new Dictionary<long, TextMeshProUGUI>();
 		private RectTransform panelRectTransform;
 
 		public static ChatScreen Instance;
@@ -25,7 +25,13 @@ namespace ONI_MP.UI
 		private GameObject chatbox;
 		private bool expanded = false;
 
-		private static List<string> pendingMessages = new List<string>();
+		public struct PendingMessage
+		{
+			public long timestamp;
+			public string message;
+		}
+
+		private static List<PendingMessage> pendingMessages = new List<PendingMessage>();
 
 		public static void Show()
 		{
@@ -127,7 +133,8 @@ namespace ONI_MP.UI
 
 			header.transform.SetAsLastSibling();
 
-			QueueMessage(MP_STRINGS.UI.MP_CHATWINDOW.CHAT_INITIALIZED);
+			PendingMessage init_message = GeneratePendingMessage(MP_STRINGS.UI.MP_CHATWINDOW.CHAT_INITIALIZED);
+			QueueMessage(init_message.timestamp, init_message.message);
 			ProcessMessageQueue();
 
 			StartCoroutine(FixInputFieldDisplay());
@@ -135,12 +142,12 @@ namespace ONI_MP.UI
 
 		public void ProcessMessageQueue()
 		{
-			foreach (var msg in pendingMessages)
-				QueueMessage(msg);
+			foreach (var pending in pendingMessages)
+				QueueMessage(pending.timestamp, pending.message);
 			pendingMessages.Clear();
 		}
 
-		public static void QueueMessage(string msg)
+		public static void QueueMessage(long timestamp, string msg)
 		{
 			if (string.IsNullOrEmpty(msg))
 			{
@@ -148,9 +155,16 @@ namespace ONI_MP.UI
 			}
 
 			if (Instance != null)
-				Instance.AddMessage(msg);
+				Instance.AddMessage(timestamp, msg);
 			else
-				pendingMessages.Add(msg);
+			{
+				PendingMessage pending = new PendingMessage()
+				{
+					timestamp = timestamp,
+					message = msg
+				};
+				pendingMessages.Add(pending);
+			}
 		}
 
 		private System.Collections.IEnumerator FixInputFieldDisplay()
@@ -162,8 +176,13 @@ namespace ONI_MP.UI
 			inputField.gameObject.SetActive(true);
 		}
 
-		public void AddMessage(string text)
+		public void AddMessage(long timestamp, string text)
 		{
+			DebugConsole.Log($"Adding chat message with timestamp {timestamp} : {text}");
+			// We have a message with this timestamp already. Skip (Handles recieveing multiple of the same chat packet)
+			if (messages.ContainsKey(timestamp))
+				return;
+
 			if (messageContainer == null)
 			{
 				DebugConsole.LogWarning("[Chatbox] Tried to add a message but messageContainer was null!");
@@ -196,7 +215,7 @@ namespace ONI_MP.UI
 			fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 			fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
-            messages.Add(tmp);
+            messages.Add(timestamp, tmp);
 
 			// Manually rebuild layout and force scroll to bottom
 			LayoutRebuilder.ForceRebuildLayoutImmediate(messageContainer);
@@ -374,16 +393,11 @@ namespace ONI_MP.UI
 				string senderName = SteamFriends.GetPersonaName();
 
 				string colorHex = ColorUtility.ToHtmlStringRGB(CursorManager.Instance.color);
-				QueueMessage($"<color=#{colorHex}>{senderName}:</color> {text}");
+				PendingMessage message = GeneratePendingMessage($"<color=#{colorHex}>{senderName}:</color> {text}");
+				QueueMessage(message.timestamp, message.message);
 				inputField.text = "";
 
-				var packet = new ChatMessagePacket
-				{
-					SenderId = MultiplayerSession.LocalSteamID,
-					Message = text,
-					PlayerColor = CursorManager.Instance.color
-				};
-
+				var packet = new ChatMessagePacket(text);
 				if (!MultiplayerSession.IsHost)
 				{
 					PacketSender.SendToHost(packet);
@@ -396,6 +410,16 @@ namespace ONI_MP.UI
 
 			inputField.DeactivateInputField();
 		}
+
+		public static PendingMessage GeneratePendingMessage(string message)
+		{
+			PendingMessage pendingMessage = new PendingMessage()
+			{
+				timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+				message = message
+			};
+			return pendingMessage;
+        }
 
 	}
 }

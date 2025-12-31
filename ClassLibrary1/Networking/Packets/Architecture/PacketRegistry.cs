@@ -96,9 +96,9 @@ namespace ONI_MP.Networking.Packets.Architecture
 			DebugConsole.LogSuccess($"[PacketRegistry] Auto-registering {count} packets took {duration.TotalMilliseconds} ms");
 
 			// Manual registration for our custom mod compatibility packets (if not auto-registered)
-            TryRegister(typeof(ModVerificationPacket));
-            TryRegister(typeof(ModVerificationResponsePacket));
-            TryRegister(typeof(ModListRequestPacket));
+            //TryRegister(typeof(ModVerificationPacket));
+            //TryRegister(typeof(ModVerificationResponsePacket));
+            //TryRegister(typeof(ModListRequestPacket));
 		}
 
         public static void TryRegister(Type packetType, string nameOverride = "")

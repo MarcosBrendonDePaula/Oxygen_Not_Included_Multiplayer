@@ -453,7 +453,15 @@ namespace ONI_MP.Menus
                 var mainMenu = FindObjectOfType<MainMenu>();
                 if (mainMenu != null)
                 {
-                    mainMenu.LoadGame();
+                    if (mainMenu.saveFileEntries.Count > 0)
+                    {
+                        DebugConsole.Log($"[HostLobbyConfigScreen] Found {mainMenu.saveFileEntries.Count} saves. Opening load sequence");
+                        mainMenu.LoadGame();
+                    } else
+                    {
+                        DebugConsole.Log("$[HostLobbyConfigScreen] No saves found! Running new game sequence.");
+                        mainMenu.NewGame();
+                    }
                 }
             }
         }

@@ -108,7 +108,16 @@ namespace ONI_MP
         public int MaxLobbySize { get; set; } = 4;
         public int MaxMessagesPerPoll { get; set; } = 128;
         public int SaveFileTransferChunkKB { get; set; } = 256;
+        public LobbySettings Lobby { get; set; } = new LobbySettings();
+    }
 
+    class LobbySettings
+    {
+        public bool IsPrivate { get; set; } = false;
+        public bool RequirePassword { get; set; } = false;
+        public string PasswordHash { get; set; } = "";
+        public string LobbyName { get; set; } = "";
+        public string Region { get; set; } = ""; // Empty = auto-detect
     }
 
     class ClientSettings

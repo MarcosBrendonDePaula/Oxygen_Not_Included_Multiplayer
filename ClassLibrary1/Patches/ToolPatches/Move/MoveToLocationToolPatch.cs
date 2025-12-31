@@ -11,11 +11,10 @@ namespace ONI_MP.Patches.ToolPatches.Move
 	{
 		public static bool Prefix(MoveToLocationTool __instance, int target_cell)
 		{
-			if (!MultiplayerSession.InSession || MultiplayerSession.IsHost)
-				return true;
+			if (!MultiplayerSession.InSession || MultiplayerSession.IsHost) return true; // Run like normal
 
-			var nav = AccessTools.Field(typeof(MoveToLocationTool), "targetNavigator").GetValue(__instance) as Navigator;
-			var movable = AccessTools.Field(typeof(MoveToLocationTool), "targetMovable").GetValue(__instance) as Movable;
+			var nav = __instance.targetNavigator;
+			var movable = __instance.targetMovable;
 			var go = nav?.gameObject ?? movable?.gameObject;
 
 			if (go == null || !go.TryGetComponent<NetworkIdentity>(out var identity))
@@ -28,14 +27,13 @@ namespace ONI_MP.Patches.ToolPatches.Move
 			var packet = new MoveToLocationPacket
 			{
 				Cell = target_cell,
-				TargetNetId = identity.NetId,
-				SenderId = MultiplayerSession.LocalSteamID
+				TargetNetId = identity.NetId
 			};
 
 			PacketSender.SendToHost(packet);
 			DebugConsole.Log($"[Client] Sent MoveToLocationPacket to host for NetId {identity.NetId} to move to {target_cell}");
 
-			return false;
+			return false; // Block normal executing on clients
 		}
 	}
 }

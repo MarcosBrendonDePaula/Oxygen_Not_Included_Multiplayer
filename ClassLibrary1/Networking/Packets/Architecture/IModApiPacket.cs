@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ONI_MP.Networking.Packets
+namespace ONI_MP.Networking.Packets.Architecture
 {
 	/// <summary>
 	/// interface to check if a packet is a ModApiPacket, because generic types cannot be used in "is" checks

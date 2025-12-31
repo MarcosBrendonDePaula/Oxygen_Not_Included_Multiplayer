@@ -15,7 +15,7 @@ namespace ONI_MP.Networking.Packets.Core
 	/// each mod api registered packet type T will have its own ModApiPacket<T> type created at runtime
 	/// </summary>
 	/// <typeparam name="T">type of the api-registered mod class that inherits the shared IPacket</typeparam>
-	internal class ModApiPacket<T>: IPacket, IModApiPacket
+	internal class ModApiPacket<T> : IPacket, IModApiPacket, IPacketSkipsRegistration
 	{
 		public T WrappedInstance { get; private set; }
 		Traverse Traverse;

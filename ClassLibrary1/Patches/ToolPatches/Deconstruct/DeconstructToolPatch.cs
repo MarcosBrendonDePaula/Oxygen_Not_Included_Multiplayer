@@ -1,11 +1,11 @@
 ﻿using HarmonyLib;
 using ONI_MP.Networking;
+using ONI_MP.Networking.Packets.Tools.Cancel;
 using ONI_MP.Networking.Packets.Tools.Deconstruct;
 
 namespace ONI_MP.Patches.ToolPatches.Deconstruct
 {
-	[HarmonyPatch(typeof(DeconstructTool), "OnDragTool")]
-	[HarmonyPatch(new[] { typeof(int), typeof(int) })]
+	[HarmonyPatch(typeof(DeconstructTool), nameof(DeconstructTool.OnDragTool))]
 	public static class DeconstructToolPatch
 	{
 		public static void Postfix(int cell, int distFromOrigin)
@@ -13,12 +13,10 @@ namespace ONI_MP.Patches.ToolPatches.Deconstruct
 			if (!MultiplayerSession.InSession)
 				return;
 
-			var packet = new DeconstructPacket(cell, MultiplayerSession.LocalSteamID);
-
-			if (MultiplayerSession.IsHost)
-				PacketSender.SendToAllClients(packet);
-			else
-				PacketSender.SendToHost(packet);
+			//prevent recursion
+			if (DeconstructPacket.ProcessingIncoming)
+				return;
+			PacketSender.SendToAllOtherPeers(new DeconstructPacket() { cell = cell, distFromOrigin = distFromOrigin });
 		}
 	}
 }

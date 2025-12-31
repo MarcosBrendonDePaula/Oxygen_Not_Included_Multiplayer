@@ -66,23 +66,11 @@ namespace ONI_MP.Networking.Components
 				timeSinceLastSend = 0f;
 			}
 		}
-
-		private Vector3 lastSentPosition;
-		private CursorState lastSentState;
-
 		private void SendCursorPosition()
 		{
 			Vector3 cursorWorldPos = GetCursorWorldPosition();
 
-			// Only send if cursor moved significantly or state changed
-			bool positionChanged = Vector3.Distance(cursorWorldPos, lastSentPosition) > 0.5f;
-			bool stateChanged = cursorState != lastSentState;
-			
-			if (!positionChanged && !stateChanged)
-				return;
-
-			lastSentPosition = cursorWorldPos;
-			lastSentState = cursorState;
+			// We do not want to lock cursor sending to a threshold as this updates the cursor position relative to the clients viewport
 
 			// Calculate Viewport
 			int minX = 0, minY = 0, maxX = 0, maxY = 0;

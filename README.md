@@ -10,7 +10,7 @@ A new mod that introduces multiplayer functionality to _Oxygen Not Included_, fe
 
 Join the [Discord](https://discord.gg/jpxveK6mmY)
 
-Steam workshop: Not released yet.
+Steam workshop: [You can find its workshop page here](https://steamcommunity.com/sharedfiles/filedetails/?id=3630759126)
 
 ---
 

@@ -6,55 +6,67 @@ using ONI_MP.Networking.Packets.World;
 
 namespace ONI_MP.Patches.World.SideScreen
 {
-	/// <summary>
-	/// Patches for Assignable synchronization (Outhouse, Lavatory, Triage Cot, etc.)
-	/// </summary>
+    /// <summary>
+    /// Patches for Assignable synchronization (Outhouse, Lavatory, Triage Cot, etc.)
+    /// </summary>
+    [HarmonyPatch(typeof(Assignable), nameof(Assignable.OnSpawn))]
+    public static class Assignable_OnSpawn_Patch
+    {
+        public static void Postfix(Assignable __instance)
+        {
+            var buildingIdentity = __instance.gameObject.AddOrGet<NetworkIdentity>();
+            buildingIdentity.RegisterIdentity();
+        }
+    }
 
-	[HarmonyPatch(typeof(Assignable), nameof(Assignable.Assign), typeof(IAssignableIdentity))]
+    [HarmonyPatch(typeof(Assignable), nameof(Assignable.Assign), typeof(IAssignableIdentity))]
 	public static class Assignable_Assign_Patch
 	{
 		public static void Postfix(Assignable __instance, IAssignableIdentity new_assignee)
 		{
 			if (AssignmentPacket.IsApplying) return;
 			if (!MultiplayerSession.InSession) return;
+			if (__instance == null || __instance.gameObject == null) return;
+            if (__instance.IsNullOrDestroyed()) return;
 
-			var buildingIdentity = __instance.gameObject.AddOrGet<NetworkIdentity>();
-			buildingIdentity.RegisterIdentity();
+            var buildingIdentity = __instance.gameObject.GetComponent<NetworkIdentity>();
+			if (!buildingIdentity)
+                return;
 
-			int assigneeNetId = -1;
+            int assigneeNetId = -1;
 			string groupId = "";
 
 			if (new_assignee == null)
 			{
 				assigneeNetId = -1;
-			}
-			else if (new_assignee is AssignmentGroup group)
+            }
+            else if (new_assignee is AssignmentGroup group)
 			{
 				groupId = group.id;
-			}
-			else if (new_assignee is MinionAssignablesProxy proxy)
+            }
+            else if (new_assignee is MinionAssignablesProxy proxy)
 			{
-				var targetGO = proxy.GetTargetGameObject();
+                var targetGO = proxy.GetTargetGameObject();
 				if (targetGO != null)
 				{
-					var minionNetId = targetGO.GetComponent<NetworkIdentity>();
+                    var minionNetId = targetGO.GetComponent<NetworkIdentity>();
 					if (minionNetId != null)
 					{
-						assigneeNetId = minionNetId.NetId;
+                        assigneeNetId = minionNetId.NetId;
 					}
 				}
 			}
 			else if (new_assignee is KMonoBehaviour mb)
 			{
-				var minionNetId = mb.gameObject.GetComponent<NetworkIdentity>();
+                var minionNetId = mb.gameObject.GetComponent<NetworkIdentity>();
 				if (minionNetId != null)
 				{
-					minionNetId.RegisterIdentity();
+                    minionNetId.RegisterIdentity();
 					assigneeNetId = minionNetId.NetId;
-				}
-			}
+                }
+            }
 
-			var packet = new AssignmentPacket
+            var packet = new AssignmentPacket
 			{
 				BuildingNetId = buildingIdentity.NetId,
 				Cell = Grid.PosToCell(__instance.gameObject),
@@ -62,23 +74,23 @@ namespace ONI_MP.Patches.World.SideScreen
 				GroupId = groupId
 			};
 
-			if (MultiplayerSession.IsHost) PacketSender.SendToAllClients(packet);
+            if (MultiplayerSession.IsHost) PacketSender.SendToAllClients(packet);
 			else PacketSender.SendToHost(packet);
-
-			DebugConsole.Log($"[Assignable_Assign_Patch] Synced: building={__instance.name}, netId={assigneeNetId}, group={groupId}");
 		}
 	}
 
-	[HarmonyPatch(typeof(Assignable), nameof(Assignable.Unassign))]
+    [HarmonyPatch(typeof(Assignable), nameof(Assignable.Unassign))]
 	public static class Assignable_Unassign_Patch
 	{
 		public static void Postfix(Assignable __instance)
 		{
 			if (AssignmentPacket.IsApplying) return;
 			if (!MultiplayerSession.InSession) return;
+			if (__instance.IsNullOrDestroyed()) return;
 
-			var buildingIdentity = __instance.gameObject.AddOrGet<NetworkIdentity>();
-			buildingIdentity.RegisterIdentity();
+			var buildingIdentity = __instance.gameObject.GetComponent<NetworkIdentity>();
+			if (!buildingIdentity)
+				return;
 
 			var packet = new AssignmentPacket
 			{

@@ -1,57 +1,61 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
-  <!-- General Package Properties -->
-  <PropertyGroup>
-    <PackageId>ItsLukesMultiplayerMod</PackageId>
-    <Version>2.9.0-test</Version>
-    <Authors>ItsLuke,Sgt_Lmalas,Encript</Authors>
-    <Copyright>$(AssemblyCopyright)</Copyright>
-  </PropertyGroup>
-  <!-- Mod Info, used to generate yaml files on the fly -->
-  <PropertyGroup>
-    <ModName>Oxygen Not Included Together</ModName>
-    <ModDescription>Adds multiplayer to Oxygen Not Included! By Lyraedan</ModDescription>
-    <MinimumSupportedBuild>$(TargetGameVersion)</MinimumSupportedBuild>
-    <APIVersion>2</APIVersion>
-  </PropertyGroup>
-  <!-- Build Properties -->
-  <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
-    <ImplicitUsings>false</ImplicitUsings>
-    <!--exports the mod to the deployment folder-->
-    <IsMod>true</IsMod>
-    <!--Generates Yaml files-->
-    <GenerateMetadata>true</GenerateMetadata>
-    <!--Merges dlls into one, becomes relevant if PLib is added, does not play nice with gDrives transitive nuget requirements-->
-    <IsPacked>true</IsPacked>
-  </PropertyGroup>
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <DefineConstants>OS_WINDOWS</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-    <DefineConstants>OS_LINUX</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('FreeBSD'))">
-    <DefineConstants>OS_FREEBSD</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-    <DefineConstants>OS_MAC</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Assets\oni_together_logo.png" />
-    <!--<EmbeddedResource Include="Assets\background-static.png" />-->
-    <EmbeddedResource Include="Assets\discord.png" />
-    <EmbeddedResource Include="Assets\bundles\playercursor_win.bundle" />
-    <EmbeddedResource Include="Assets\bundles\playercursor_mac.bundle" />
-    <EmbeddedResource Include="Assets\bundles\playercursor_lin.bundle" />
-    <!--<EmbeddedResource Include="Assets\cloud_status.png" />-->
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Shared\Shared.csproj" />
-    <Content Include="Networking\Packets\IModApiPacket.cs" />
-    <Content Include="Networking\Packets\World\WorldUpdatePacket.cs" />
-    <Content Include="Networking\GameClient.cs" />
-    <Content Include="Menus\ModCompatibilityPopup.cs" />
-    <Content Include="Menus\ModCompatibilityGUI.cs" />
-  </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- General Package Properties -->
+	<PropertyGroup>
+		<PackageId>ItsLukesMultiplayerMod</PackageId>
+		<Version>2.9.0-test</Version>
+		<Authors>ItsLuke,Sgt_Lmalas,Encript</Authors>
+		<Copyright>$(AssemblyCopyright)</Copyright>
+	</PropertyGroup>
+
+	<!-- Mod Info, used to generate yaml files on the fly -->
+	<PropertyGroup>
+		<ModName>Oxygen Not Included Together</ModName>
+		<ModDescription>Adds multiplayer to Oxygen Not Included! By Lyraedan</ModDescription>
+		<MinimumSupportedBuild>$(TargetGameVersion)</MinimumSupportedBuild>
+		<APIVersion>2</APIVersion>
+	</PropertyGroup>
+
+	<!-- Build Properties -->
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+		<ImplicitUsings>false</ImplicitUsings>
+		<!--exports the mod to the deployment folder-->
+		<IsMod>true</IsMod>
+		<!--Generates Yaml files-->
+		<GenerateMetadata>true</GenerateMetadata>
+		<!--Merges dlls into one, becomes relevant if PLib is added, does not play nice with gDrives transitive nuget requirements-->
+		<IsPacked>true</IsPacked>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<DefineConstants>OS_WINDOWS</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+		<DefineConstants>OS_LINUX</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('FreeBSD'))">
+		<DefineConstants>OS_FREEBSD</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+		<DefineConstants>OS_MAC</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Assets\oni_together_logo.png" />
+		<!--<EmbeddedResource Include="Assets\background-static.png" />-->
+		<EmbeddedResource Include="Assets\discord.png" />
+		<EmbeddedResource Include="Assets\bundles\playercursor_win.bundle" />
+		<EmbeddedResource Include="Assets\bundles\playercursor_mac.bundle" />
+		<EmbeddedResource Include="Assets\bundles\playercursor_lin.bundle" />
+		<!--<EmbeddedResource Include="Assets\cloud_status.png" />-->
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Shared\Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="ModAssets\translations\" />
+	</ItemGroup>
 </Project>

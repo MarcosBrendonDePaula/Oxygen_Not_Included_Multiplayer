@@ -1,38 +1,23 @@
 ﻿using HarmonyLib;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
+using ONI_MP.Networking.Packets.Tools;
 using ONI_MP.Networking.Packets.Tools.Prioritize;
 using System.Collections.Generic;
 using UnityEngine;
 
-[HarmonyPatch(typeof(PrioritizeTool), "TryPrioritizeGameObject")]
+[HarmonyPatch(typeof(PrioritizeTool), nameof(PrioritizeTool.OnDragTool))]
 public static class PrioritizeToolPatch
 {
-	public static void Postfix(GameObject target, PrioritySetting priority, bool __result)
+	public static void Postfix(int cell, int distFromOrigin)
 	{
-		if (!MultiplayerSession.InSession || !__result)
+		if (!MultiplayerSession.InSession)
 			return;
 
-		// Find the grid cell of the object
-		int cell = Grid.PosToCell(target);
-		if (!Grid.IsValidCell(cell)) return;
+		//prevent recursion
+		if (PrioritizePacket.ProcessingIncoming)
+			return;
 
-		var packet = new PrioritizePacket
-		{
-			TargetCells = new List<int> { cell },
-			Priority = priority,
-			SenderId = MultiplayerSession.LocalSteamID
-		};
-
-		if (MultiplayerSession.IsHost)
-		{
-			PacketSender.SendToAllClients(packet);
-			DebugConsole.Log($"[Host] Rebroadcasted priority for cell {cell}");
-		}
-		else
-		{
-			PacketSender.SendToHost(packet);
-			DebugConsole.Log($"[Client] Sent PrioritizePacket for cell {cell} to host");
-		}
+		PacketSender.SendToAllOtherPeers(new PrioritizePacket { cell = cell, distFromOrigin = distFromOrigin });
 	}
 }

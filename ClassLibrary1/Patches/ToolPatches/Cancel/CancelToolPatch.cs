@@ -1,11 +1,11 @@
 ﻿using HarmonyLib;
 using ONI_MP.Networking;
+using ONI_MP.Networking.Packets.Tools;
 using ONI_MP.Networking.Packets.Tools.Cancel;
 
 namespace ONI_MP.Patches.ToolPatches.Cancel
 {
-	[HarmonyPatch(typeof(CancelTool), "OnDragTool")]
-	[HarmonyPatch(new[] { typeof(int), typeof(int) })]
+	[HarmonyPatch(typeof(CancelTool), nameof(CancelTool.OnDragTool))]
 	public static class CancelToolPatch
 	{
 		public static void Postfix(int cell, int distFromOrigin)
@@ -13,16 +13,10 @@ namespace ONI_MP.Patches.ToolPatches.Cancel
 			if (!MultiplayerSession.InSession)
 				return;
 
-			var packet = new CancelPacket(cell, MultiplayerSession.LocalSteamID);
-
-			if (MultiplayerSession.IsHost)
-			{
-				PacketSender.SendToAllClients(packet);
-			}
-			else
-			{
-				PacketSender.SendToHost(packet);
-			}
+			//prevent recursion
+			if (CancelPacket.ProcessingIncoming)
+				return;
+			PacketSender.SendToAllOtherPeers(new CancelPacket() { cell = cell, distFromOrigin = distFromOrigin });
 		}
 	}
 }

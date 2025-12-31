@@ -17,7 +17,7 @@ internal static class MainMenuPatch
 	private static void Postfix(MainMenu __instance)
 	{
 		int normalFontSize = 20;
-		var normalStyle = Traverse.Create(__instance).Field("normalButtonStyle").GetValue<ColorStyleSetting>();
+		var normalStyle = __instance.normalButtonStyle; 
 
 		var buttonInfoType = __instance.GetType().GetNestedType("ButtonInfo", BindingFlags.NonPublic);
 
@@ -47,18 +47,23 @@ internal static class MainMenuPatch
 		//);
 		//makeButton.Invoke(__instance, new object[] { hostInfo });
 
-		// Join Game
-		var joinInfo = CreateButtonInfo(
-				"JOIN GAME",
+		// Multiplayer - Opens the multiplayer screen with all options
+		var multiplayerInfo = CreateButtonInfo(
+				MP_STRINGS.UI.MAINMENU.MULTIPLAYER.LABEL,
 				new System.Action(() =>
 				{
-					SteamFriends.ActivateGameOverlay("friends");
+					// Open the multiplayer screen
+					var canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+					if (canvas != null)
+					{
+						ONI_MP.Menus.MultiplayerScreen.Show(canvas.transform);
+					}
 				}),
 				normalFontSize,
 				normalStyle,
 				buttonInfoType
 		);
-		makeButton.Invoke(__instance, new object[] { joinInfo });
+		makeButton.Invoke(__instance, new object[] { multiplayerInfo });
 
 		/* I don't like this anymore - Luke
 		bool useCustomMenu = Configuration.GetClientProperty<bool>("UseCustomMainMenu");
@@ -93,24 +98,29 @@ internal static class MainMenuPatch
 		{
 			var children = buttonParent.GetComponentsInChildren<KButton>(true);
 
-			// Find "Load Game" button
-			var loadGameBtn = children.FirstOrDefault(b =>
-					b.GetComponentInChildren<LocText>().text.ToUpper().Contains("LOAD GAME"));
+            var newGameBtn = children.FirstOrDefault(b =>
+                    b.GetComponentInChildren<LocText>()?.text.ToUpper().Contains("NEW GAME") == true);
 
-			// Find your buttons
-			//var hostBtn = children.FirstOrDefault(b =>
-			//		b.GetComponentInChildren<LocText>().text.ToUpper().Contains("HOST GAME"));
-			var joinBtn = children.FirstOrDefault(b =>
-					b.GetComponentInChildren<LocText>().text.ToUpper().Contains("JOIN GAME"));
+            // Find "Load Game" button
+            var loadGameBtn = children.FirstOrDefault(b =>
+					b.GetComponentInChildren<LocText>()?.text.ToUpper().Contains("LOAD GAME") == true);
 
-			if (loadGameBtn != null /*&& hostBtn != null*/ && joinBtn != null)
+			// Find Multiplayer button
+			var multiplayerBtn = children.FirstOrDefault(b =>
+					b.GetComponentInChildren<LocText>()?.text.ToUpper().Contains("MULTIPLAYER") == true);
+
+			if (loadGameBtn != null && multiplayerBtn != null)
 			{
 				int loadGameIdx = loadGameBtn.transform.GetSiblingIndex();
-				// Move host and join immediately after "Load Game"
-				//hostBtn.transform.SetSiblingIndex(loadGameIdx + 1);
-				joinBtn.transform.SetSiblingIndex(loadGameIdx + 1); // + 2
-			}
-		}
+				// Move Multiplayer immediately after "Load Game"
+				multiplayerBtn.transform.SetSiblingIndex(loadGameIdx + 1);
+			} else if(loadGameBtn == null && newGameBtn != null && multiplayerBtn != null)
+			{
+				int newGameIdx = newGameBtn.transform.GetSiblingIndex();
+                // Move Multiplayer immediately after "New Game"
+                multiplayerBtn.transform.SetSiblingIndex(newGameIdx + 1);
+            }
+        }
 	}
 
 	private static void UpdateLogo()
@@ -291,7 +301,7 @@ internal static class MainMenuPatch
 
 		// Example Discord button
 		var discordSprite = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.discord.png");
-		AddSocialButton(socialsContainer.transform, "Join ONI Together\non Discord", "https://discord.gg/jpxveK6mmY", discordSprite);
+		AddSocialButton(socialsContainer.transform, MP_STRINGS.UI.MAINMENU.DISCORD_INFO, "https://discord.gg/jpxveK6mmY", discordSprite);
 
 		/*
 		var statusSprite = ResourceLoader.LoadEmbeddedTexture("ONI_MP.Assets.cloud_status.png");

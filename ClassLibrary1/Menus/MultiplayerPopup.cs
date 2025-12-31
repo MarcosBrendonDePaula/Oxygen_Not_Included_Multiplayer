@@ -1,4 +1,5 @@
-﻿using ONI_MP.DebugTools;
+﻿using ONI_MP;
+using ONI_MP.DebugTools;
 using ONI_MP.Menus;
 using ONI_MP.Networking;
 using Steamworks;
@@ -75,7 +76,7 @@ public static class MultiplayerPopup
 
 	private static void HostLastSave()
 	{
-		MultiplayerOverlay.Show("Hosting game...");
+		MultiplayerOverlay.Show(MP_STRINGS.UI.MP_OVERLAY.HOST.STARTINGHOSTING);
 		string text;
 		if (!KPlayerPrefs.HasKey("AutoResumeSaveFile"))
 		{

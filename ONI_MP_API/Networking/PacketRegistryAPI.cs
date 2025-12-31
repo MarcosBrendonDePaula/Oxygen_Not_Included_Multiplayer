@@ -4,6 +4,7 @@ using Shared.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -37,6 +38,20 @@ namespace ONI_MP_API.Networking
 			if (!Init())
 				return;
 			_TryRegister(packetType, nameOverride);
+		}
+
+		/// <summary>
+		/// Automatically registers all packets that inherit IPackage to the multiplayer mod
+		/// </summary>
+		/// <param name="assembly"></param>
+		public static void AutoRegisterAll(Assembly? assembly = null)
+		{
+			if(assembly == null)
+				assembly = Assembly.GetExecutingAssembly();
+
+			PacketRegistrationHelper.AutoRegisterPackets(assembly,t => TryRegister(t),out int count, out var duration);
+
+			Debug.Log($"[MP-API]: Registered {count} network packets in assembly {assembly.GetName()}, taking {duration.TotalMilliseconds} milliseconds");
 		}
 	}
 }

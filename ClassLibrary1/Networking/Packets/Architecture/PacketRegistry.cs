@@ -6,6 +6,7 @@ using ONI_MP.Networking.Packets.DuplicantActions;
 using ONI_MP.Networking.Packets.Events;
 using ONI_MP.Networking.Packets.Handshake;
 using ONI_MP.Networking.Packets.Social;
+using ONI_MP.Networking.Packets.Tools;
 using ONI_MP.Networking.Packets.Tools.Build;
 using ONI_MP.Networking.Packets.Tools.Cancel;
 using ONI_MP.Networking.Packets.Tools.Clear;
@@ -18,6 +19,8 @@ using ONI_MP.Networking.Packets.World;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -42,6 +45,12 @@ namespace ONI_MP.Networking.Packets.Architecture
 			var IPacketType = typeof(IPacket);
             if(IPacketType.IsAssignableFrom(packageType))
 			{
+                if (_PacketTypes.ContainsKey(id))
+				{
+					DebugConsole.LogWarning($"[PacketRegistry] Packet {packageType.Name} was already registered with {id}");
+                    return;
+                }
+
 				_PacketTypes[id] = packageType;
 				DebugConsole.LogSuccess($"[PacketRegistry] Registered {packageType.Name} => {id}");
 			}
@@ -50,6 +59,11 @@ namespace ONI_MP.Networking.Packets.Architecture
             {
 				///gotta register both ids so they can be created from either the wrapped or unwrapped type id
 				var wrappedType = API_Helper.CreateModApiPacketType(packageType);
+				if (_PacketTypes.ContainsKey(id))
+				{
+					DebugConsole.LogWarning($"[PacketRegistry] ModAPI Packet {packageType.Name} was already registered with {id}");
+					return;
+				}
 				_PacketTypes[id] = wrappedType;
 				var wrappedId = API_Helper.GetHashCode(wrappedType);
 				_PacketTypes[wrappedId] = wrappedType;
@@ -76,70 +90,12 @@ namespace ONI_MP.Networking.Packets.Architecture
             return id;
         }
 
-        public static void RegisterDefaults()
+		public static void RegisterDefaults()
 		{
-            TryRegister(typeof(ChoreAssignmentPacket));
-            TryRegister(typeof(EntityPositionPacket));
-            TryRegister(typeof(ChatMessagePacket));
-            TryRegister(typeof(WorldDataPacket));
-            TryRegister(typeof(WorldDataRequestPacket));
-            TryRegister(typeof(WorldUpdatePacket));
-            TryRegister(typeof(NavigatorPathPacket));
-            TryRegister(typeof(SaveFileRequestPacket));
-            TryRegister(typeof(SaveFileChunkPacket));
-            TryRegister(typeof(DiggablePacket));
-            TryRegister(typeof(DigCompletePacket));
-            TryRegister(typeof(PlayAnimPacket));
-            TryRegister(typeof(BuildPacket));
-            TryRegister(typeof(BuildCompletePacket));
-            TryRegister(typeof(WorldDamageSpawnResourcePacket));
-            TryRegister(typeof(WorldCyclePacket));
-            TryRegister(typeof(CancelPacket));
-            TryRegister(typeof(DeconstructPacket));
-            TryRegister(typeof(DeconstructCompletePacket));
-            TryRegister(typeof(UtilityBuildPacket), "UtilityBuildPacket (WireBuild)");
-            TryRegister(typeof(ToggleMinionEffectPacket));
-            TryRegister(typeof(ToolEquipPacket));
-            TryRegister(typeof(DuplicantConditionPacket));
-            TryRegister(typeof(MoveToLocationPacket));
-            TryRegister(typeof(PrioritizePacket));
-            TryRegister(typeof(ClearPacket));
-            TryRegister(typeof(ClientReadyStatusPacket));
-            TryRegister(typeof(ClientReadyStatusUpdatePacket));
-            TryRegister(typeof(AllClientsReadyPacket));
-            TryRegister(typeof(EventTriggeredPacket));
-            TryRegister(typeof(HardSyncPacket));
-            TryRegister(typeof(HardSyncCompletePacket));
-            TryRegister(typeof(DisinfectPacket));
-            TryRegister(typeof(SpeedChangePacket));
-            TryRegister(typeof(PlayerCursorPacket));
-            TryRegister(typeof(BuildingStatePacket));
-            TryRegister(typeof(DiggingStatePacket));
-            TryRegister(typeof(ChoreStatePacket));
-            TryRegister(typeof(ResearchStatePacket));
-            TryRegister(typeof(PrioritizeStatePacket));
-            TryRegister(typeof(DisinfectStatePacket));
-            TryRegister(typeof(DuplicantStatePacket));
-            TryRegister(typeof(StructureStatePacket));
-            TryRegister(typeof(ResearchRequestPacket));
-            TryRegister(typeof(BuildingConfigPacket));
-            TryRegister(typeof(ImmigrantOptionsPacket));
-            TryRegister(typeof(ImmigrantSelectionPacket));
-            TryRegister(typeof(DuplicantPriorityPacket));
-            TryRegister(typeof(SkillMasteryPacket));
-            TryRegister(typeof(ScheduleUpdatePacket));
-            TryRegister(typeof(ScheduleAssignmentPacket));
-            TryRegister(typeof(FallingObjectPacket));
-            TryRegister(typeof(ConsumablePermissionPacket));
-            TryRegister(typeof(VitalStatsPacket));
-            TryRegister(typeof(ResourceCountPacket));
-            TryRegister(typeof(NotificationPacket));
-            TryRegister(typeof(ScheduleDeletePacket));
-            TryRegister(typeof(ConsumableStatePacket));
-            TryRegister(typeof(ResearchProgressPacket));
-            TryRegister(typeof(ResearchCompletePacket));
-            TryRegister(typeof(EntitySpawnPacket));
-            TryRegister(typeof(AssignmentPacket));
+           Shared.Helpers.PacketRegistrationHelper.AutoRegisterPackets(Assembly.GetExecutingAssembly(), (t=>TryRegister(t)), out int count, out var duration);
+			DebugConsole.LogSuccess($"[PacketRegistry] Auto-registering {count} packets took {duration.TotalMilliseconds} ms");
+
+			// Manual registration for our custom mod compatibility packets (if not auto-registered)
             TryRegister(typeof(ModVerificationPacket));
             TryRegister(typeof(ModVerificationResponsePacket));
             TryRegister(typeof(ModListRequestPacket));

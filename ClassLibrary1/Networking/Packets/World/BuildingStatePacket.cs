@@ -7,7 +7,7 @@ namespace ONI_MP.Networking.Packets.World
 	public struct BuildingState
 	{
 		public int Cell;
-		public int PrefabHash;
+		public string PrefabName;  // Changed from int PrefabHash to string for reliable lookup
 	}
 
 	public class BuildingStatePacket : IPacket
@@ -20,7 +20,7 @@ namespace ONI_MP.Networking.Packets.World
 			foreach (var b in Buildings)
 			{
 				writer.Write(b.Cell);
-				writer.Write(b.PrefabHash);
+				writer.Write(b.PrefabName ?? string.Empty);
 			}
 		}
 
@@ -33,7 +33,7 @@ namespace ONI_MP.Networking.Packets.World
 				Buildings.Add(new BuildingState
 				{
 					Cell = reader.ReadInt32(),
-					PrefabHash = reader.ReadInt32()
+					PrefabName = reader.ReadString()
 				});
 			}
 		}

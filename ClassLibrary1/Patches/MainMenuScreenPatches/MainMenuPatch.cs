@@ -98,8 +98,11 @@ internal static class MainMenuPatch
 		{
 			var children = buttonParent.GetComponentsInChildren<KButton>(true);
 
-			// Find "Load Game" button
-			var loadGameBtn = children.FirstOrDefault(b =>
+            var newGameBtn = children.FirstOrDefault(b =>
+                    b.GetComponentInChildren<LocText>()?.text.ToUpper().Contains("NEW GAME") == true);
+
+            // Find "Load Game" button
+            var loadGameBtn = children.FirstOrDefault(b =>
 					b.GetComponentInChildren<LocText>()?.text.ToUpper().Contains("LOAD GAME") == true);
 
 			// Find Multiplayer button
@@ -111,8 +114,13 @@ internal static class MainMenuPatch
 				int loadGameIdx = loadGameBtn.transform.GetSiblingIndex();
 				// Move Multiplayer immediately after "Load Game"
 				multiplayerBtn.transform.SetSiblingIndex(loadGameIdx + 1);
-			}
-		}
+			} else if(loadGameBtn == null && newGameBtn != null && multiplayerBtn != null)
+			{
+				int newGameIdx = newGameBtn.transform.GetSiblingIndex();
+                // Move Multiplayer immediately after "New Game"
+                multiplayerBtn.transform.SetSiblingIndex(newGameIdx + 1);
+            }
+        }
 	}
 
 	private static void UpdateLogo()

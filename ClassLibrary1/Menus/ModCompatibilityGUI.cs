@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using ONI_MP.DebugTools;
+using ONI_MP.Networking;
 
 namespace ONI_MP.Menus
 {
@@ -15,6 +16,7 @@ namespace ONI_MP.Menus
         private static string[] dialogMissingMods = null;
         private static string[] dialogExtraMods = null;
         private static string[] dialogVersionMismatches = null;
+        private static ulong[] dialogSteamModIds = null;
 
         private Vector2 scrollPosition = Vector2.zero;
         private Rect windowRect = new Rect(0, 0, 600, 400);
@@ -27,20 +29,28 @@ namespace ONI_MP.Menus
         // Track if mods were enabled and need restart
         private static bool allModsEnabled = false;
 
-        public static void ShowIncompatibilityError(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches)
+        // Track if any mods were modified during this session
+        private static bool modsWereModified = false;
+
+        public static void ShowIncompatibilityError(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches, ulong[] steamModIds)
         {
             try
             {
                 DebugConsole.Log("[ModCompatibilityGUI] Showing compatibility dialog with IMGUI");
+                DebugConsole.Log($"[ModCompatibilityGUI] Steam mod IDs for auto-install: {steamModIds?.Length ?? 0}");
 
                 // Store dialog data
                 dialogReason = reason ?? "";
                 dialogMissingMods = missingMods ?? new string[0];
                 dialogExtraMods = extraMods ?? new string[0];
                 dialogVersionMismatches = versionMismatches ?? new string[0];
+                dialogSteamModIds = steamModIds ?? new ulong[0];
 
                 // Reset enabled state
                 allModsEnabled = false;
+
+                // Reset modification tracking
+                modsWereModified = false;
 
                 // Create or get the GUI component
                 if (instance == null)
@@ -67,6 +77,24 @@ namespace ONI_MP.Menus
         public static void CloseDialog()
         {
             showDialog = false;
+
+            // If mods were modified during this session, save and restart
+            if (modsWereModified)
+            {
+                try
+                {
+                    var modManager = Global.Instance?.modManager;
+                    if (modManager != null)
+                    {
+                        DebugConsole.Log("[ModCompatibilityGUI] Mods were modified. Saving and restarting game...");
+                        SaveAndRestart(modManager);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DebugConsole.LogWarning($"[ModCompatibilityGUI] Error saving/restarting on close: {ex.Message}");
+                }
+            }
 
             // Close any multiplayer overlays
             try
@@ -218,7 +246,20 @@ namespace ONI_MP.Menus
                 restartInstructionStyle.alignment = TextAnchor.MiddleCenter;
                 restartInstructionStyle.normal.textColor = Color.yellow;
 
-                GUILayout.Label("Please restart the game for changes to take effect.", restartInstructionStyle);
+                GUILayout.Label("Close this window to restart the game and apply changes.", restartInstructionStyle);
+                GUILayout.Space(10);
+            }
+            // Show modification message (if mods were changed but not all enabled yet)
+            else if (modsWereModified)
+            {
+                GUIStyle modifiedStyle = new GUIStyle(GUI.skin.label);
+                modifiedStyle.fontSize = 14;
+                modifiedStyle.fontStyle = FontStyle.Bold;
+                modifiedStyle.wordWrap = true;
+                modifiedStyle.alignment = TextAnchor.MiddleCenter;
+                modifiedStyle.normal.textColor = Color.cyan;
+
+                GUILayout.Label("Mods have been enabled. Close this window to restart the game.", modifiedStyle);
                 GUILayout.Space(10);
             }
             // Reason text
@@ -370,7 +411,12 @@ namespace ONI_MP.Menus
                     {
                         EnableAllMods();
                     }
+
+                    GUILayout.Space(10);
                 }
+
+                // Note: Removed complex auto-installation system
+                // Now using simple native ONI mod management instead
             } // End of !allModsEnabled check
 
             GUILayout.FlexibleSpace();
@@ -553,11 +599,36 @@ namespace ONI_MP.Menus
 
                 foreach (var mod in modManager.mods)
                 {
-                    if (mod?.label != null && mod.label.id == modId)
+                    if (mod?.label != null)
                     {
-                        return true;
+                        // Check multiple ID formats for Steam mods
+                        string defaultId = mod.label.defaultStaticID;
+                        string labelId = mod.label.id;
+
+                        // Try exact match with extracted ID
+                        if (defaultId == modId || labelId == modId)
+                        {
+                            DebugConsole.Log($"[ModCompatibilityGUI] Found installed mod: {modDisplayName} -> {defaultId}");
+                            return true;
+                        }
+
+                        // Try exact match with original display name
+                        if (defaultId == modDisplayName || labelId == modDisplayName)
+                        {
+                            DebugConsole.Log($"[ModCompatibilityGUI] Found installed mod: {modDisplayName} -> {defaultId}");
+                            return true;
+                        }
+
+                        // For Steam mods, try numeric ID match
+                        if (modId != modDisplayName && (defaultId.StartsWith(modId) || labelId.StartsWith(modId)))
+                        {
+                            DebugConsole.Log($"[ModCompatibilityGUI] Found installed Steam mod: {modDisplayName} -> {defaultId}");
+                            return true;
+                        }
                     }
                 }
+
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Mod not found: {modDisplayName} (extracted: {modId})");
             }
             catch (Exception ex)
             {
@@ -577,10 +648,29 @@ namespace ONI_MP.Menus
 
                 foreach (var mod in modManager.mods)
                 {
-                    if (mod?.label != null && mod.label.id == modId)
+                    if (mod?.label != null)
                     {
-                        // Use the correct modManager method
-                        return modManager.IsModEnabled(mod.label);
+                        // Check multiple ID formats for Steam mods
+                        string defaultId = mod.label.defaultStaticID;
+                        string labelId = mod.label.id;
+
+                        // Try exact match with extracted ID
+                        if (defaultId == modId || labelId == modId)
+                        {
+                            return mod.IsEnabledForActiveDlc();
+                        }
+
+                        // Try exact match with original display name
+                        if (defaultId == modDisplayName || labelId == modDisplayName)
+                        {
+                            return mod.IsEnabledForActiveDlc();
+                        }
+
+                        // For Steam mods, try numeric ID match
+                        if (modId != modDisplayName && (defaultId.StartsWith(modId) || labelId.StartsWith(modId)))
+                        {
+                            return mod.IsEnabledForActiveDlc();
+                        }
                     }
                 }
             }
@@ -639,38 +729,63 @@ namespace ONI_MP.Menus
                     return;
                 }
 
-                // Search for the mod in the list
+                // Search for the mod using robust ID matching for Steam mods
                 foreach (var mod in modManager.mods)
                 {
-                    if (mod?.label != null && mod.label.id == modId)
+                    if (mod?.label != null)
                     {
-                        // Check if already enabled
-                        if (modManager.IsModEnabled(mod.label))
+                        string defaultId = mod.label.defaultStaticID;
+                        string labelId = mod.label.id;
+                        bool foundMod = false;
+
+                        // Check multiple ID formats for Steam mods
+                        if (defaultId == modId || labelId == modId ||
+                            defaultId == modDisplayName || labelId == modDisplayName ||
+                            (modId != modDisplayName && (defaultId.StartsWith(modId) || labelId.StartsWith(modId))))
                         {
-                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} was already enabled");
-                            return;
+                            foundMod = true;
+                            DebugConsole.Log($"[ModCompatibilityGUI] Found mod to enable: {modDisplayName} -> {defaultId}");
                         }
 
-                        try
+                        if (foundMod)
                         {
-                            // Enable the mod
-                            modManager.EnableMod(mod.label, true, null);
-                            modManager.Save();
+                            // Check if already enabled using proper ONI method
+                            if (mod.IsEnabledForActiveDlc())
+                            {
+                                DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} was already enabled");
+                                CheckAllModsEnabled();
+                                return;
+                            }
 
-                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} enabled successfully!");
+                            // Check if mod is compatible
+                            if (mod.available_content == 0)
+                            {
+                                DebugConsole.LogWarning($"[ModCompatibilityGUI] Mod {modDisplayName} is not compatible - opening Steam page");
+                                OpenSteamWorkshopPage(modDisplayName);
+                                return;
+                            }
 
-                            // Check if all mods are now enabled
-                            CheckAllModsEnabled();
+                            try
+                            {
+                                // Enable the mod using proper ONI API (follows SaveGameModLoader pattern)
+                                mod.SetEnabledForActiveDlc(true);
 
-                            // Show restart notification
-                            ShowRestartNotification();
-                            return;
-                        }
-                        catch (Exception ex)
-                        {
-                            DebugConsole.LogWarning($"[ModCompatibilityGUI] Error enabling mod {modDisplayName}: {ex.Message}");
-                            OpenSteamWorkshopPage(modDisplayName);
-                            return;
+                                DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} enabled successfully!");
+
+                                // Mark that mods were modified (restart will happen when closing dialog)
+                                modsWereModified = true;
+
+                                // Check if all mods are now enabled
+                                CheckAllModsEnabled();
+
+                                return;
+                            }
+                            catch (Exception ex)
+                            {
+                                DebugConsole.LogWarning($"[ModCompatibilityGUI] Error enabling mod {modDisplayName}: {ex.Message}");
+                                OpenSteamWorkshopPage(modDisplayName);
+                                return;
+                            }
                         }
                     }
                 }
@@ -689,41 +804,24 @@ namespace ONI_MP.Menus
         {
             try
             {
-                string modId = ExtractModId(modDisplayName);
-
-                if (buttonText == "Install")
+                if (buttonText == "Enable")
                 {
-                    // Try automatic installation first
-                    DebugConsole.Log($"[ModCompatibilityGUI] Attempting automatic installation of mod: {modDisplayName}");
-
-                    WorkshopInstaller.Instance.InstallAndActivateMod(modId, success => {
-                        if (success)
-                        {
-                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} installed and activated automatically!");
-                        }
-                        else
-                        {
-                            DebugConsole.Log($"[ModCompatibilityGUI] Automatic installation failed for {modDisplayName}, opening Steam Workshop");
-                            OpenSteamWorkshopPage(modDisplayName);
-                        }
-                    });
-                }
-                else if (buttonText == "Enable")
-                {
-                    // Enable installed but disabled mod
+                    // Enable installed but disabled mod using native ONI system
                     DebugConsole.Log($"[ModCompatibilityGUI] Attempting to enable mod: {modDisplayName}");
                     EnableMod(modDisplayName);
                 }
                 else
                 {
-                    // Other buttons (View, Update) - open Steam page
+                    // All other buttons (Install, View, Update) - open Steam Workshop page
+                    // User must manually install mods via Steam Workshop
+                    DebugConsole.Log($"[ModCompatibilityGUI] Opening Steam Workshop for mod: {modDisplayName}");
                     OpenSteamWorkshopPage(modDisplayName);
                 }
             }
             catch (Exception ex)
             {
                 DebugConsole.LogWarning($"[ModCompatibilityGUI] Error processing mod action {modDisplayName}: {ex.Message}");
-                // Fallback to open page
+                // Fallback to open Steam Workshop page
                 OpenSteamWorkshopPage(modDisplayName);
             }
         }
@@ -831,19 +929,37 @@ namespace ONI_MP.Menus
 
                         foreach (var mod in modManager.mods)
                         {
-                            if (mod?.label != null && mod.label.id == modId)
+                            if (mod?.label != null)
                             {
-                                try
+                                string defaultId = mod.label.defaultStaticID;
+                                string labelId = mod.label.id;
+
+                                // Use robust Steam mod matching (same as other functions)
+                                if (defaultId == modId || labelId == modId ||
+                                    defaultId == modDisplayName || labelId == modDisplayName ||
+                                    (modId != modDisplayName && (defaultId.StartsWith(modId) || labelId.StartsWith(modId))))
                                 {
-                                    modManager.EnableMod(mod.label, true, null);
-                                    enabledCount++;
-                                    modFound = true;
-                                    DebugConsole.Log($"[ModCompatibilityGUI] Enabled: {modDisplayName}");
-                                    break;
-                                }
-                                catch (Exception ex)
-                                {
-                                    DebugConsole.LogWarning($"[ModCompatibilityGUI] Error enabling {modDisplayName}: {ex.Message}");
+                                    try
+                                    {
+                                        // Check if mod is compatible
+                                        if (mod.available_content == 0)
+                                        {
+                                            DebugConsole.LogWarning($"[ModCompatibilityGUI] Mod {modDisplayName} is not compatible - skipping");
+                                            modFound = true;
+                                            break;
+                                        }
+
+                                        // Enable using proper ONI API (follows SaveGameModLoader pattern)
+                                        mod.SetEnabledForActiveDlc(true);
+                                        enabledCount++;
+                                        modFound = true;
+                                        DebugConsole.Log($"[ModCompatibilityGUI] Enabled: {modDisplayName} -> {defaultId}");
+                                        break;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        DebugConsole.LogWarning($"[ModCompatibilityGUI] Error enabling {modDisplayName}: {ex.Message}");
+                                    }
                                 }
                             }
                         }
@@ -858,10 +974,8 @@ namespace ONI_MP.Menus
 
                 if (enabledCount > 0)
                 {
-                    // Save changes
                     try
                     {
-                        modManager.Save();
                         DebugConsole.Log($"[ModCompatibilityGUI] {enabledCount} mods enabled successfully!");
 
                         if (notFoundCount > 0)
@@ -869,15 +983,15 @@ namespace ONI_MP.Menus
                             DebugConsole.LogWarning($"[ModCompatibilityGUI] {notFoundCount} mods were not found in the list");
                         }
 
+                        // Mark that mods were modified (restart will happen when closing dialog)
+                        modsWereModified = true;
+
                         // Check if all mods are now enabled
                         CheckAllModsEnabled();
-
-                        // Show restart notification
-                        ShowRestartNotification();
                     }
                     catch (Exception ex)
                     {
-                        DebugConsole.LogWarning($"[ModCompatibilityGUI] Error saving settings: {ex.Message}");
+                        DebugConsole.LogWarning($"[ModCompatibilityGUI] Error enabling mods: {ex.Message}");
                     }
                 }
                 else
@@ -895,6 +1009,163 @@ namespace ONI_MP.Menus
             catch (Exception ex)
             {
                 DebugConsole.LogWarning($"[ModCompatibilityGUI] Error in EnableAllMods: {ex.Message}");
+            }
+        }
+
+        private void InstallAndSyncMods()
+        {
+            try
+            {
+                DebugConsole.Log($"[ModCompatibilityGUI] Starting Install & Sync for {dialogSteamModIds.Length} Steam mods...");
+
+                // Converte Steam IDs para array de strings
+                string[] steamModIdStrings = new string[dialogSteamModIds.Length];
+                for (int i = 0; i < dialogSteamModIds.Length; i++)
+                {
+                    steamModIdStrings[i] = dialogSteamModIds[i].ToString();
+                }
+
+                // Usa WorkshopInstaller para instalar e ativar mods automaticamente
+                WorkshopInstaller.Instance.InstallMultipleItems(
+                    steamModIdStrings,
+                    onProgress: (completed, total) =>
+                    {
+                        DebugConsole.Log($"[ModCompatibilityGUI] Progresso da instalação: {completed}/{total}");
+                    },
+                    onComplete: installedPaths =>
+                    {
+                        DebugConsole.Log($"[ModCompatibilityGUI] Todos os {installedPaths.Length} mods foram instalados!");
+
+                        // Agora ativa os mods instalados
+                        foreach (var steamIdString in steamModIdStrings)
+                        {
+                            WorkshopInstaller.Instance.ActivateInstalledMod(steamIdString, "");
+                        }
+
+                        // Ajusta mods locais (habilita requeridos, desabilita extras)
+                        AdjustLocalMods();
+
+                        // Fecha o diálogo
+                        CloseDialog();
+
+                        // Reinicia o jogo
+                        DebugConsole.Log("[ModCompatibilityGUI] Reiniciando o jogo para aplicar mudanças de mods...");
+                        App.instance.Restart();
+                    },
+                    onError: error =>
+                    {
+                        DebugConsole.LogWarning($"[ModCompatibilityGUI] Erro durante instalação: {error}");
+                        DebugConsole.LogWarning("[ModCompatibilityGUI] Continuando com ajuste de mods locais...");
+
+                        // Mesmo com erro, tenta ajustar mods locais
+                        AdjustLocalMods();
+                        CloseDialog();
+                        App.instance.Restart();
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Erro em InstallAndSyncMods: {ex.Message}");
+            }
+        }
+
+        private void AdjustLocalMods()
+        {
+            var modManager = Global.Instance?.modManager;
+            if (modManager == null)
+            {
+                DebugConsole.LogWarning("[ModCompatibilityGUI] ModManager não disponível");
+                return;
+            }
+
+            try
+            {
+                // Constrói conjunto de IDs de mods requeridos
+                var requiredModIds = new HashSet<string>();
+                if (dialogMissingMods != null)
+                {
+                    foreach (var mod in dialogMissingMods)
+                    {
+                        string modId = ExtractModId(mod);
+                        if (!string.IsNullOrEmpty(modId))
+                        {
+                            requiredModIds.Add(modId);
+                        }
+                    }
+                }
+
+                // Habilita/desabilita mods conforme necessário
+                int enabledCount = 0;
+                int disabledCount = 0;
+                foreach (var mod in modManager.mods)
+                {
+                    if (mod?.label == null) continue;
+
+                    bool shouldBeEnabled = requiredModIds.Contains(mod.label.id);
+                    bool isEnabled = mod.IsEnabledForActiveDlc();
+
+                    if (shouldBeEnabled != isEnabled)
+                    {
+                        mod.SetEnabledForActiveDlc(shouldBeEnabled);
+                        if (shouldBeEnabled)
+                        {
+                            enabledCount++;
+                            DebugConsole.Log($"[ModCompatibilityGUI] Habilitado: {mod.label.title}");
+                        }
+                        else if (dialogExtraMods != null && dialogExtraMods.Any(e => ExtractModId(e) == mod.label.id))
+                        {
+                            disabledCount++;
+                            DebugConsole.Log($"[ModCompatibilityGUI] Desabilitado: {mod.label.title}");
+                        }
+                    }
+                }
+
+                DebugConsole.Log($"[ModCompatibilityGUI] Mods ajustados: {enabledCount} habilitados, {disabledCount} desabilitados");
+
+                // Salva configuração de mods
+                modManager.Save();
+                DebugConsole.Log("[ModCompatibilityGUI] Configuração de mods salva");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Erro ao ajustar mods: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Saves mod configuration and triggers automatic game restart
+        /// Based on SaveGameModLoader.AutoRestart() pattern
+        /// </summary>
+        private static void SaveAndRestart(KMod.Manager modManager)
+        {
+            try
+            {
+                DebugConsole.Log("[ModCompatibilityGUI] Saving mod configuration and triggering restart...");
+
+                // Save mod configuration - this should trigger automatic restart
+                modManager.Save();
+
+                // Additional restart trigger if needed (following SaveGameModLoader pattern)
+                try
+                {
+                    // Force restart via App.instance if modManager.Save() doesn't work
+                    if (App.instance != null)
+                    {
+                        DebugConsole.Log("[ModCompatibilityGUI] Triggering manual restart via App.instance...");
+                        App.instance.Restart();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DebugConsole.LogWarning($"[ModCompatibilityGUI] Manual restart failed: {ex.Message}");
+                    DebugConsole.Log("[ModCompatibilityGUI] Please restart the game manually to apply mod changes.");
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Error in SaveAndRestart: {ex.Message}");
+                DebugConsole.Log("[ModCompatibilityGUI] Please restart the game manually to apply mod changes.");
             }
         }
     }

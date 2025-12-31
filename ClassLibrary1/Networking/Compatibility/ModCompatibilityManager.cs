@@ -58,10 +58,11 @@ namespace ONI_MP.Networking.Compatibility
 
                 foreach (var mod in modManager.mods)
                 {
-                    if (mod.IsActive())
+                    // Use IsEnabledForActiveDlc() instead of IsActive() - follows ONI standard
+                    if (mod.IsEnabledForActiveDlc())
                     {
                         var modInfo = new ModInfo(
-                            mod.label.id,
+                            mod.label.defaultStaticID, // Use defaultStaticID for consistent identification
                             mod.packagedModInfo?.version?.ToString() ?? "unknown",
                             mod.title,
                             true // By default, all mods are required
@@ -150,21 +151,21 @@ namespace ONI_MP.Networking.Compatibility
 
                     if (clientMod == null)
                     {
-                        // Always require host mods to be present on client
-                        result.AddMissingMod(hostMod.StaticID, GetModName(hostMod.StaticID));
-                        DebugConsole.Log($"  Missing required mod: {hostMod}");
+                        // Always require host mods to be present on client - use raw ID for consistency
+                        result.AddMissingMod(hostMod.StaticID);
+                        DebugConsole.Log($"  Missing required mod: {hostMod.StaticID}");
                     }
                     else if (hostMod.HasVersionMismatch(clientMod))
                     {
                         if (!IGNORE_VERSION_CHECKS && !hostMod.AllowVersionMismatch && !_allowVersionMismatches)
                         {
-                            result.AddVersionMismatch(hostMod.StaticID, GetModName(hostMod.StaticID));
-                            DebugConsole.Log($"  Version mismatch: {hostMod} vs {clientMod}");
+                            result.AddVersionMismatch(hostMod.StaticID);
+                            DebugConsole.Log($"  Version mismatch: {hostMod.StaticID} vs {clientMod.StaticID}");
                         }
                         else
                         {
-                            result.AddWarning($"Version mismatch (ignored): {hostMod} vs {clientMod}");
-                            DebugConsole.Log($"  Version mismatch ignored: {hostMod} vs {clientMod}");
+                            result.AddWarning($"Version mismatch (ignored): {hostMod.StaticID} vs {clientMod.StaticID}");
+                            DebugConsole.Log($"  Version mismatch ignored: {hostMod.StaticID} vs {clientMod.StaticID}");
                         }
                     }
                 }
@@ -176,9 +177,9 @@ namespace ONI_MP.Networking.Compatibility
 
                     if (hostMod == null)
                     {
-                        // Client has extra mod that host doesn't have - log but allow
-                        result.AddExtraMod(clientMod.StaticID, GetModName(clientMod.StaticID));
-                        DebugConsole.Log($"  Client has extra mod (allowed): {clientMod}");
+                        // Client has extra mod that host doesn't have - use raw ID for consistency
+                        result.AddExtraMod(clientMod.StaticID);
+                        DebugConsole.Log($"  Client has extra mod (allowed): {clientMod.StaticID}");
                     }
                 }
 
@@ -291,7 +292,8 @@ namespace ONI_MP.Networking.Compatibility
                 {
                     foreach (var mod in activeMods)
                     {
-                        if (mod?.label != null && mod.label.id == modId)
+                        // Use defaultStaticID for consistent mod identification
+                        if (mod?.label != null && mod.label.defaultStaticID == modId)
                         {
                             // Return "ModName - ID" format for better UX
                             string displayName = !string.IsNullOrEmpty(mod.title) ? mod.title : mod.label.title;
@@ -309,7 +311,8 @@ namespace ONI_MP.Networking.Compatibility
                     {
                         foreach (var mod in allMods)
                         {
-                            if (mod?.label != null && mod.label.id == modId)
+                            // Use defaultStaticID for consistent mod identification
+                            if (mod?.label != null && mod.label.defaultStaticID == modId)
                             {
                                 string displayName = !string.IsNullOrEmpty(mod.title) ? mod.title : mod.label.title;
                                 return $"{displayName} - {modId}";

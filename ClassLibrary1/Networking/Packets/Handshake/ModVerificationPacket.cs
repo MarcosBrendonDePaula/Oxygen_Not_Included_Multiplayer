@@ -35,12 +35,14 @@ namespace ONI_MP.Networking.Packets.Handshake
                 var enabledMods = new List<string>();
                 var modVersions = new List<string>();
 
-                // Coletar mods ativos
+                // Collect enabled mods using proper ONI API
                 foreach (var mod in modManager.mods)
                 {
-                    if (mod.IsActive())
+                    // Use IsEnabledForActiveDlc() instead of IsActive() - follows ONI standard
+                    if (mod.IsEnabledForActiveDlc())
                     {
-                        enabledMods.Add(mod.label.id);
+                        // Use defaultStaticID for consistent identification across sessions
+                        enabledMods.Add(mod.label.defaultStaticID);
                         modVersions.Add(mod.packagedModInfo?.version?.ToString() ?? "unknown");
                     }
                 }

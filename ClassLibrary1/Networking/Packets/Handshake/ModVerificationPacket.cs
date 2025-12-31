@@ -150,7 +150,7 @@ namespace ONI_MP.Networking.Packets.Handshake
                 if (!result.IsCompatible)
                 {
                     var clientName = SteamFriends.GetFriendPersonaName(ClientSteamID);
-                    ONI_MP.UI.ChatScreen.QueueMessage($"<color=red>System:</color> {clientName} was rejected due to mod incompatibility: {result.RejectReason}");
+                    ONI_MP.UI.ChatScreen.QueueMessage(System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), $"<color=red>System:</color> {clientName} was rejected due to mod incompatibility: {result.RejectReason}");
                 }
 
                 // Enviar resposta de volta

@@ -9,14 +9,15 @@ namespace ONI_MP.Menus
     {
         private static GameObject currentPopup;
 
-        public static void ShowIncompatibilityError(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches)
+        public static void ShowIncompatibilityError(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches, ulong[] steamModIds)
         {
             try
             {
                 DebugConsole.Log("[ModCompatibilityPopup] Showing mod compatibility error dialog...");
+                DebugConsole.Log($"[ModCompatibilityPopup] Steam mods available for auto-install: {steamModIds?.Length ?? 0}");
 
                 // Use new dynamic IMGUI approach - much simpler!
-                ModCompatibilityGUI.ShowIncompatibilityError(reason, missingMods, extraMods, versionMismatches);
+                ModCompatibilityGUI.ShowIncompatibilityError(reason, missingMods, extraMods, versionMismatches, steamModIds);
 
                 DebugConsole.Log("[ModCompatibilityPopup] Mod compatibility message displayed.");
             }

@@ -15,6 +15,7 @@ namespace ONI_MP.Networking.Packets.Handshake
         public string[] MissingMods;
         public string[] ExtraMods;
         public string[] VersionMismatches;
+        public ulong[] SteamModIds;  // Steam Workshop IDs for auto-installation
 
         public ModVerificationResponsePacket()
         {
@@ -28,6 +29,26 @@ namespace ONI_MP.Networking.Packets.Handshake
             MissingMods = result.MissingMods?.ToArray() ?? new string[0];
             ExtraMods = result.ExtraMods?.ToArray() ?? new string[0];
             VersionMismatches = result.VersionMismatches?.ToArray() ?? new string[0];
+
+            // Extract Steam Workshop IDs from missing mods
+            SteamModIds = ExtractSteamModIds(MissingMods);
+        }
+
+        private static ulong[] ExtractSteamModIds(string[] modIds)
+        {
+            if (modIds == null || modIds.Length == 0)
+                return new ulong[0];
+
+            var steamIds = new System.Collections.Generic.List<ulong>();
+            foreach (var modId in modIds)
+            {
+                // Steam mods have numeric IDs, try to parse them
+                if (ulong.TryParse(modId, out var steamId))
+                {
+                    steamIds.Add(steamId);
+                }
+            }
+            return steamIds.ToArray();
         }
 
         public void Serialize(BinaryWriter writer)
@@ -62,6 +83,15 @@ namespace ONI_MP.Networking.Packets.Handshake
                     writer.Write(mod ?? "");
                 }
             }
+
+            writer.Write(SteamModIds?.Length ?? 0);
+            if (SteamModIds != null)
+            {
+                foreach (var steamId in SteamModIds)
+                {
+                    writer.Write(steamId);
+                }
+            }
         }
 
         public void Deserialize(BinaryReader reader)
@@ -89,6 +119,13 @@ namespace ONI_MP.Networking.Packets.Handshake
             for (int i = 0; i < versionCount; i++)
             {
                 VersionMismatches[i] = reader.ReadString();
+            }
+
+            int steamIdCount = reader.ReadInt32();
+            SteamModIds = new ulong[steamIdCount];
+            for (int i = 0; i < steamIdCount; i++)
+            {
+                SteamModIds[i] = reader.ReadUInt64();
             }
         }
 
@@ -145,7 +182,7 @@ namespace ONI_MP.Networking.Packets.Handshake
                 }
 
                 // Mostrar erro para o usuário e desconectar
-                GameClient.OnModVerificationRejected(RejectReason, MissingMods, ExtraMods, VersionMismatches);
+                GameClient.OnModVerificationRejected(RejectReason, MissingMods, ExtraMods, VersionMismatches, SteamModIds);
             }
         }
     }

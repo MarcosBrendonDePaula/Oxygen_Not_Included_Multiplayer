@@ -595,13 +595,14 @@ namespace ONI_MP.Networking
 			ContinueConnectionFlow();
 		}
 
-		public static void OnModVerificationRejected(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches)
+		public static void OnModVerificationRejected(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches, ulong[] steamModIds)
 		{
 			DebugConsole.Log($"[GameClient] Mod verification REJECTED by host: {reason}");
+			DebugConsole.Log($"[GameClient] Steam mods available for auto-install: {steamModIds?.Length ?? 0}");
 			DebugConsole.Log("[GameClient] Disconnecting client due to mod incompatibility...");
 
-			// Show detailed error to user
-			ShowModIncompatibilityError(reason, missingMods, extraMods, versionMismatches);
+			// Show detailed error to user with option to install mods
+			ShowModIncompatibilityError(reason, missingMods, extraMods, versionMismatches, steamModIds);
 
 			// Disconnect from host immediately
 			Disconnect();
@@ -609,7 +610,7 @@ namespace ONI_MP.Networking
 			DebugConsole.Log("[GameClient] Client disconnected successfully due to mod incompatibility");
 		}
 
-		private static void ShowModIncompatibilityError(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches)
+		private static void ShowModIncompatibilityError(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches, ulong[] steamModIds)
 		{
 			try
 			{
@@ -654,8 +655,8 @@ namespace ONI_MP.Networking
 				// Log error to console
 				DebugConsole.Log($"[GameClient] {errorMessage}");
 
-				// Show UI popup with mod compatibility details - this will keep overlay visible
-				ModCompatibilityPopup.ShowIncompatibilityError(reason, missingMods, extraMods, versionMismatches);
+				// Show UI popup with mod compatibility details with auto-install option - this will keep overlay visible
+				ModCompatibilityPopup.ShowIncompatibilityError(reason, missingMods, extraMods, versionMismatches, steamModIds);
 			}
 			catch (Exception ex)
 			{

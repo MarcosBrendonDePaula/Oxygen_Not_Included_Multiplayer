@@ -50,5 +50,8 @@
     <ProjectReference Include="..\Shared\Shared.csproj" />
     <Content Include="Networking\Packets\IModApiPacket.cs" />
     <Content Include="Networking\Packets\World\WorldUpdatePacket.cs" />
+    <Content Include="Networking\GameClient.cs" />
+    <Content Include="Menus\ModCompatibilityPopup.cs" />
+    <Content Include="Menus\ModCompatibilityGUI.cs" />
   </ItemGroup>
 </Project>

@@ -151,20 +151,20 @@ namespace ONI_MP.Networking.Compatibility
 
                     if (clientMod == null)
                     {
-                        // Always require host mods to be present on client - use raw ID for consistency
-                        result.AddMissingMod(hostMod.StaticID);
+                        // Always require host mods to be present on client - use friendly name for better UX
+                        result.AddMissingMod(GetModName(hostMod.StaticID));
                         DebugConsole.Log($"  Missing required mod: {hostMod.StaticID}");
                     }
                     else if (hostMod.HasVersionMismatch(clientMod))
                     {
                         if (!IGNORE_VERSION_CHECKS && !hostMod.AllowVersionMismatch && !_allowVersionMismatches)
                         {
-                            result.AddVersionMismatch(hostMod.StaticID);
+                            result.AddVersionMismatch(GetModName(hostMod.StaticID));
                             DebugConsole.Log($"  Version mismatch: {hostMod.StaticID} vs {clientMod.StaticID}");
                         }
                         else
                         {
-                            result.AddWarning($"Version mismatch (ignored): {hostMod.StaticID} vs {clientMod.StaticID}");
+                            result.AddWarning($"Version mismatch (ignored): {GetModName(hostMod.StaticID)} vs {GetModName(clientMod.StaticID)}");
                             DebugConsole.Log($"  Version mismatch ignored: {hostMod.StaticID} vs {clientMod.StaticID}");
                         }
                     }
@@ -177,8 +177,8 @@ namespace ONI_MP.Networking.Compatibility
 
                     if (hostMod == null)
                     {
-                        // Client has extra mod that host doesn't have - use raw ID for consistency
-                        result.AddExtraMod(clientMod.StaticID);
+                        // Client has extra mod that host doesn't have - use friendly name for better UX
+                        result.AddExtraMod(GetModName(clientMod.StaticID));
                         DebugConsole.Log($"  Client has extra mod (allowed): {clientMod.StaticID}");
                     }
                 }

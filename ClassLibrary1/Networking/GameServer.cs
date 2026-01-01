@@ -113,6 +113,9 @@ namespace ONI_MP.Networking
 					SteamAPI.RunCallbacks();
 					SteamNetworkingSockets.RunCallbacks();
 					ReceiveMessages();
+
+					// Check for lost chunks and retransmit specific missing chunks
+					SaveFileTransferManager.CheckForLostChunks();
 					break;
 
 				case ServerState.Preparing:

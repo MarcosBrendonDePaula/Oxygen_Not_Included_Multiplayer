@@ -80,6 +80,68 @@ namespace ONI_MP.Menus
         /// </summary>
         public static void CloseDialog()
         {
+            // Check if mods were modified but user is closing without applying
+            if (ModRestartManager.ModsWereModified)
+            {
+                ShowCloseWithChangesConfirmation();
+                return; // Don't close yet, let user decide
+            }
+
+            // Normal close process
+            PerformActualClose();
+        }
+
+        /// <summary>
+        /// Shows confirmation when user tries to close with pending changes
+        /// </summary>
+        private static void ShowCloseWithChangesConfirmation()
+        {
+            try
+            {
+                DebugConsole.Log("[ModCompatibilityGUI] User tried to close with pending mod changes - showing confirmation");
+
+                // Count pending changes
+                int changesCount = 0;
+                var changedMods = new System.Collections.Generic.List<string>();
+
+                if (dialogMissingMods != null)
+                {
+                    foreach (var mod in dialogMissingMods)
+                    {
+                        if (ModStateManager.IsModEnabled(mod))
+                        {
+                            changesCount++;
+                            changedMods.Add(mod);
+                        }
+                    }
+                }
+
+                // Show confirmation dialog via the apply confirmation system
+                // This provides a consistent UX
+                ModApplyConfirmationDialog.ShowConfirmation(changedMods, new System.Collections.Generic.List<string>());
+
+                // Close this dialog since the confirmation dialog is now handling the flow
+                showDialog = false;
+                if (instance != null)
+                {
+                    DestroyImmediate(instance.gameObject);
+                    instance = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Error showing close confirmation: {ex.Message}");
+                // Fallback: show restart notification and close
+                ModRestartManager.ShowRestartNotification();
+                PerformActualClose();
+            }
+        }
+
+        /// <summary>
+        /// Actually closes the dialog - internal method
+        /// </summary>
+        private static void PerformActualClose()
+        {
             showDialog = false;
 
             // Clear all caches and throttling
@@ -140,13 +202,6 @@ namespace ONI_MP.Menus
 
         void OnGUI()
         {
-            // Draw restart dialog if active
-            if (ModRestartManager.ShouldShowRestartDialog)
-            {
-                ModCompatibilityDialogs.DrawRestartDialog();
-                return; // Show only restart dialog when active
-            }
-
             // Draw restart notification if active
             if (ModRestartManager.ShouldShowRestartNotification)
             {
@@ -262,14 +317,31 @@ namespace ONI_MP.Menus
 
             GUILayout.FlexibleSpace();
 
-            // Close button
+            // Smart Close/Apply button
             GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
             buttonStyle.fontSize = 14;
             buttonStyle.fontStyle = FontStyle.Bold;
 
-            if (GUILayout.Button(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.CLOSE, buttonStyle, GUILayout.Height(35)))
+            // Determine button text and color based on state
+            string buttonText;
+            Color buttonColor;
+
+            if (ModRestartManager.ModsWereModified)
             {
-                CloseDialog();
+                buttonText = "Aplicar"; // Apply changes
+                buttonColor = Color.green;
+            }
+            else
+            {
+                buttonText = "Cancelar"; // Cancel/Close
+                buttonColor = Color.gray;
+            }
+
+            buttonStyle.normal.textColor = buttonColor;
+
+            if (GUILayout.Button(buttonText, buttonStyle, GUILayout.Height(35)))
+            {
+                HandleSmartButtonClick();
             }
 
             GUILayout.EndHorizontal();
@@ -391,6 +463,87 @@ namespace ONI_MP.Menus
         {
             return ModStateManager.AreAllModsEnabled(dialogMissingMods);
         }
+
+        /// <summary>
+        /// Handles smart button click (Cancel vs Apply)
+        /// </summary>
+        private void HandleSmartButtonClick()
+        {
+            try
+            {
+                if (ModRestartManager.ModsWereModified)
+                {
+                    // Apply mode: Show confirmation and restart
+                    DebugConsole.Log("[ModCompatibilityGUI] Apply button clicked - mods were modified");
+                    ShowApplyConfirmation();
+                }
+                else
+                {
+                    // Cancel mode: Just close dialog
+                    DebugConsole.Log("[ModCompatibilityGUI] Cancel button clicked - no mods modified");
+                    CloseDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Error in HandleSmartButtonClick: {ex.Message}");
+                // Fallback to close dialog
+                CloseDialog();
+            }
+        }
+
+        /// <summary>
+        /// Shows confirmation when applying mod changes using the new professional dialog
+        /// </summary>
+        private void ShowApplyConfirmation()
+        {
+            try
+            {
+                // Collect all activated and deactivated mods
+                var activatedMods = new System.Collections.Generic.List<string>();
+                var deactivatedMods = new System.Collections.Generic.List<string>();
+
+                // Check if any mods from the original missing list are now enabled
+                if (dialogMissingMods != null)
+                {
+                    foreach (var mod in dialogMissingMods)
+                    {
+                        if (ModStateManager.IsModEnabled(mod))
+                        {
+                            activatedMods.Add(mod);
+                        }
+                    }
+                }
+
+                // Check if any extra mods were disabled
+                if (dialogExtraMods != null)
+                {
+                    foreach (var mod in dialogExtraMods)
+                    {
+                        if (ModStateManager.IsModInstalled(mod) && !ModStateManager.IsModEnabled(mod))
+                        {
+                            deactivatedMods.Add(mod);
+                        }
+                    }
+                }
+
+                DebugConsole.Log($"[ModCompatibilityGUI] Showing apply confirmation: {activatedMods.Count} activated, {deactivatedMods.Count} deactivated");
+
+                // Close this dialog first
+                CloseDialog();
+
+                // Show the professional confirmation dialog
+                ModApplyConfirmationDialog.ShowConfirmation(activatedMods, deactivatedMods);
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Error showing apply confirmation: {ex.Message}");
+                // Fallback to restart notification
+                CloseDialog();
+                ModRestartManager.ShowRestartNotification();
+            }
+        }
+
 
         /// <summary>
         /// Creates a colored texture for UI elements

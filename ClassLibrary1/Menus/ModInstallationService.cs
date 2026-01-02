@@ -273,9 +273,8 @@ namespace ONI_MP.Menus
                         // Mark that mods were modified
                         ModRestartManager.MarkModsModified();
 
-                        // Show restart prompt
-                        DebugConsole.Log($"[ModInstallationService] {enabledCount} mods enabled - showing restart prompt");
-                        ModRestartManager.ShowNativeRestartPrompt();
+                        // Don't show restart prompt immediately - let the user apply changes via the smart button
+                        DebugConsole.Log($"[ModInstallationService] {enabledCount} mods enabled - changes marked for apply button");
                     }
                     catch (Exception ex)
                     {

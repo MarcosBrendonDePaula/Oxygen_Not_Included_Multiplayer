@@ -121,90 +121,6 @@ namespace ONI_MP.Menus
             GUI.color = Color.white;
         }
 
-        /// <summary>
-        /// Draws custom restart dialog
-        /// </summary>
-        public static void DrawRestartDialog()
-        {
-            // Dark semi-transparent background
-            GUI.color = new Color(0, 0, 0, 0.8f);
-            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-            GUI.color = Color.white;
-
-            // Dialog window
-            float width = 500f;
-            float height = 200f;
-            float x = (Screen.width - width) / 2;
-            float y = (Screen.height - height) / 2;
-
-            Rect dialogRect = new Rect(x, y, width, height);
-
-            // Create window style
-            GUIStyle windowStyle = new GUIStyle(GUI.skin.window);
-            windowStyle.normal.background = CreateColorTexture(new Color(0.15f, 0.15f, 0.15f, 0.95f));
-            windowStyle.border = new RectOffset(10, 10, 10, 10);
-
-            // Draw window
-            GUI.Window(54321, dialogRect, DrawRestartDialogWindow, MP_STRINGS.UI.MODCOMPATIBILITY.RESTART_REQUIRED_TITLE, windowStyle);
-        }
-
-        /// <summary>
-        /// Draws the content of the restart dialog window
-        /// </summary>
-        private static void DrawRestartDialogWindow(int windowID)
-        {
-            GUILayout.BeginVertical();
-
-            GUILayout.Space(10);
-
-            // Title
-            GUIStyle titleStyle = new GUIStyle(GUI.skin.label);
-            titleStyle.fontSize = 16;
-            titleStyle.fontStyle = FontStyle.Bold;
-            titleStyle.alignment = TextAnchor.MiddleCenter;
-            titleStyle.normal.textColor = Color.white;
-            titleStyle.wordWrap = true;
-
-            GUILayout.Label(MP_STRINGS.UI.MODCOMPATIBILITY.RESTART_REQUIRED_MESSAGE, titleStyle);
-            GUILayout.Space(20);
-
-            // Buttons
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
-            // Restart Now button
-            GUIStyle restartButtonStyle = new GUIStyle(GUI.skin.button);
-            restartButtonStyle.fontSize = 14;
-            restartButtonStyle.fontStyle = FontStyle.Bold;
-            restartButtonStyle.normal.textColor = Color.green;
-
-            if (GUILayout.Button(MP_STRINGS.UI.MODCOMPATIBILITY.RESTART_NOW, restartButtonStyle, GUILayout.Height(40), GUILayout.Width(150)))
-            {
-                DebugConsole.Log("[ModCompatibilityDialogs] User confirmed restart via custom dialog");
-                ModRestartManager.HideRestartDialog();
-                ModRestartManager.TriggerGameRestart();
-            }
-
-            GUILayout.Space(20);
-
-            // Restart Later button
-            GUIStyle laterButtonStyle = new GUIStyle(GUI.skin.button);
-            laterButtonStyle.fontSize = 14;
-            laterButtonStyle.fontStyle = FontStyle.Bold;
-            laterButtonStyle.normal.textColor = Color.yellow;
-
-            if (GUILayout.Button(MP_STRINGS.UI.MODCOMPATIBILITY.RESTART_LATER, laterButtonStyle, GUILayout.Height(40), GUILayout.Width(150)))
-            {
-                DebugConsole.Log("[ModCompatibilityDialogs] User chose to restart later via custom dialog");
-                ModRestartManager.HideRestartDialog();
-            }
-
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-
-            GUILayout.Space(10);
-            GUILayout.EndVertical();
-        }
 
         /// <summary>
         /// Draws a section for displaying mods with action buttons
@@ -393,11 +309,11 @@ namespace ONI_MP.Menus
                         ModInstallationService.Instance.EnableMod(modDisplayName);
                         ModStateManager.UpdateModStateAfterOperation(modDisplayName);
 
-                        // Show restart prompt after enabling mod
+                        // Mark mods as modified but don't show restart prompt immediately
+                        // User will see restart prompt when clicking "Apply"
                         if (ModRestartManager.ModsWereModified)
                         {
-                            DebugConsole.Log($"[ModCompatibilityDialogs] Mod {modDisplayName} enabled - showing restart prompt");
-                            ModRestartManager.ShowNativeRestartPrompt();
+                            DebugConsole.Log($"[ModCompatibilityDialogs] Mod {modDisplayName} enabled - changes marked for apply");
                         }
                         break;
 
@@ -407,11 +323,11 @@ namespace ONI_MP.Menus
                         ModInstallationService.Instance.DisableMod(modDisplayName);
                         ModStateManager.UpdateModStateAfterOperation(modDisplayName);
 
-                        // Show restart prompt after disabling mod
+                        // Mark mods as modified but don't show restart prompt immediately
+                        // User will see restart prompt when clicking "Apply"
                         if (ModRestartManager.ModsWereModified)
                         {
-                            DebugConsole.Log($"[ModCompatibilityDialogs] Mod {modDisplayName} disabled - showing restart prompt");
-                            ModRestartManager.ShowNativeRestartPrompt();
+                            DebugConsole.Log($"[ModCompatibilityDialogs] Mod {modDisplayName} disabled - changes marked for apply");
                         }
                         break;
 

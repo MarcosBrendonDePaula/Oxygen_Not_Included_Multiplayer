@@ -17,19 +17,12 @@ namespace ONI_MP.Menus
         // Track if any mods were modified during this session
         private static bool modsWereModified = false;
 
-        // Custom restart dialog fields
-        private static bool showRestartDialog = false;
-        private static float restartDialogTime = 0f;
 
         /// <summary>
         /// Gets whether restart notification should be shown
         /// </summary>
         public static bool ShouldShowRestartNotification => showRestartNotification;
 
-        /// <summary>
-        /// Gets whether restart dialog should be shown
-        /// </summary>
-        public static bool ShouldShowRestartDialog => showRestartDialog;
 
         /// <summary>
         /// Gets whether mods were modified in this session
@@ -88,53 +81,6 @@ namespace ONI_MP.Menus
             }
         }
 
-        /// <summary>
-        /// Shows native-style restart prompt when mods have been modified
-        /// </summary>
-        public static void ShowNativeRestartPrompt()
-        {
-            try
-            {
-                DebugConsole.Log("[ModRestartManager] Showing native restart prompt due to mod changes");
-
-                // For now, using custom restart prompt (native integration planned for future)
-                ShowCustomRestartPrompt();
-            }
-            catch (Exception ex)
-            {
-                DebugConsole.LogWarning($"[ModRestartManager] Error showing native restart prompt: {ex.Message}");
-                // Final fallback to notification system
-                ShowRestartNotification();
-            }
-        }
-
-        /// <summary>
-        /// Shows custom restart prompt as fallback when native system not available
-        /// </summary>
-        public static void ShowCustomRestartPrompt()
-        {
-            try
-            {
-                DebugConsole.Log("[ModRestartManager] Showing custom restart prompt as fallback");
-                showRestartDialog = true;
-                restartDialogTime = Time.realtimeSinceStartup;
-            }
-            catch (Exception ex)
-            {
-                DebugConsole.LogWarning($"[ModRestartManager] Error in ShowCustomRestartPrompt: {ex.Message}");
-                // Final fallback
-                ShowRestartNotification();
-            }
-        }
-
-        /// <summary>
-        /// Hides the restart dialog
-        /// </summary>
-        public static void HideRestartDialog()
-        {
-            showRestartDialog = false;
-            DebugConsole.Log("[ModRestartManager] Restart dialog hidden");
-        }
 
         /// <summary>
         /// Triggers game restart using ONI's native restart system
@@ -242,10 +188,8 @@ namespace ONI_MP.Menus
         public static void Reset()
         {
             showRestartNotification = false;
-            showRestartDialog = false;
             modsWereModified = false;
             restartNotificationTime = 0f;
-            restartDialogTime = 0f;
 
             DebugConsole.Log("[ModRestartManager] Restart manager reset");
         }
@@ -284,7 +228,7 @@ namespace ONI_MP.Menus
         public static void LogStatus()
         {
             DebugConsole.Log($"[ModRestartManager] Status: ModsModified={modsWereModified}, " +
-                           $"ShowNotification={showRestartNotification}, ShowDialog={showRestartDialog}");
+                           $"ShowNotification={showRestartNotification}");
         }
     }
 }

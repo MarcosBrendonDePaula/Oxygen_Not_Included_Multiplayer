@@ -24,7 +24,6 @@ namespace ONI_MP.Menus
 
         // Mod Compatibility Settings
         private Toggle _enableModVerificationToggle;
-        private Toggle _strictModeToggle;
         private Toggle _allowVersionMismatchesToggle;
         private Toggle _allowExtraModsToggle;
 
@@ -227,14 +226,6 @@ namespace ONI_MP.Menus
                 MP_STRINGS.UI.MODCOMPATIBILITY.ENABLE_VERIFICATION,
                 MP_STRINGS.UI.MODCOMPATIBILITY.ENABLE_VERIFICATION_TOOLTIP,
                 Configuration.Instance.Host.EnableModCompatibilityCheck
-            );
-
-            // Strict Mode toggle
-            _strictModeToggle = CreateToggleOption(
-                container.transform,
-                MP_STRINGS.UI.MODCOMPATIBILITY.STRICT_MODE,
-                MP_STRINGS.UI.MODCOMPATIBILITY.STRICT_MODE_TOOLTIP,
-                Configuration.Instance.Host.StrictModeEnabled
             );
 
             // Allow Version Mismatches toggle
@@ -553,7 +544,6 @@ namespace ONI_MP.Menus
 
             // Save mod compatibility settings
             Configuration.Instance.Host.EnableModCompatibilityCheck = _enableModVerificationToggle.isOn;
-            Configuration.Instance.Host.StrictModeEnabled = _strictModeToggle.isOn;
             Configuration.Instance.Host.AllowVersionMismatches = _allowVersionMismatchesToggle.isOn;
             Configuration.Instance.Host.AllowExtraMods = _allowExtraModsToggle.isOn;
 

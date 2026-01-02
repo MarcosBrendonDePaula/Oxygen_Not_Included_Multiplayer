@@ -1,7 +1,3 @@
-supportedContent: ALL
-minimumSupportedBuild: 647408
-version: 0.1
+minimumSupportedBuild: 700386
+version: 0.3.5-alpha
 APIVersion: 2
-
-assembly_name: oni_mp.dll
-entry_method: ONI_MP.MultiplayerMod

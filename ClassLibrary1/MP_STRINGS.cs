@@ -59,8 +59,6 @@ namespace ONI_MP
 				public static LocString TITLE = "Mod Compatibility Settings";
 				public static LocString ENABLE_VERIFICATION = "Enable Mod Verification";
 				public static LocString ENABLE_VERIFICATION_TOOLTIP = "Check if all players have the same mods before allowing connection";
-				public static LocString STRICT_MODE = "Strict Mode";
-				public static LocString STRICT_MODE_TOOLTIP = "Enforce exact mod compatibility (recommended)";
 				public static LocString ALLOW_VERSION_MISMATCHES = "Allow Version Mismatches";
 				public static LocString ALLOW_VERSION_MISMATCHES_TOOLTIP = "Allow players to join with different mod versions";
 				public static LocString ALLOW_EXTRA_MODS = "Allow Extra Mods";
@@ -111,7 +109,20 @@ namespace ONI_MP
 					public static LocString INSTALL_DISABLE_INSTRUCTION = "Install/disable the required mods, then try connecting again.";
 					public static LocString CONNECTION_ALLOWED_INFO = "Connection allowed. Your extra mods shouldn't cause issues.";
 					public static LocString FAILED_INSTALL_ERROR = "Failed to install {0}: {1}";
+
+					// Restart prompt strings (ItsLuke feedback: native restart prompt)
+					public static LocString DISABLE = "Disable";
+					public static LocString RESTART_REQUIRED_TITLE = "Game Restart Required";
+					public static LocString RESTART_REQUIRED_MESSAGE = "Mods have been enabled or disabled. The game needs to restart to apply these changes.\n\nWould you like to restart now?";
+					public static LocString RESTART_NOW = "Restart Now";
+					public static LocString RESTART_LATER = "Restart Later";
 				}
+
+				// Restart prompt strings (outside POPUP for general use)
+				public static LocString RESTART_REQUIRED_TITLE = "Game Restart Required";
+				public static LocString RESTART_REQUIRED_MESSAGE = "Mod changes require a game restart to take effect.";
+				public static LocString RESTART_NOW = "Restart Now";
+				public static LocString RESTART_LATER = "Restart Later";
 			}
 
             public class JOINBYDIALOGMENU

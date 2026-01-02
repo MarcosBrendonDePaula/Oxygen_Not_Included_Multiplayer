@@ -14,7 +14,6 @@ namespace ONI_MP.Networking.Compatibility
 
         // Configuration loaded from host settings
         private static bool _modVerificationEnabled = true;
-        private static bool _strictModeEnabled = true;
         private static bool _allowVersionMismatches = false;
         private static bool _allowExtraMods = true;
 
@@ -41,13 +40,11 @@ namespace ONI_MP.Networking.Compatibility
                 var config = Configuration.Instance.Host;
 
                 _modVerificationEnabled = config.EnableModCompatibilityCheck;
-                _strictModeEnabled = config.StrictModeEnabled;
                 _allowVersionMismatches = config.AllowVersionMismatches;
                 _allowExtraMods = config.AllowExtraMods;
 
                 DebugConsole.Log($"[ModCompatibilityManager] Configuration loaded:");
                 DebugConsole.Log($"  - Mod verification: {(_modVerificationEnabled ? "ENABLED" : "DISABLED")}");
-                DebugConsole.Log($"  - Strict mode: {(_strictModeEnabled ? "ENABLED" : "DISABLED")}");
                 DebugConsole.Log($"  - Allow version mismatches: {(_allowVersionMismatches ? "YES" : "NO")}");
                 DebugConsole.Log($"  - Allow extra mods: {(_allowExtraMods ? "YES" : "NO")}");
             }
@@ -70,11 +67,6 @@ namespace ONI_MP.Networking.Compatibility
             _clientModCache.Clear();
         }
 
-        public static void SetStrictMode(bool enabled)
-        {
-            _strictModeEnabled = enabled;
-            DebugConsole.Log($"[ModCompatibilityManager] Strict mode: {(enabled ? "ENABLED" : "DISABLED")}");
-        }
 
         public static void SetAllowVersionMismatches(bool allowed)
         {
@@ -385,8 +377,8 @@ namespace ONI_MP.Networking.Compatibility
             report.AppendLine("=== MOD COMPATIBILITY REPORT ===");
             report.AppendLine($"Host Mods Count: {_hostMods?.Count ?? 0}");
             report.AppendLine($"Cached Clients: {_clientModCache.Count}");
-            report.AppendLine($"Strict Mode: {_strictModeEnabled}");
             report.AppendLine($"Allow Version Mismatches: {_allowVersionMismatches}");
+            report.AppendLine($"Allow Extra Mods: {_allowExtraMods}");
             report.AppendLine();
 
             if (_hostMods != null && _hostMods.Count > 0)

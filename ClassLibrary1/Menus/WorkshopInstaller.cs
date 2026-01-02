@@ -12,6 +12,10 @@ namespace ONI_MP.Menus
         private static WorkshopInstaller instance;
         private Dictionary<PublishedFileId_t, InstallOperation> activeInstalls = new Dictionary<PublishedFileId_t, InstallOperation>();
 
+        // CallResults as member variables to prevent garbage collection (Steamworks.NET best practice)
+        private CallResult<RemoteStorageSubscribePublishedFileResult_t> m_SubscribeItemCallResult;
+        private CallResult<RemoteStorageUnsubscribePublishedFileResult_t> m_UnsubscribeItemCallResult;
+
         private struct InstallOperation
         {
             public PublishedFileId_t FileId;
@@ -34,6 +38,21 @@ namespace ONI_MP.Menus
             }
         }
 
+        void Awake()
+        {
+            // Initialize CallResults to prevent garbage collection (Steamworks.NET best practice)
+            if (SteamManager.Initialized)
+            {
+                m_SubscribeItemCallResult = CallResult<RemoteStorageSubscribePublishedFileResult_t>.Create(OnSubscribeItemResult);
+                m_UnsubscribeItemCallResult = CallResult<RemoteStorageUnsubscribePublishedFileResult_t>.Create(OnUnsubscribeItemResult);
+                DebugConsole.Log("[WorkshopInstaller] 🔧 CallResults initialized successfully");
+            }
+            else
+            {
+                DebugConsole.LogWarning("[WorkshopInstaller] ⚠️ Steam not initialized during Awake - CallResults will be initialized later");
+            }
+        }
+
         void Update()
         {
             // Necessário para callbacks da Steam funcionarem
@@ -52,6 +71,11 @@ namespace ONI_MP.Menus
 
         private float lastActivationCheck = 0f;
         private Dictionary<string, float> pendingActivations = new Dictionary<string, float>();
+
+        // Current operation tracking for improved callback handling
+        private PublishedFileId_t currentSubscriptionId = PublishedFileId_t.Invalid;
+        private Action<string> currentSubscriptionOnReady;
+        private Action<string> currentSubscriptionOnError;
 
         /// <summary>
         /// Verifica se há mods instalados aguardando ativação
@@ -116,6 +140,84 @@ namespace ONI_MP.Menus
         }
 
         /// <summary>
+        /// Detailed callback for subscribe operations (Steamworks.NET best practice)
+        /// </summary>
+        private void OnSubscribeItemResult(RemoteStorageSubscribePublishedFileResult_t result, bool bIOFailure)
+        {
+            try
+            {
+                DebugConsole.Log($"[WorkshopInstaller] 📡 SUBSCRIBE CALLBACK RECEIVED for {result.m_nPublishedFileId}");
+                DebugConsole.Log($"[WorkshopInstaller]   • IO Failure: {bIOFailure}");
+                DebugConsole.Log($"[WorkshopInstaller]   • Result Code: {result.m_eResult}");
+                DebugConsole.Log($"[WorkshopInstaller]   • Published File ID: {result.m_nPublishedFileId}");
+
+                if (bIOFailure)
+                {
+                    DebugConsole.LogWarning($"[WorkshopInstaller] ❌ Subscribe failed due to IO failure for {result.m_nPublishedFileId}");
+                    currentSubscriptionOnError?.Invoke($"IO failure during subscription of {result.m_nPublishedFileId}");
+                    return;
+                }
+
+                if (result.m_eResult == EResult.k_EResultOK)
+                {
+                    DebugConsole.Log($"[WorkshopInstaller] ✅ Successfully subscribed to item {result.m_nPublishedFileId}");
+                    // Continue with installation process - this will be handled by the coroutine waiting for the callback
+                }
+                else
+                {
+                    string errorMsg = $"Subscribe failed with result: {result.m_eResult}";
+                    DebugConsole.LogWarning($"[WorkshopInstaller] ❌ {errorMsg} for {result.m_nPublishedFileId}");
+
+                    // Common error explanations
+                    switch (result.m_eResult)
+                    {
+                        case EResult.k_EResultFileNotFound:
+                            errorMsg += " (Mod not found - may have been removed)";
+                            break;
+                        case EResult.k_EResultAccessDenied:
+                            errorMsg += " (Access denied - mod may be private)";
+                            break;
+                        case EResult.k_EResultLimitExceeded:
+                            errorMsg += " (Rate limit exceeded - try again later)";
+                            break;
+                        case EResult.k_EResultTimeout:
+                            errorMsg += " (Steam timeout - check connection)";
+                            break;
+                        default:
+                            errorMsg += " (Unknown error)";
+                            break;
+                    }
+
+                    currentSubscriptionOnError?.Invoke(errorMsg);
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[WorkshopInstaller] Exception in subscribe callback: {ex.Message}");
+                currentSubscriptionOnError?.Invoke($"Callback exception: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Detailed callback for unsubscribe operations (Steamworks.NET best practice)
+        /// </summary>
+        private void OnUnsubscribeItemResult(RemoteStorageUnsubscribePublishedFileResult_t result, bool bIOFailure)
+        {
+            DebugConsole.Log($"[WorkshopInstaller] 📡 UNSUBSCRIBE CALLBACK for {result.m_nPublishedFileId}");
+            DebugConsole.Log($"[WorkshopInstaller]   • IO Failure: {bIOFailure}");
+            DebugConsole.Log($"[WorkshopInstaller]   • Result Code: {result.m_eResult}");
+
+            if (bIOFailure || result.m_eResult != EResult.k_EResultOK)
+            {
+                DebugConsole.LogWarning($"[WorkshopInstaller] ⚠️ Unsubscribe had issues: IO={bIOFailure}, Result={result.m_eResult}");
+            }
+            else
+            {
+                DebugConsole.Log($"[WorkshopInstaller] ✅ Successfully unsubscribed from {result.m_nPublishedFileId}");
+            }
+        }
+
+        /// <summary>
         /// Adiciona um mod à fila de ativação pendente
         /// </summary>
         public void AddToPendingActivation(string modId)
@@ -128,12 +230,13 @@ namespace ONI_MP.Menus
         }
 
         /// <summary>
-        /// Instala um mod do Workshop automaticamente
+        /// Apenas faz subscribe de um mod - Steam cuida da instalação automaticamente
         /// </summary>
-        public void InstallWorkshopItem(string modId, Action<string> onReady, Action<string> onError)
+        public void SubscribeToWorkshopItem(string modId, Action<string> onSuccess, Action<string> onError)
         {
             if (!SteamManager.Initialized)
             {
+                DebugConsole.LogWarning($"[WorkshopInstaller] ❌ Steam não inicializada para mod {modId}");
                 onError?.Invoke("Steam não inicializada");
                 return;
             }
@@ -141,294 +244,125 @@ namespace ONI_MP.Menus
             // Converte string ID para PublishedFileId_t
             if (!ulong.TryParse(modId, out ulong fileIdULong))
             {
+                DebugConsole.LogWarning($"[WorkshopInstaller] ❌ ID de mod inválido: {modId}");
                 onError?.Invoke($"ID de mod inválido: {modId}");
                 return;
             }
 
             PublishedFileId_t fileId = new PublishedFileId_t(fileIdULong);
-            DebugConsole.Log($"[WorkshopInstaller] Iniciando instalação do mod {modId}");
+            DebugConsole.Log($"[WorkshopInstaller] 📝 Fazendo APENAS subscribe do mod {modId} (Steam fará instalação)");
 
-            StartCoroutine(InstallWorkshopItemCoroutine(fileId, onReady, onError));
+            StartCoroutine(SubscribeOnlyCoroutine(fileId, modId, onSuccess, onError));
         }
 
         /// <summary>
-        /// Instala múltiplos mods em sequência
+        /// Coroutine simples que apenas faz subscribe - Steam cuida do resto
         /// </summary>
-        public void InstallMultipleItems(string[] modIds, Action<int, int, string> onProgress, Action<string[]> onComplete, Action<string> onError)
+        private IEnumerator SubscribeOnlyCoroutine(PublishedFileId_t fileId, string modId, Action<string> onSuccess, Action<string> onError)
         {
-            StartCoroutine(InstallMultipleItemsCoroutine(modIds, onProgress, onComplete, onError));
-        }
+            // Diagnóstico inicial
+            DiagnoseSteamModState(fileId, modId);
 
-        /// <summary>
-        /// Instala múltiplos mods em sequência com mapeamento ID->Nome para melhor UI
-        /// </summary>
-        public void InstallMultipleItems(string[] modIds, Dictionary<string, string> modIdToName, Action<int, int, string> onProgress, Action<string[]> onComplete, Action<string> onError)
-        {
-            StartCoroutine(InstallMultipleItemsCoroutineWithNames(modIds, modIdToName, onProgress, onComplete, onError));
-        }
-
-        private IEnumerator InstallMultipleItemsCoroutineWithNames(string[] modIds, Dictionary<string, string> modIdToName, Action<int, int, string> onProgress, Action<string[]> onComplete, Action<string> onError)
-        {
-            List<string> installedPaths = new List<string>();
-            int completed = 0;
-            bool hasError = false;
-
-            foreach (string modId in modIds)
-            {
-                if (hasError) break;
-
-                bool installSuccess = false;
-                string installPath = "";
-                string installError = "";
-
-                // Pega o nome do mod do mapping, ou usa o ID se não encontrar
-                string modName = modIdToName.ContainsKey(modId) ? modIdToName[modId] : modId;
-
-                DebugConsole.Log($"[WorkshopInstaller] 📥 Iniciando instalação do mod: {modName}");
-                onProgress?.Invoke(completed, modIds.Length, $"📥 Instalando {modName}...");
-
-                InstallWorkshopItem(modId,
-                    onReady: path => {
-                        installSuccess = true;
-                        installPath = path;
-                    },
-                    onError: err => {
-                        installError = err;
-                    }
-                );
-
-                // Espera a instalação terminar
-                yield return new WaitUntil(() => installSuccess || !string.IsNullOrEmpty(installError));
-
-                if (installSuccess)
-                {
-                    installedPaths.Add(installPath);
-                    DebugConsole.Log($"[WorkshopInstaller] ✅ Mod {modName} instalado com sucesso");
-                    onProgress?.Invoke(completed + 1, modIds.Length, $"✅ {modName} instalado! Ativando...");
-                }
-                else
-                {
-                    DebugConsole.LogWarning($"[WorkshopInstaller] ❌ Falha ao instalar mod {modName}: {installError}");
-                    hasError = true;
-                    onError?.Invoke($"Falha na instalação de {modName}: {installError}");
-                    break;
-                }
-
-                completed++;
-
-                // Pequena pausa entre instalações
-                yield return new WaitForSeconds(0.5f);
-            }
-
-            if (!hasError)
-            {
-                onComplete?.Invoke(installedPaths.ToArray());
-            }
-        }
-
-        private IEnumerator InstallMultipleItemsCoroutine(string[] modIds, Action<int, int, string> onProgress, Action<string[]> onComplete, Action<string> onError)
-        {
-            List<string> installedPaths = new List<string>();
-            int completed = 0;
-            bool hasError = false;
-
-            foreach (string modId in modIds)
-            {
-                if (hasError) break;
-
-                bool installSuccess = false;
-                string installPath = "";
-                string installError = "";
-
-                DebugConsole.Log($"[WorkshopInstaller] 📥 Iniciando instalação do mod ID: {modId}");
-                onProgress?.Invoke(completed, modIds.Length, $"📥 Instalando mod {modId}...");
-
-                InstallWorkshopItem(modId,
-                    onReady: path => {
-                        installSuccess = true;
-                        installPath = path;
-                    },
-                    onError: err => {
-                        installError = err;
-                    }
-                );
-
-                // Espera a instalação terminar
-                yield return new WaitUntil(() => installSuccess || !string.IsNullOrEmpty(installError));
-
-                if (installSuccess)
-                {
-                    installedPaths.Add(installPath);
-                    DebugConsole.Log($"[WorkshopInstaller] ✅ Mod {modId} instalado com sucesso");
-                    onProgress?.Invoke(completed + 1, modIds.Length, $"✅ Mod {modId} instalado! Ativando...");
-                }
-                else
-                {
-                    DebugConsole.LogWarning($"[WorkshopInstaller] ❌ Falha ao instalar mod {modId}: {installError}");
-                    hasError = true;
-                    onError?.Invoke($"Falha na instalação de {modId}: {installError}");
-                    break;
-                }
-
-                completed++;
-
-                // Pequena pausa entre instalações
-                yield return new WaitForSeconds(0.5f);
-            }
-
-            if (!hasError)
-            {
-                onComplete?.Invoke(installedPaths.ToArray());
-            }
-        }
-
-        private IEnumerator InstallWorkshopItemCoroutine(PublishedFileId_t fileId, Action<string> onReady, Action<string> onError)
-        {
-            // Verifica se já está instalado primeiro
+            // Verifica se já está subscrito
             uint currentState = SteamUGC.GetItemState(fileId);
-            bool alreadyInstalled = (currentState & (uint)EItemState.k_EItemStateInstalled) != 0;
-            bool needsUpdate = (currentState & (uint)EItemState.k_EItemStateNeedsUpdate) != 0;
+            bool alreadySubscribed = (currentState & (uint)EItemState.k_EItemStateSubscribed) != 0;
 
-            if (alreadyInstalled && !needsUpdate)
+            if (alreadySubscribed)
             {
-                // Já instalado, só pega o caminho
-                string existingPath = GetInstalledItemPath(fileId);
-                if (!string.IsNullOrEmpty(existingPath))
+                DebugConsole.Log($"[WorkshopInstaller] ✅ Mod {modId} já está subscrito - Steam vai gerenciar instalação");
+                onSuccess?.Invoke(modId);
+                yield break;
+            }
+
+            // Faz subscribe simples
+            DebugConsole.Log($"[WorkshopInstaller] 📝 Fazendo subscribe do mod {modId}...");
+
+            // Initialize CallResults if not done yet
+            if (m_SubscribeItemCallResult == null && SteamManager.Initialized)
+            {
+                m_SubscribeItemCallResult = CallResult<RemoteStorageSubscribePublishedFileResult_t>.Create(OnSubscribeItemResult);
+            }
+
+            if (m_SubscribeItemCallResult == null)
+            {
+                onError?.Invoke("Sistema de callback Steam não disponível");
+                yield break;
+            }
+
+            // Faz a chamada de subscribe
+            SteamAPICall_t subscribeCall = SteamUGC.SubscribeItem(fileId);
+            DebugConsole.Log($"[WorkshopInstaller] 📡 Subscribe call made: {subscribeCall} para mod {modId}");
+
+            m_SubscribeItemCallResult.Set(subscribeCall);
+
+            // Aguarda resultado do subscribe
+            float timeoutTime = Time.time + 30f;
+            while (Time.time < timeoutTime)
+            {
+                uint subState = SteamUGC.GetItemState(fileId);
+                bool subscribed = (subState & (uint)EItemState.k_EItemStateSubscribed) != 0;
+
+                if (subscribed)
                 {
-                    DebugConsole.Log($"[WorkshopInstaller] Mod {fileId} já estava instalado em: {existingPath}");
-                    onReady?.Invoke(existingPath);
+                    DebugConsole.Log($"[WorkshopInstaller] ✅ Mod {modId} subscrito com sucesso! Steam fará download automaticamente.");
+                    onSuccess?.Invoke(modId);
                     yield break;
                 }
-            }
 
-            // 1) Subscribe
-            var subscribeCall = SteamUGC.SubscribeItem(fileId);
-            var subscribeResult = new CallResult<RemoteStorageSubscribePublishedFileResult_t>();
-            bool subscribeDone = false;
-            RemoteStorageSubscribePublishedFileResult_t subData = default;
-            bool subIOFailure = false;
-
-            subscribeResult.Set(subscribeCall, (data, ioFailure) =>
-            {
-                subData = data;
-                subIOFailure = ioFailure;
-                subscribeDone = true;
-            });
-
-            // Espera callback do subscribe
-            float timeoutTime = Time.time + 30f; // 30 segundos timeout
-            while (!subscribeDone && Time.time < timeoutTime)
-            {
                 yield return null;
             }
 
-            if (!subscribeDone)
-            {
-                onError?.Invoke($"Timeout ao assinar item {fileId}");
-                yield break;
-            }
-
-            if (subIOFailure || subData.m_eResult != EResult.k_EResultOK)
-            {
-                onError?.Invoke($"Falha ao assinar item {fileId}. Result={subData.m_eResult}");
-                yield break;
-            }
-
-            DebugConsole.Log($"[WorkshopInstaller] Mod {fileId} assinado com sucesso");
-
-            // 2) Força download
-            SteamUGC.DownloadItem(fileId, true);
-
-            // 3) Monitora instalação com logs detalhados
-            timeoutTime = Time.time + 120f; // 2 minutos timeout (alguns mods são grandes)
-            bool hasStartedDownload = false;
-            float lastProgressTime = Time.time;
-
-            DebugConsole.Log($"[WorkshopInstaller] Iniciando monitoramento da instalação do mod {fileId}");
-
-            while (Time.time < timeoutTime)
-            {
-                uint state = SteamUGC.GetItemState(fileId);
-
-                bool installed = (state & (uint)EItemState.k_EItemStateInstalled) != 0;
-                bool updating = (state & (uint)EItemState.k_EItemStateNeedsUpdate) != 0;
-                bool downloading = (state & (uint)EItemState.k_EItemStateDownloading) != 0;
-                bool downloadPending = (state & (uint)EItemState.k_EItemStateDownloadPending) != 0;
-                bool subscribed = (state & (uint)EItemState.k_EItemStateSubscribed) != 0;
-
-                // Log estado atual para debug
-                if (Time.time - lastProgressTime > 5f) // Log a cada 5 segundos
-                {
-                    DebugConsole.Log($"[WorkshopInstaller] Mod {fileId} - Estado: Subscribed={subscribed}, Downloading={downloading}, DownloadPending={downloadPending}, Updating={updating}, Installed={installed}");
-                    lastProgressTime = Time.time;
-                }
-
-                // Detecta se download começou
-                if ((downloading || downloadPending) && !hasStartedDownload)
-                {
-                    hasStartedDownload = true;
-                    DebugConsole.Log($"[WorkshopInstaller] Mod {fileId} começou a baixar");
-                }
-
-                // Força download novamente se necessário
-                if (updating || (!hasStartedDownload && !downloading && !downloadPending && subscribed))
-                {
-                    SteamUGC.DownloadItem(fileId, true);
-                    DebugConsole.Log($"[WorkshopInstaller] Forçando download do mod {fileId}");
-                }
-
-                // Verifica se instalação terminou
-                if (installed && !updating && !downloading && !downloadPending)
-                {
-                    DebugConsole.Log($"[WorkshopInstaller] Mod {fileId} instalação completada!");
-                    break;
-                }
-
-                // Verifica se não está progredindo (timeout dinâmico)
-                if (hasStartedDownload && !downloading && !downloadPending && !installed && Time.time - lastProgressTime > 30f)
-                {
-                    DebugConsole.LogWarning($"[WorkshopInstaller] Mod {fileId} parece ter parado de baixar, tentando novamente...");
-                    SteamUGC.DownloadItem(fileId, true);
-                    lastProgressTime = Time.time;
-                }
-
-                yield return new WaitForSeconds(0.5f); // Check a cada 0.5 segundos
-            }
-
-            // 4) Pega a pasta onde o Steam instalou
-            string finalPath = GetInstalledItemPath(fileId);
-            if (!string.IsNullOrEmpty(finalPath))
-            {
-                DebugConsole.Log($"[WorkshopInstaller] Mod {fileId} instalado em: {finalPath}");
-                onReady?.Invoke(finalPath);
-            }
-            else
-            {
-                onError?.Invoke($"Item {fileId} instalado, mas não consegui obter o diretório");
-            }
+            // Timeout
+            DebugConsole.LogWarning($"[WorkshopInstaller] ⏰ Timeout ao fazer subscribe do mod {modId}");
+            onError?.Invoke($"Timeout ao fazer subscribe do mod {modId}");
         }
 
-        private string GetInstalledItemPath(PublishedFileId_t fileId)
+
+        /// <summary>
+        /// Diagnostica o estado atual de um mod no Steam para debug
+        /// </summary>
+        private void DiagnoseSteamModState(PublishedFileId_t fileId, string modId)
         {
             try
             {
-                ulong sizeOnDisk;
-                uint timeStamp;
-                string folder;
-                bool ok = SteamUGC.GetItemInstallInfo(fileId, out sizeOnDisk, out folder, 1024, out timeStamp);
+                uint currentState = SteamUGC.GetItemState(fileId);
 
-                if (ok && !string.IsNullOrEmpty(folder))
+                bool subscribed = (currentState & (uint)EItemState.k_EItemStateSubscribed) != 0;
+                bool installed = (currentState & (uint)EItemState.k_EItemStateInstalled) != 0;
+                bool downloading = (currentState & (uint)EItemState.k_EItemStateDownloading) != 0;
+                bool downloadPending = (currentState & (uint)EItemState.k_EItemStateDownloadPending) != 0;
+                bool needsUpdate = (currentState & (uint)EItemState.k_EItemStateNeedsUpdate) != 0;
+                bool legacy = (currentState & (uint)EItemState.k_EItemStateLegacyItem) != 0;
+
+                DebugConsole.Log($"[WorkshopInstaller] 📋 Diagnóstico inicial do mod {modId}:");
+                DebugConsole.Log($"[WorkshopInstaller]   • Subscribed: {(subscribed ? "✅" : "❌")}");
+                DebugConsole.Log($"[WorkshopInstaller]   • Installed: {(installed ? "✅" : "❌")}");
+                DebugConsole.Log($"[WorkshopInstaller]   • Downloading: {(downloading ? "✅" : "❌")}");
+                DebugConsole.Log($"[WorkshopInstaller]   • Download Pending: {(downloadPending ? "✅" : "❌")}");
+                DebugConsole.Log($"[WorkshopInstaller]   • Needs Update: {(needsUpdate ? "✅" : "❌")}");
+                DebugConsole.Log($"[WorkshopInstaller]   • Legacy Item: {(legacy ? "✅" : "❌")}");
+                DebugConsole.Log($"[WorkshopInstaller]   • Raw State: {currentState}");
+
+                // Tenta obter informações de instalação se disponíveis
+                string currentPath = GetInstalledItemPath(fileId);
+                if (!string.IsNullOrEmpty(currentPath))
                 {
-                    return folder;
+                    DebugConsole.Log($"[WorkshopInstaller]   • Current Path: {currentPath}");
+                }
+                else
+                {
+                    DebugConsole.Log($"[WorkshopInstaller]   • Current Path: ❌ Não disponível");
                 }
             }
             catch (Exception ex)
             {
-                DebugConsole.LogWarning($"[WorkshopInstaller] Erro ao obter caminho do item {fileId}: {ex.Message}");
+                DebugConsole.LogWarning($"[WorkshopInstaller] Erro no diagnóstico do mod {modId}: {ex.Message}");
             }
-
-            return null;
         }
+
+
+
+
 
         /// <summary>
         /// Ativa um mod no sistema do jogo após instalação
@@ -480,24 +414,67 @@ namespace ONI_MP.Menus
                 // Procura o mod na lista usando múltiplos métodos de busca
                 DebugConsole.Log($"[WorkshopInstaller] 🔍 Procurando mod com ID: '{modId}'");
 
+                // Primeiro, tenta busca mais agressiva para mods legacy
                 foreach (var mod in modManager.mods)
                 {
                     if (mod?.label != null)
                     {
                         string actualId = mod.label.id;
                         string staticId = mod.label.defaultStaticID;
+                        string title = mod.title ?? "";
 
-                        // Múltiplas formas de match (exata, contém, numérica)
-                        bool isMatch = actualId == modId ||
-                                      staticId == modId ||
-                                      actualId.Contains(modId) ||
-                                      staticId.Contains(modId) ||
-                                      modId.Contains(actualId) ||
-                                      modId.Contains(staticId);
+                        // Log detalhado para debug de mods legacy
+                        DebugConsole.Log($"[WorkshopInstaller] 🔍 Verificando mod: '{title}' | ID: '{actualId}' | StaticID: '{staticId}'");
+
+                        // Para mods legacy, o ID pode estar no title ou ser completamente diferente
+                        bool isMatch = false;
+
+                        // 1. Match exato com IDs
+                        if (actualId == modId || staticId == modId)
+                        {
+                            isMatch = true;
+                            DebugConsole.Log($"[WorkshopInstaller] ✅ Match exato por ID!");
+                        }
+                        // 2. ID contém ou está contido
+                        else if (actualId.Contains(modId) || staticId.Contains(modId) ||
+                                modId.Contains(actualId) || modId.Contains(staticId))
+                        {
+                            isMatch = true;
+                            DebugConsole.Log($"[WorkshopInstaller] ✅ Match parcial por ID!");
+                        }
+                        // 3. Para mods legacy: procura o ID no título
+                        else if (title.Contains(modId))
+                        {
+                            isMatch = true;
+                            DebugConsole.Log($"[WorkshopInstaller] ✅ Match por título (mod legacy)!");
+                        }
+                        // 4. Para mods legacy: procura números similares
+                        else if (!string.IsNullOrEmpty(actualId) && !string.IsNullOrEmpty(modId))
+                        {
+                            // Extrai números do actualId e compara
+                            var actualNumbers = System.Text.RegularExpressions.Regex.Matches(actualId, @"\d+");
+                            var searchNumbers = System.Text.RegularExpressions.Regex.Matches(modId, @"\d+");
+
+                            foreach (System.Text.RegularExpressions.Match actualNum in actualNumbers)
+                            {
+                                foreach (System.Text.RegularExpressions.Match searchNum in searchNumbers)
+                                {
+                                    if (actualNum.Value == searchNum.Value && actualNum.Value.Length >= 8) // IDs grandes
+                                    {
+                                        isMatch = true;
+                                        DebugConsole.Log($"[WorkshopInstaller] ✅ Match numérico: {actualNum.Value}!");
+                                        break;
+                                    }
+                                }
+                                if (isMatch) break;
+                            }
+                        }
 
                         if (isMatch)
                         {
-                            DebugConsole.Log($"[WorkshopInstaller] ✅ Mod encontrado! ID: {actualId}, Título: {mod.title}");
+                            DebugConsole.Log($"[WorkshopInstaller] 🎯 Mod encontrado: '{title}'");
+                            DebugConsole.Log($"[WorkshopInstaller]   • ID interno: {actualId}");
+                            DebugConsole.Log($"[WorkshopInstaller]   • Static ID: {staticId}");
 
                             // Verifica se o mod está habilitado
                             bool isEnabled = modManager.IsModEnabled(mod.label);
@@ -507,7 +484,7 @@ namespace ONI_MP.Menus
                             {
                                 try
                                 {
-                                    DebugConsole.Log($"[WorkshopInstaller] 🔧 Ativando mod {mod.title}...");
+                                    DebugConsole.Log($"[WorkshopInstaller] 🔧 Ativando mod {title}...");
 
                                     // Ativa o mod usando o método correto do ONI
                                     modManager.EnableMod(mod.label, true, null);
@@ -519,7 +496,7 @@ namespace ONI_MP.Menus
                                     bool nowEnabled = modManager.IsModEnabled(mod.label);
                                     if (nowEnabled)
                                     {
-                                        DebugConsole.Log($"[WorkshopInstaller] ✅ Mod {modId} ({mod.title}) ATIVADO COM SUCESSO!");
+                                        DebugConsole.Log($"[WorkshopInstaller] ✅ Mod {modId} ({title}) ATIVADO COM SUCESSO!");
                                         return true;
                                     }
                                     else
@@ -536,7 +513,7 @@ namespace ONI_MP.Menus
                             }
                             else
                             {
-                                DebugConsole.Log($"[WorkshopInstaller] ✅ Mod {modId} ({mod.title}) já estava ativo!");
+                                DebugConsole.Log($"[WorkshopInstaller] ✅ Mod {modId} ({title}) já estava ativo!");
                                 return true;
                             }
                         }
@@ -603,28 +580,230 @@ namespace ONI_MP.Menus
         }
 
         /// <summary>
-        /// Instala e ativa um mod automaticamente
+        /// Subscribe e monitora ativação automática de um mod (nova abordagem)
         /// </summary>
-        public void InstallAndActivateMod(string modId, Action<bool> onComplete)
+        public void SubscribeAndActivateMod(string modId, Action<bool> onComplete)
         {
-            InstallWorkshopItem(modId,
-                onReady: installedPath => {
-                    // Pequena pausa para garantir que o sistema detectou o mod
-                    StartCoroutine(DelayedActivation(modId, installedPath, onComplete));
+            DebugConsole.Log($"[WorkshopInstaller] 🚀 Starting subscribe and activate for mod {modId}");
+
+            SubscribeToWorkshopItem(modId,
+                onSuccess: subscribedModId => {
+                    DebugConsole.Log($"[WorkshopInstaller] ✅ Successfully subscribed to mod {subscribedModId} - Steam will handle installation");
+
+                    // Start monitoring Steam's automatic installation and activation
+                    StartCoroutine(MonitorSubscribeAndActivate(modId, onComplete));
                 },
                 onError: error => {
-                    DebugConsole.LogWarning($"[WorkshopInstaller] Falha na instalação automática: {error}");
+                    DebugConsole.LogWarning($"[WorkshopInstaller] ❌ Subscribe failed for mod {modId}: {error}");
                     onComplete?.Invoke(false);
                 }
             );
         }
 
-        private IEnumerator DelayedActivation(string modId, string installedPath, Action<bool> onComplete)
+        /// <summary>
+        /// Monitors Steam installation and attempts activation when ready
+        /// </summary>
+        private System.Collections.IEnumerator MonitorSubscribeAndActivate(string modId, Action<bool> onComplete)
         {
-            yield return new WaitForSeconds(1f); // Pausa para sistema detectar o mod
+            if (!ulong.TryParse(modId, out ulong fileIdULong))
+            {
+                DebugConsole.LogWarning($"[WorkshopInstaller] ❌ Invalid mod ID for monitoring: {modId}");
+                onComplete?.Invoke(false);
+                yield break;
+            }
 
-            bool activated = ActivateInstalledMod(modId, installedPath);
-            onComplete?.Invoke(activated);
+            PublishedFileId_t fileId = new PublishedFileId_t(fileIdULong);
+            DebugConsole.Log($"[WorkshopInstaller] 👀 Monitoring Steam installation for mod {modId}...");
+
+            float timeoutTime = Time.time + 300f; // 5 minutes max
+            bool activationAttempted = false;
+
+            while (Time.time < timeoutTime)
+            {
+                uint currentState = SteamUGC.GetItemState(fileId);
+                bool subscribed = (currentState & (uint)EItemState.k_EItemStateSubscribed) != 0;
+                bool installed = (currentState & (uint)EItemState.k_EItemStateInstalled) != 0;
+                bool downloading = (currentState & (uint)EItemState.k_EItemStateDownloading) != 0;
+
+                if (subscribed && installed && !downloading && !activationAttempted)
+                {
+                    DebugConsole.Log($"[WorkshopInstaller] ✅ Steam completed installation - attempting activation for mod {modId}");
+                    activationAttempted = true;
+
+                    // Small pause to let Steam finish processing
+                    yield return new WaitForSeconds(2f);
+
+                    string installedPath = GetInstalledItemPath(fileId);
+                    bool activated = ActivateInstalledMod(modId, installedPath);
+
+                    DebugConsole.Log($"[WorkshopInstaller] {(activated ? "✅" : "⚠️")} Activation result for mod {modId}: {activated}");
+                    onComplete?.Invoke(activated);
+                    yield break;
+                }
+
+                if (!subscribed)
+                {
+                    DebugConsole.LogWarning($"[WorkshopInstaller] ⚠️ Lost subscription to mod {modId}");
+                    onComplete?.Invoke(false);
+                    yield break;
+                }
+
+                yield return new WaitForSeconds(5f);
+            }
+
+            DebugConsole.LogWarning($"[WorkshopInstaller] ⏰ Timeout waiting for Steam installation of mod {modId}");
+            onComplete?.Invoke(false);
+        }
+
+        /// <summary>
+        /// Obtém o caminho de instalação de um mod Steam
+        /// </summary>
+        private string GetInstalledItemPath(PublishedFileId_t fileId)
+        {
+            try
+            {
+                ulong sizeOnDisk;
+                uint timeStamp;
+                string folder;
+                bool ok = SteamUGC.GetItemInstallInfo(fileId, out sizeOnDisk, out folder, 1024, out timeStamp);
+
+                if (ok && !string.IsNullOrEmpty(folder))
+                {
+                    return folder;
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[WorkshopInstaller] Erro ao obter caminho do item {fileId}: {ex.Message}");
+            }
+
+            return "";
+        }
+
+        /// <summary>
+        /// Diagnóstica problemas comuns de instalação de mods
+        /// </summary>
+        public static void DiagnoseInstallationProblems()
+        {
+            try
+            {
+                DebugConsole.Log("[WorkshopInstaller] 🔧 === DIAGNÓSTICO DO SISTEMA DE INSTALAÇÃO ===");
+
+                // 1. Verifica inicialização do Steam
+                if (!SteamManager.Initialized)
+                {
+                    DebugConsole.LogWarning("[WorkshopInstaller] ❌ PROBLEMA: Steam não está inicializada!");
+                    DebugConsole.Log("[WorkshopInstaller] 💡 Solução: Reinicie o jogo via Steam");
+                    return;
+                }
+                else
+                {
+                    DebugConsole.Log("[WorkshopInstaller] ✅ Steam inicializada corretamente");
+                }
+
+                // 2. Verifica se callbacks estão funcionando
+                try
+                {
+                    SteamAPI.RunCallbacks();
+                    DebugConsole.Log("[WorkshopInstaller] ✅ Callbacks do Steam funcionando");
+                }
+                catch (Exception ex)
+                {
+                    DebugConsole.LogWarning($"[WorkshopInstaller] ❌ PROBLEMA: Callbacks do Steam falhando: {ex.Message}");
+                }
+
+                // 3. Verifica status da rede Steam
+                bool isConnected = SteamUser.BLoggedOn();
+                DebugConsole.Log($"[WorkshopInstaller] {(isConnected ? "✅" : "❌")} Status Steam: {(isConnected ? "Conectado" : "Desconectado")}");
+
+                // 4. Verifica ModManager
+                var modManager = Global.Instance?.modManager;
+                if (modManager == null)
+                {
+                    DebugConsole.LogWarning("[WorkshopInstaller] ❌ PROBLEMA: ModManager não disponível");
+                    DebugConsole.Log("[WorkshopInstaller] 💡 Aguarde o jogo carregar completamente");
+                }
+                else
+                {
+                    DebugConsole.Log($"[WorkshopInstaller] ✅ ModManager disponível ({modManager.mods?.Count ?? 0} mods carregados)");
+                }
+
+                // 5. Verifica instance do WorkshopInstaller
+                if (instance == null)
+                {
+                    DebugConsole.LogWarning("[WorkshopInstaller] ⚠️ WorkshopInstaller não foi criado ainda");
+                }
+                else
+                {
+                    DebugConsole.Log($"[WorkshopInstaller] ✅ WorkshopInstaller ativo, {instance.activeInstalls.Count} instalações ativas");
+                }
+
+                DebugConsole.Log("[WorkshopInstaller] 🔧 === FIM DO DIAGNÓSTICO ===");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[WorkshopInstaller] Erro durante diagnóstico: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Verifica estado específico de um mod por ID
+        /// </summary>
+        public static void CheckSpecificModState(string modId)
+        {
+            try
+            {
+                if (!ulong.TryParse(modId, out ulong fileIdULong))
+                {
+                    DebugConsole.LogWarning($"[WorkshopInstaller] ❌ ID inválido: {modId}");
+                    return;
+                }
+
+                PublishedFileId_t fileId = new PublishedFileId_t(fileIdULong);
+                DebugConsole.Log($"[WorkshopInstaller] 🔍 === VERIFICAÇÃO DO MOD {modId} ===");
+
+                if (!SteamManager.Initialized)
+                {
+                    DebugConsole.LogWarning("[WorkshopInstaller] ❌ Steam não inicializada");
+                    return;
+                }
+
+                // Diagnóstico do estado do mod
+                Instance.DiagnoseSteamModState(fileId, modId);
+
+                // Verifica se mod está no sistema do jogo
+                var modManager = Global.Instance?.modManager;
+                if (modManager != null)
+                {
+                    bool foundInGame = false;
+                    foreach (var mod in modManager.mods)
+                    {
+                        if (mod?.label != null &&
+                            (mod.label.id == modId || mod.label.id.Contains(modId) ||
+                             mod.label.defaultStaticID == modId || mod.label.defaultStaticID.Contains(modId)))
+                        {
+                            foundInGame = true;
+                            bool isEnabled = modManager.IsModEnabled(mod.label);
+                            DebugConsole.Log($"[WorkshopInstaller] ✅ Mod encontrado no jogo: {mod.title}");
+                            DebugConsole.Log($"[WorkshopInstaller]   • Status: {(isEnabled ? "✅ ATIVO" : "⚪ INATIVO")}");
+                            DebugConsole.Log($"[WorkshopInstaller]   • ID do jogo: {mod.label.id}");
+                            break;
+                        }
+                    }
+
+                    if (!foundInGame)
+                    {
+                        DebugConsole.LogWarning($"[WorkshopInstaller] ❌ Mod {modId} NÃO encontrado na lista do jogo");
+                        DebugConsole.Log("[WorkshopInstaller] 💡 Pode precisar recarregar mods ou reiniciar o jogo");
+                    }
+                }
+
+                DebugConsole.Log($"[WorkshopInstaller] 🔍 === FIM VERIFICAÇÃO {modId} ===");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[WorkshopInstaller] Erro ao verificar mod {modId}: {ex.Message}");
+            }
         }
     }
 }

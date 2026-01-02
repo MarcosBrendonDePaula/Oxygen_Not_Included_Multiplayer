@@ -112,7 +112,6 @@ namespace ONI_MP
 
         // Mod Compatibility Settings
         public bool EnableModCompatibilityCheck { get; set; } = true;
-        public bool StrictModeEnabled { get; set; } = true;
         public bool AllowVersionMismatches { get; set; } = false;
         public bool AllowExtraMods { get; set; } = true;
     }

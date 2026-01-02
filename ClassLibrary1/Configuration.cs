@@ -109,6 +109,12 @@ namespace ONI_MP
         public int MaxMessagesPerPoll { get; set; } = 128;
         public int SaveFileTransferChunkKB { get; set; } = 256;
         public LobbySettings Lobby { get; set; } = new LobbySettings();
+
+        // Mod Compatibility Settings
+        public bool EnableModCompatibilityCheck { get; set; } = true;
+        public bool StrictModeEnabled { get; set; } = true;
+        public bool AllowVersionMismatches { get; set; } = false;
+        public bool AllowExtraMods { get; set; } = true;
     }
 
     class LobbySettings

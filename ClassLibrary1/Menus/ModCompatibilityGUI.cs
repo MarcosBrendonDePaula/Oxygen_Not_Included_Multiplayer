@@ -32,6 +32,13 @@ namespace ONI_MP.Menus
         // Track if any mods were modified during this session
         private static bool modsWereModified = false;
 
+        // Installation progress tracking
+        private static bool isInstalling = false;
+        private static float installProgress = 0f;
+        private static string installStatusMessage = "";
+        private static int totalModsToInstall = 0;
+        private static int completedModInstalls = 0;
+
         public static void ShowIncompatibilityError(string reason, string[] missingMods, string[] extraMods, string[] versionMismatches, ulong[] steamModIds)
         {
             try
@@ -67,6 +74,22 @@ namespace ONI_MP.Menus
                 showDialog = true;
 
                 DebugConsole.Log("[ModCompatibilityGUI] Dialog enabled");
+
+                // 🚀 AUTO-INSTALL: Automaticamente inicia a instalação de mods em falta
+                if (missingMods != null && missingMods.Length > 0)
+                {
+                    DebugConsole.Log($"[ModCompatibilityGUI] 🚀 AUTO-INSTALL: Detectados {missingMods.Length} mods em falta - iniciando instalação automática...");
+
+                    // Aguarda um frame para a UI aparecer primeiro, depois inicia instalação automática
+                    if (instance != null)
+                    {
+                        StartCoroutine(instance, DelayedAutoInstall());
+                    }
+                }
+                else
+                {
+                    DebugConsole.Log("[ModCompatibilityGUI] Nenhum mod em falta detectado - só mostrando tela informativa");
+                }
             }
             catch (Exception ex)
             {
@@ -204,7 +227,76 @@ namespace ONI_MP.Menus
             textStyle.wordWrap = true;
             textStyle.normal.textColor = new Color(1f, 1f, 1f, alpha);
 
-            GUI.Label(notificationRect, "Mods enabled successfully!\nPlease restart the game for changes to take effect.", textStyle);
+            GUI.Label(notificationRect, MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.MODS_ENABLED_RESTART_NOTIFICATION, textStyle);
+
+            GUI.color = Color.white;
+        }
+
+        void DrawInstallationProgress()
+        {
+            // Progress header
+            GUIStyle headerStyle = new GUIStyle(GUI.skin.label);
+            headerStyle.fontSize = 16;
+            headerStyle.fontStyle = FontStyle.Bold;
+            headerStyle.alignment = TextAnchor.MiddleCenter;
+            headerStyle.wordWrap = true;
+            headerStyle.normal.textColor = Color.cyan;
+
+            GUILayout.Label(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALLING, headerStyle);
+            GUILayout.Space(10);
+
+            // Status message
+            if (!string.IsNullOrEmpty(installStatusMessage))
+            {
+                GUIStyle statusStyle = new GUIStyle(GUI.skin.label);
+                statusStyle.fontSize = 14;
+                statusStyle.alignment = TextAnchor.MiddleCenter;
+                statusStyle.wordWrap = true;
+                statusStyle.normal.textColor = Color.white;
+
+                GUILayout.Label(installStatusMessage, statusStyle);
+                GUILayout.Space(5);
+            }
+
+            // Progress bar
+            Rect progressRect = GUILayoutUtility.GetRect(250, 25);
+
+            // Background
+            GUI.color = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+            GUI.Box(progressRect, "");
+
+            // Progress fill
+            GUI.color = new Color(0.2f, 0.8f, 0.2f, 0.8f);
+            Rect fillRect = new Rect(
+                progressRect.x + 2,
+                progressRect.y + 2,
+                (progressRect.width - 4) * installProgress,
+                progressRect.height - 4
+            );
+            GUI.Box(fillRect, "");
+
+            // Progress text
+            GUI.color = Color.white;
+            GUIStyle progressTextStyle = new GUIStyle(GUI.skin.label);
+            progressTextStyle.alignment = TextAnchor.MiddleCenter;
+            progressTextStyle.fontStyle = FontStyle.Bold;
+            progressTextStyle.fontSize = 12;
+
+            string progressText = totalModsToInstall > 0 ?
+                $"{completedModInstalls}/{totalModsToInstall} ({(installProgress * 100):F0}%)" :
+                $"{(installProgress * 100):F0}%";
+
+            GUI.Label(progressRect, progressText, progressTextStyle);
+
+            // Instructions
+            GUIStyle instructionStyle = new GUIStyle(GUI.skin.label);
+            instructionStyle.fontSize = 12;
+            instructionStyle.alignment = TextAnchor.MiddleCenter;
+            instructionStyle.wordWrap = true;
+            instructionStyle.normal.textColor = Color.yellow;
+
+            GUILayout.Space(10);
+            GUILayout.Label(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.PLEASE_WAIT, instructionStyle);
 
             GUI.color = Color.white;
         }
@@ -218,16 +310,26 @@ namespace ONI_MP.Menus
             headerStyle.fontSize = 18;
             headerStyle.fontStyle = FontStyle.Bold;
             headerStyle.alignment = TextAnchor.MiddleCenter;
-            headerStyle.normal.textColor = Color.red;
+            headerStyle.normal.textColor = isInstalling ? Color.cyan : Color.red;
 
-            GUILayout.Label("Mod Compatibility Error", headerStyle);
+            string headerText = isInstalling ?
+                "🚀 AUTO-INSTALL EM PROGRESSO" :
+                MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.TITLE;
+
+            GUILayout.Label(headerText, headerStyle);
             GUILayout.Space(10);
 
             // Scroll area for content
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Height(280));
 
+            // Installation progress section (highest priority)
+            if (isInstalling)
+            {
+                DrawInstallationProgress();
+                GUILayout.Space(10);
+            }
             // Restart required message (if all mods were enabled)
-            if (allModsEnabled)
+            else if (allModsEnabled)
             {
                 GUIStyle restartStyle = new GUIStyle(GUI.skin.label);
                 restartStyle.fontSize = 16;
@@ -236,7 +338,7 @@ namespace ONI_MP.Menus
                 restartStyle.alignment = TextAnchor.MiddleCenter;
                 restartStyle.normal.textColor = Color.green;
 
-                GUILayout.Label("All mods have been enabled!", restartStyle);
+                GUILayout.Label(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.ALL_MODS_ENABLED, restartStyle);
                 GUILayout.Space(10);
 
                 GUIStyle restartInstructionStyle = new GUIStyle(GUI.skin.label);
@@ -246,7 +348,7 @@ namespace ONI_MP.Menus
                 restartInstructionStyle.alignment = TextAnchor.MiddleCenter;
                 restartInstructionStyle.normal.textColor = Color.yellow;
 
-                GUILayout.Label("Close this window to restart the game and apply changes.", restartInstructionStyle);
+                GUILayout.Label(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.CLOSE_TO_RESTART, restartInstructionStyle);
                 GUILayout.Space(10);
             }
             // Show modification message (if mods were changed but not all enabled yet)
@@ -259,7 +361,7 @@ namespace ONI_MP.Menus
                 modifiedStyle.alignment = TextAnchor.MiddleCenter;
                 modifiedStyle.normal.textColor = Color.cyan;
 
-                GUILayout.Label("Mods have been enabled. Close this window to restart the game.", modifiedStyle);
+                GUILayout.Label(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.MODS_ENABLED_CLOSE_TO_RESTART, modifiedStyle);
                 GUILayout.Space(10);
             }
             // Reason text
@@ -302,14 +404,14 @@ namespace ONI_MP.Menus
                 // Mostrar apenas mods realmente em falta
                 if (trulyMissingMods.Count > 0)
                 {
-                    DrawModSection("MISSING MODS (install these):", trulyMissingMods.ToArray(), Color.red, "Install");
+                    DrawModSection(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.MISSING_MODS_SECTION, trulyMissingMods.ToArray(), Color.red, MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL);
                     GUILayout.Space(10);
                 }
 
                 // Mostrar mods instalados mas desabilitados separadamente
                 if (installedButDisabledMods.Count > 0)
                 {
-                    DrawModSection("DISABLED MODS (enable these):", installedButDisabledMods.ToArray(), Color.yellow, "Enable");
+                    DrawModSection(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.DISABLED_MODS_SECTION, installedButDisabledMods.ToArray(), Color.yellow, MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.ENABLE);
                     GUILayout.Space(10);
                 }
             }
@@ -319,19 +421,19 @@ namespace ONI_MP.Menus
                 (dialogMissingMods == null || dialogMissingMods.Length == 0) &&
                 (dialogVersionMismatches == null || dialogVersionMismatches.Length == 0))
             {
-                DrawInfoSection("You have extra mods (this is allowed):", dialogExtraMods);
+                DrawInfoSection(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.EXTRA_MODS_INFO, dialogExtraMods);
                 GUILayout.Space(10);
             }
             else if (dialogExtraMods != null && dialogExtraMods.Length > 0)
             {
-                DrawModSection("EXTRA MODS (you have these):", dialogExtraMods, Color.yellow, "View");
+                DrawModSection(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.EXTRA_MODS_SECTION, dialogExtraMods, Color.yellow, MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.VIEW);
                 GUILayout.Space(10);
             }
 
             // Version mismatches section
             if (dialogVersionMismatches != null && dialogVersionMismatches.Length > 0)
             {
-                DrawModSection("VERSION MISMATCHES (update these):", dialogVersionMismatches, Color.cyan, "Update");
+                DrawModSection(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.VERSION_MISMATCH_SECTION, dialogVersionMismatches, Color.cyan, MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.UPDATE);
                 GUILayout.Space(10);
             }
 
@@ -343,11 +445,11 @@ namespace ONI_MP.Menus
 
             if (dialogMissingMods.Length > 0 || dialogVersionMismatches.Length > 0)
             {
-                GUILayout.Label("Install/disable the required mods, then try connecting again.", instructionStyle);
+                GUILayout.Label(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL_DISABLE_INSTRUCTION, instructionStyle);
             }
             else if (dialogExtraMods.Length > 0)
             {
-                GUILayout.Label("Connection allowed. Your extra mods shouldn't cause issues.", instructionStyle);
+                GUILayout.Label(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.CONNECTION_ALLOWED_INFO, instructionStyle);
             }
 
             GUILayout.EndScrollView();
@@ -391,7 +493,7 @@ namespace ONI_MP.Menus
                     installAllStyle.fontStyle = FontStyle.Bold;
                     installAllStyle.normal.textColor = Color.cyan;
 
-                    if (GUILayout.Button("Install All", installAllStyle, GUILayout.Height(35)))
+                    if (GUILayout.Button(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL_ALL, installAllStyle, GUILayout.Height(35)))
                     {
                         InstallAllMods();
                     }
@@ -407,7 +509,7 @@ namespace ONI_MP.Menus
                     enableAllStyle.fontStyle = FontStyle.Bold;
                     enableAllStyle.normal.textColor = Color.green;
 
-                    if (GUILayout.Button("Enable All", enableAllStyle, GUILayout.Height(35)))
+                    if (GUILayout.Button(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.ENABLE_ALL, enableAllStyle, GUILayout.Height(35)))
                     {
                         EnableAllMods();
                     }
@@ -426,7 +528,7 @@ namespace ONI_MP.Menus
             buttonStyle.fontSize = 14;
             buttonStyle.fontStyle = FontStyle.Bold;
 
-            if (GUILayout.Button("Close", buttonStyle, GUILayout.Height(35)))
+            if (GUILayout.Button(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.CLOSE, buttonStyle, GUILayout.Height(35)))
             {
                 CloseDialog();
             }
@@ -473,7 +575,7 @@ namespace ONI_MP.Menus
                     enableButtonStyle.fontSize = 9;
                     enableButtonStyle.normal.textColor = Color.green;
 
-                    if (GUILayout.Button("Enable", enableButtonStyle, GUILayout.Width(55), GUILayout.Height(20)))
+                    if (GUILayout.Button(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.ENABLE, enableButtonStyle, GUILayout.Width(55), GUILayout.Height(20)))
                     {
                         EnableMod(mod);
                     }
@@ -715,6 +817,75 @@ namespace ONI_MP.Menus
             }
         }
 
+        private void DisableMod(string modDisplayName)
+        {
+            try
+            {
+                string modId = ExtractModId(modDisplayName);
+                var modManager = Global.Instance?.modManager;
+
+                if (modManager == null)
+                {
+                    DebugConsole.LogWarning("[ModCompatibilityGUI] ModManager not available for disable");
+                    return;
+                }
+
+                // Search for the mod using robust ID matching for Steam mods
+                foreach (var mod in modManager.mods)
+                {
+                    if (mod?.label != null)
+                    {
+                        string defaultId = mod.label.defaultStaticID;
+                        string labelId = mod.label.id;
+                        bool foundMod = false;
+
+                        // Check multiple ID formats for Steam mods
+                        if (defaultId == modId || labelId == modId ||
+                            defaultId == modDisplayName || labelId == modDisplayName ||
+                            (modId != modDisplayName && (defaultId.StartsWith(modId) || labelId.StartsWith(modId))))
+                        {
+                            foundMod = true;
+                            DebugConsole.Log($"[ModCompatibilityGUI] Found mod to disable: {modDisplayName} -> {defaultId}");
+                        }
+
+                        if (foundMod)
+                        {
+                            // Check if already disabled
+                            if (!mod.IsEnabledForActiveDlc())
+                            {
+                                DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} was already disabled");
+                                return;
+                            }
+
+                            try
+                            {
+                                // Disable the mod using proper ONI API
+                                mod.SetEnabledForActiveDlc(false);
+
+                                DebugConsole.Log($"[ModCompatibilityGUI] Mod {modDisplayName} disabled successfully!");
+
+                                // Mark that mods were modified (restart will happen when closing dialog)
+                                modsWereModified = true;
+
+                                return;
+                            }
+                            catch (Exception ex)
+                            {
+                                DebugConsole.LogWarning($"[ModCompatibilityGUI] Error disabling mod {modDisplayName}: {ex.Message}");
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Mod {modDisplayName} not found for disable");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Error in DisableMod: {ex.Message}");
+            }
+        }
+
         private void EnableMod(string modDisplayName)
         {
             try
@@ -810,10 +981,15 @@ namespace ONI_MP.Menus
                     DebugConsole.Log($"[ModCompatibilityGUI] Attempting to enable mod: {modDisplayName}");
                     EnableMod(modDisplayName);
                 }
+                else if (buttonText == "Install")
+                {
+                    // Try auto-installation first, fallback to Steam Workshop page if it fails
+                    DebugConsole.Log($"[ModCompatibilityGUI] Attempting to auto-install mod: {modDisplayName}");
+                    InstallSingleMod(modDisplayName);
+                }
                 else
                 {
-                    // All other buttons (Install, View, Update) - open Steam Workshop page
-                    // User must manually install mods via Steam Workshop
+                    // Other buttons (View, Update) - open Steam Workshop page
                     DebugConsole.Log($"[ModCompatibilityGUI] Opening Steam Workshop for mod: {modDisplayName}");
                     OpenSteamWorkshopPage(modDisplayName);
                 }
@@ -826,39 +1002,150 @@ namespace ONI_MP.Menus
             }
         }
 
+        private void InstallSingleMod(string modDisplayName)
+        {
+            try
+            {
+                // Check if Steam is initialized
+                if (!SteamManager.Initialized)
+                {
+                    DebugConsole.LogWarning($"[ModCompatibilityGUI] Steam not initialized - opening workshop page for: {modDisplayName}");
+                    OpenSteamWorkshopPage(modDisplayName);
+                    return;
+                }
+
+                // Extract and validate mod ID
+                string modId = ExtractModId(modDisplayName);
+                DebugConsole.Log($"[ModCompatibilityGUI] Extracted mod ID: '{modId}' from '{modDisplayName}'");
+
+                if (string.IsNullOrEmpty(modId) || !ulong.TryParse(modId, out ulong testId))
+                {
+                    DebugConsole.LogWarning($"[ModCompatibilityGUI] Invalid mod ID '{modId}' - opening workshop page for: {modDisplayName}");
+                    OpenSteamWorkshopPage(modDisplayName);
+                    return;
+                }
+
+                DebugConsole.Log($"[ModCompatibilityGUI] Attempting auto-installation of mod {modId}");
+
+                // Initialize progress for single mod installation
+                StartInstallationProgress(1, string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALLING_SINGLE, modDisplayName));
+
+                // Use WorkshopInstaller for auto-installation
+                WorkshopInstaller.Instance.InstallWorkshopItem(
+                    modId,
+                    onReady: path => {
+                        UpdateInstallationProgress(1, 1, MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.ACTIVATING_MOD);
+                        DebugConsole.Log($"[ModCompatibilityGUI] Successfully installed mod {modId} to: {path}");
+
+                        // Try to activate the mod automatically
+                        if (WorkshopInstaller.Instance.ActivateInstalledMod(modId, path))
+                        {
+                            modsWereModified = true;
+                            CompleteInstallationProgress(string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL_SUCCESS_SINGLE, modDisplayName));
+                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modId} activated successfully!");
+                        }
+                        else
+                        {
+                            CompleteInstallationProgress(string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL_PARTIAL_SUCCESS_SINGLE, modDisplayName));
+                            DebugConsole.Log($"[ModCompatibilityGUI] Mod {modId} installed but may need manual activation or game restart");
+                        }
+                    },
+                    onError: error => {
+                        CompleteInstallationProgress(string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.FAILED_INSTALL_ERROR, modDisplayName, error));
+                        DebugConsole.LogWarning($"[ModCompatibilityGUI] Auto-installation failed for mod {modId}: {error}");
+                        DebugConsole.Log($"[ModCompatibilityGUI] Falling back to Steam Workshop page for: {modDisplayName}");
+                        OpenSteamWorkshopPage(modDisplayName);
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                CompleteInstallationProgress(string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL_FAILED_SINGLE, modDisplayName, ex.Message));
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Exception in InstallSingleMod for {modDisplayName}: {ex.Message}");
+                OpenSteamWorkshopPage(modDisplayName);
+            }
+        }
+
         private void InstallAllMods()
         {
             try
             {
                 if (dialogMissingMods == null || dialogMissingMods.Length == 0)
+                {
+                    DebugConsole.LogWarning("[ModCompatibilityGUI] No missing mods to install");
                     return;
+                }
 
                 DebugConsole.Log($"[ModCompatibilityGUI] Starting installation of {dialogMissingMods.Length} mods...");
 
-                // Extract mod IDs
+                // Check if Steam is initialized
+                if (!SteamManager.Initialized)
+                {
+                    DebugConsole.LogWarning("[ModCompatibilityGUI] Steam not initialized - cannot auto-install mods");
+                    // Fallback: open first Steam Workshop page
+                    if (dialogMissingMods.Length > 0)
+                    {
+                        OpenSteamWorkshopPage(dialogMissingMods[0]);
+                    }
+                    return;
+                }
+
+                // Debug: Log all missing mods before processing
+                DebugConsole.Log("[ModCompatibilityGUI] Missing mods list:");
+                for (int i = 0; i < dialogMissingMods.Length; i++)
+                {
+                    DebugConsole.Log($"  [{i}] {dialogMissingMods[i]}");
+                }
+
+                // Extract mod IDs with better debugging and create mapping
                 List<string> modIds = new List<string>();
+                Dictionary<string, string> modIdToName = new Dictionary<string, string>();
+
                 foreach (var mod in dialogMissingMods)
                 {
                     string modId = ExtractModId(mod);
-                    if (!string.IsNullOrEmpty(modId))
+                    DebugConsole.Log($"[ModCompatibilityGUI] Extracted ID '{modId}' from '{mod}'");
+
+                    if (!string.IsNullOrEmpty(modId) && ulong.TryParse(modId, out ulong testId))
                     {
                         modIds.Add(modId);
+                        modIdToName[modId] = mod; // Mapeia ID para nome completo
+                        DebugConsole.Log($"[ModCompatibilityGUI] Valid Steam Workshop ID: {modId}");
+                    }
+                    else
+                    {
+                        DebugConsole.LogWarning($"[ModCompatibilityGUI] Invalid or non-numeric mod ID: '{modId}' from '{mod}'");
                     }
                 }
 
                 if (modIds.Count == 0)
                 {
-                    DebugConsole.LogWarning("[ModCompatibilityGUI] No valid mod IDs found");
+                    DebugConsole.LogWarning("[ModCompatibilityGUI] No valid Steam Workshop mod IDs found - opening workshop page instead");
+                    // Fallback: open first Steam Workshop page
+                    if (dialogMissingMods.Length > 0)
+                    {
+                        OpenSteamWorkshopPage(dialogMissingMods[0]);
+                    }
                     return;
                 }
 
-                // Use WorkshopInstaller to install all
+                DebugConsole.Log($"[ModCompatibilityGUI] Proceeding with {modIds.Count} valid mod IDs");
+
+                // Initialize progress tracking
+                string autoInstallMsg = $"🚀 AUTO-INSTALL: {MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.PREPARING_INSTALL}";
+                StartInstallationProgress(modIds.Count, autoInstallMsg);
+
+                // Use WorkshopInstaller to install all with mod name mapping
                 WorkshopInstaller.Instance.InstallMultipleItems(
                     modIds.ToArray(),
-                    onProgress: (completed, total) => {
-                        DebugConsole.Log($"[ModCompatibilityGUI] Installation progress: {completed}/{total}");
+                    modIdToName,
+                    onProgress: (completed, total, statusMessage) => {
+                        // Mostra status específico de cada mod durante a instalação
+                        UpdateInstallationProgress(completed, total, $"🚀 AUTO-INSTALL: {statusMessage}");
+                        DebugConsole.Log($"[ModCompatibilityGUI] {statusMessage} ({completed}/{total})");
                     },
                     onComplete: installedPaths => {
+                        UpdateInstallationProgress(modIds.Count, modIds.Count, MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.ACTIVATING_MODS);
                         DebugConsole.Log($"[ModCompatibilityGUI] Batch installation completed! {installedPaths.Length} mods processed");
 
                         // Try to activate all installed mods
@@ -867,26 +1154,43 @@ namespace ONI_MP.Menus
                         {
                             if (!string.IsNullOrEmpty(installedPaths[i]))
                             {
+                                DebugConsole.Log($"[ModCompatibilityGUI] Attempting to activate mod {modIds[i]} from {installedPaths[i]}");
                                 if (WorkshopInstaller.Instance.ActivateInstalledMod(modIds[i], installedPaths[i]))
                                 {
                                     activatedCount++;
                                 }
                             }
+                            else
+                            {
+                                DebugConsole.LogWarning($"[ModCompatibilityGUI] No install path for mod {modIds[i]}");
+                            }
                         }
 
-                        DebugConsole.Log($"[ModCompatibilityGUI] {activatedCount} mods activated automatically");
+                        DebugConsole.Log($"[ModCompatibilityGUI] {activatedCount} mods activated automatically out of {modIds.Count}");
 
-                        if (activatedCount < modIds.Count)
+                        if (activatedCount > 0)
                         {
-                            DebugConsole.Log("[ModCompatibilityGUI] Some mods may need manual activation or game restart");
+                            modsWereModified = true;
+                            DebugConsole.Log("[ModCompatibilityGUI] Mods were successfully installed and activated!");
+                            CompleteInstallationProgress(string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL_SUCCESS, activatedCount));
+                        }
+                        else if (installedPaths.Length > 0)
+                        {
+                            CompleteInstallationProgress(string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL_PARTIAL_SUCCESS, installedPaths.Length));
+                        }
+                        else
+                        {
+                            CompleteInstallationProgress(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL_NO_MODS_PROCESSED);
                         }
                     },
                     onError: error => {
+                        CompleteInstallationProgress(string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL_FAILED_GENERIC, error));
                         DebugConsole.LogWarning($"[ModCompatibilityGUI] Error in batch installation: {error}");
 
                         // Fallback: open first Steam Workshop page
                         if (dialogMissingMods.Length > 0)
                         {
+                            DebugConsole.Log("[ModCompatibilityGUI] Falling back to opening Steam Workshop page");
                             OpenSteamWorkshopPage(dialogMissingMods[0]);
                         }
                     }
@@ -894,7 +1198,15 @@ namespace ONI_MP.Menus
             }
             catch (Exception ex)
             {
+                CompleteInstallationProgress(string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.INSTALL_FAILED_GENERIC, ex.Message));
                 DebugConsole.LogWarning($"[ModCompatibilityGUI] Error in InstallAllMods: {ex.Message}");
+                DebugConsole.LogWarning($"[ModCompatibilityGUI] Stack trace: {ex.StackTrace}");
+
+                // Fallback on any exception
+                if (dialogMissingMods != null && dialogMissingMods.Length > 0)
+                {
+                    OpenSteamWorkshopPage(dialogMissingMods[0]);
+                }
             }
         }
 
@@ -1028,9 +1340,9 @@ namespace ONI_MP.Menus
                 // Usa WorkshopInstaller para instalar e ativar mods automaticamente
                 WorkshopInstaller.Instance.InstallMultipleItems(
                     steamModIdStrings,
-                    onProgress: (completed, total) =>
+                    onProgress: (completed, total, statusMessage) =>
                     {
-                        DebugConsole.Log($"[ModCompatibilityGUI] Progresso da instalação: {completed}/{total}");
+                        DebugConsole.Log($"[ModCompatibilityGUI] Progresso da instalação: {statusMessage} ({completed}/{total})");
                     },
                     onComplete: installedPaths =>
                     {
@@ -1166,6 +1478,227 @@ namespace ONI_MP.Menus
             {
                 DebugConsole.LogWarning($"[ModCompatibilityGUI] Error in SaveAndRestart: {ex.Message}");
                 DebugConsole.Log("[ModCompatibilityGUI] Please restart the game manually to apply mod changes.");
+            }
+        }
+
+        // ==================== Installation progress functions ====================
+
+        private static void StartInstallationProgress(int totalMods, string statusMessage)
+        {
+            isInstalling = true;
+            installProgress = 0f;
+            installStatusMessage = statusMessage;
+            totalModsToInstall = totalMods;
+            completedModInstalls = 0;
+
+            DebugConsole.Log($"[ModCompatibilityGUI] Started installation progress: {totalMods} mods, status: {statusMessage}");
+        }
+
+        private static void UpdateInstallationProgress(int completed, int total, string statusMessage)
+        {
+            if (!isInstalling) return;
+
+            completedModInstalls = completed;
+            totalModsToInstall = total;
+            installProgress = total > 0 ? (float)completed / total : 1f;
+            installStatusMessage = statusMessage;
+
+            DebugConsole.Log($"[ModCompatibilityGUI] Updated progress: {completed}/{total} ({installProgress * 100:F1}%) - {statusMessage}");
+        }
+
+        private static void CompleteInstallationProgress(string finalMessage)
+        {
+            if (!isInstalling) return;
+
+            installProgress = 1f;
+            installStatusMessage = finalMessage;
+
+            DebugConsole.Log($"[ModCompatibilityGUI] Installation progress completed: {finalMessage}");
+
+            // Hide progress after a delay to show completion message
+            StartCoroutine(instance, HideProgressAfterDelay(3f)); // 3 seconds to show completion
+        }
+
+        private static System.Collections.IEnumerator HideProgressAfterDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+
+            isInstalling = false;
+            installProgress = 0f;
+            installStatusMessage = "";
+            totalModsToInstall = 0;
+            completedModInstalls = 0;
+
+            DebugConsole.Log("[ModCompatibilityGUI] Installation progress hidden");
+        }
+
+        private static Coroutine StartCoroutine(MonoBehaviour behaviour, System.Collections.IEnumerator coroutine)
+        {
+            if (behaviour != null)
+            {
+                return behaviour.StartCoroutine(coroutine);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 🚀 AUTO-INSTALL: Corrotina que automaticamente processa mods em falta quando a tela aparece
+        /// </summary>
+        private static System.Collections.IEnumerator DelayedAutoInstall()
+        {
+            DebugConsole.Log("[ModCompatibilityGUI] 🚀 Iniciando processamento automático de mods em 2 segundos...");
+
+            // Aguarda 2 segundos para a UI aparecer primeiro
+            yield return new WaitForSeconds(2f);
+
+            // Verifica se ainda há mods em falta (pode ter mudado)
+            if (dialogMissingMods != null && dialogMissingMods.Length > 0)
+            {
+                DebugConsole.Log($"[ModCompatibilityGUI] 🚀 Processando {dialogMissingMods.Length} mods em falta...");
+
+                // Separa mods em duas categorias: instalados mas desabilitados vs não instalados
+                var modsToActivate = new List<string>();
+                var modsToInstall = new List<string>();
+
+                // Obtem instância para usar métodos de verificação de mod
+                var guiInstance = instance;
+                if (guiInstance == null)
+                {
+                    DebugConsole.LogWarning("[ModCompatibilityGUI] ❌ Instância GUI não disponível para verificar mods");
+                    yield break;
+                }
+
+                foreach (var mod in dialogMissingMods)
+                {
+                    if (guiInstance.IsModInstalled(mod) && !guiInstance.IsModEnabled(mod))
+                    {
+                        modsToActivate.Add(mod);
+                        DebugConsole.Log($"[ModCompatibilityGUI] ✅ Mod já instalado, só precisa ativar: {mod}");
+                    }
+                    else if (!guiInstance.IsModInstalled(mod))
+                    {
+                        modsToInstall.Add(mod);
+                        DebugConsole.Log($"[ModCompatibilityGUI] 📥 Mod precisa ser instalado: {mod}");
+                    }
+                    else
+                    {
+                        DebugConsole.Log($"[ModCompatibilityGUI] ⚠️ Mod {mod} em estado indefinido - será processado como instalação");
+                        modsToInstall.Add(mod);
+                    }
+                }
+
+                // 🚫 VERIFICA MODS EXTRAS: Se host não aceita, desabilita automaticamente
+                var modsToDisable = new List<string>();
+                if (dialogExtraMods != null && dialogExtraMods.Length > 0)
+                {
+                    // Verifica se host permite mods extras
+                    bool hostAllowsExtraMods = Configuration.Instance?.Host?.AllowExtraMods ?? true;
+
+                    if (!hostAllowsExtraMods)
+                    {
+                        DebugConsole.Log($"[ModCompatibilityGUI] 🚫 Host NÃO permite mods extras - desabilitando {dialogExtraMods.Length} mods automaticamente");
+
+                        foreach (var extraMod in dialogExtraMods)
+                        {
+                            // Verifica se mod está ativo usando funções estáticas corretas
+                            if (guiInstance != null && guiInstance.IsModEnabled(extraMod))
+                            {
+                                modsToDisable.Add(extraMod);
+                                DebugConsole.Log($"[ModCompatibilityGUI] 🚫 Mod extra será desabilitado: {extraMod}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        DebugConsole.Log($"[ModCompatibilityGUI] ✅ Host permite mods extras - mantendo {dialogExtraMods.Length} mods ativos");
+                    }
+                }
+
+                DebugConsole.Log($"[ModCompatibilityGUI] 📊 Resumo: {modsToActivate.Count} para ativar, {modsToInstall.Count} para instalar, {modsToDisable.Count} para desabilitar");
+
+                // Processa todas as fases sem try-catch para evitar problemas com yield
+                var guiInstance2 = instance;
+                if (guiInstance2 == null)
+                {
+                    DebugConsole.LogWarning("[ModCompatibilityGUI] ❌ Instância GUI não disponível");
+                    yield break;
+                }
+
+                // 🚫 FASE 0: Desabilita mods extras se o host não aceita
+                if (modsToDisable.Count > 0)
+                {
+                    DebugConsole.Log($"[ModCompatibilityGUI] 🚫 FASE 0: Desabilitando {modsToDisable.Count} mods extras não aceitos pelo host...");
+
+                    StartInstallationProgress(modsToDisable.Count, "🚫 Desabilitando mods extras...");
+
+                    for (int i = 0; i < modsToDisable.Count; i++)
+                    {
+                        string modName = modsToDisable[i];
+                        UpdateInstallationProgress(i, modsToDisable.Count, $"🚫 Desabilitando {modName}...");
+
+                        guiInstance2.DisableMod(modName);
+                        yield return new WaitForSeconds(0.3f); // Pequena pausa entre desabilitações
+                    }
+
+                    CompleteInstallationProgress("🚫 Mods extras foram desabilitados!");
+                    yield return new WaitForSeconds(1f); // Pausa para mostrar a conclusão
+                }
+
+                // 1️⃣ PRIMEIRO: Ativa mods que já estão instalados
+                if (modsToActivate.Count > 0)
+                {
+                    DebugConsole.Log($"[ModCompatibilityGUI] 🔧 FASE 1: Ativando {modsToActivate.Count} mods já instalados...");
+
+                    StartInstallationProgress(modsToActivate.Count, "🔧 Ativando mods já instalados...");
+
+                    for (int i = 0; i < modsToActivate.Count; i++)
+                    {
+                        string modName = modsToActivate[i];
+                        UpdateInstallationProgress(i, modsToActivate.Count, $"🔧 Ativando {modName}...");
+
+                        guiInstance2.EnableMod(modName);
+                        yield return new WaitForSeconds(0.3f); // Pequena pausa entre ativações
+                    }
+
+                    CompleteInstallationProgress("✅ Mods instalados foram ativados!");
+                    yield return new WaitForSeconds(1f); // Pausa para mostrar a conclusão
+                }
+
+                // 2️⃣ SEGUNDO: Instala mods que não estão instalados
+                if (modsToInstall.Count > 0)
+                {
+                    DebugConsole.Log($"[ModCompatibilityGUI] 📥 FASE 2: Instalando {modsToInstall.Count} mods não instalados...");
+
+                    // Temporariamente substitui a lista para a função de instalação
+                    var originalMissingMods = dialogMissingMods;
+                    dialogMissingMods = modsToInstall.ToArray();
+
+                    guiInstance2.InstallAllMods();
+
+                    // Restaura a lista original
+                    dialogMissingMods = originalMissingMods;
+                }
+
+                // 3️⃣ RESULTADO FINAL
+                int totalProcessed = modsToDisable.Count + modsToActivate.Count + modsToInstall.Count;
+                if (totalProcessed > 0)
+                {
+                    string summary = "";
+                    if (modsToDisable.Count > 0) summary += $"{modsToDisable.Count} mods extras desabilitados, ";
+                    if (modsToActivate.Count > 0) summary += $"{modsToActivate.Count} mods ativados, ";
+                    if (modsToInstall.Count > 0) summary += $"{modsToInstall.Count} mods instalados, ";
+
+                    summary = summary.TrimEnd(',', ' ');
+                    DebugConsole.Log($"[ModCompatibilityGUI] ✅ Processamento completo: {summary}");
+                }
+                else
+                {
+                    DebugConsole.Log("[ModCompatibilityGUI] ✅ Nenhum processamento necessário - tudo já compatível!");
+                }
+            }
+            else
+            {
+                DebugConsole.Log("[ModCompatibilityGUI] ❌ Nenhum mod em falta para processar");
             }
         }
     }

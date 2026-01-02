@@ -11,15 +11,19 @@ namespace ONI_MP.Networking.Compatibility
     {
         private static List<ModInfo> _hostMods = null;
         private static Dictionary<CSteamID, ModVerificationPacket> _clientModCache = new Dictionary<CSteamID, ModVerificationPacket>();
+
+        // Configuration loaded from host settings
+        private static bool _modVerificationEnabled = true;
         private static bool _strictModeEnabled = true;
         private static bool _allowVersionMismatches = false;
-
-        // Ignore version checking for now - focus only on mod presence
-        private const bool IGNORE_VERSION_CHECKS = true;
+        private static bool _allowExtraMods = true;
 
         public static void Initialize()
         {
             DebugConsole.Log("[ModCompatibilityManager] Initializing...");
+
+            // Load configuration from host settings
+            LoadConfiguration();
 
             if (MultiplayerSession.IsHost)
             {
@@ -28,6 +32,35 @@ namespace ONI_MP.Networking.Compatibility
 
             // Clear client cache
             _clientModCache.Clear();
+        }
+
+        private static void LoadConfiguration()
+        {
+            try
+            {
+                var config = Configuration.Instance.Host;
+
+                _modVerificationEnabled = config.EnableModCompatibilityCheck;
+                _strictModeEnabled = config.StrictModeEnabled;
+                _allowVersionMismatches = config.AllowVersionMismatches;
+                _allowExtraMods = config.AllowExtraMods;
+
+                DebugConsole.Log($"[ModCompatibilityManager] Configuration loaded:");
+                DebugConsole.Log($"  - Mod verification: {(_modVerificationEnabled ? "ENABLED" : "DISABLED")}");
+                DebugConsole.Log($"  - Strict mode: {(_strictModeEnabled ? "ENABLED" : "DISABLED")}");
+                DebugConsole.Log($"  - Allow version mismatches: {(_allowVersionMismatches ? "YES" : "NO")}");
+                DebugConsole.Log($"  - Allow extra mods: {(_allowExtraMods ? "YES" : "NO")}");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.LogWarning($"[ModCompatibilityManager] Error loading configuration: {ex.Message}");
+                DebugConsole.Log("[ModCompatibilityManager] Using default settings");
+            }
+        }
+
+        public static bool IsModVerificationEnabled()
+        {
+            return _modVerificationEnabled;
         }
 
         public static void Shutdown()
@@ -157,7 +190,7 @@ namespace ONI_MP.Networking.Compatibility
                     }
                     else if (hostMod.HasVersionMismatch(clientMod))
                     {
-                        if (!IGNORE_VERSION_CHECKS && !hostMod.AllowVersionMismatch && !_allowVersionMismatches)
+                        if (!_allowVersionMismatches && !hostMod.AllowVersionMismatch)
                         {
                             result.AddVersionMismatch(GetModName(hostMod.StaticID));
                             DebugConsole.Log($"  Version mismatch: {hostMod.StaticID} vs {clientMod.StaticID}");
@@ -170,16 +203,24 @@ namespace ONI_MP.Networking.Compatibility
                     }
                 }
 
-                // Log extra mods but DO NOT reject for them (permissive policy)
+                // Handle extra mods based on configuration
                 foreach (var clientMod in clientMods)
                 {
                     var hostMod = _hostMods.FirstOrDefault(h => h.StaticID == clientMod.StaticID);
 
                     if (hostMod == null)
                     {
-                        // Client has extra mod that host doesn't have - use friendly name for better UX
+                        // Client has extra mod that host doesn't have
                         result.AddExtraMod(GetModName(clientMod.StaticID));
-                        DebugConsole.Log($"  Client has extra mod (allowed): {clientMod.StaticID}");
+
+                        if (_allowExtraMods)
+                        {
+                            DebugConsole.Log($"  Client has extra mod (allowed): {clientMod.StaticID}");
+                        }
+                        else
+                        {
+                            DebugConsole.Log($"  Client has extra mod (rejected): {clientMod.StaticID}");
+                        }
                     }
                 }
 
@@ -196,12 +237,18 @@ namespace ONI_MP.Networking.Compatibility
                     }
                 }
 
-                // Determine final result - only reject for missing mods or version mismatches
-                // Extra mods are allowed (permissive policy)
-                if (result.MissingMods.Count == 0 && result.VersionMismatches.Count == 0)
+                // Determine final result based on configuration
+                var hasMissingMods = result.MissingMods.Count > 0;
+                var hasVersionMismatches = result.VersionMismatches.Count > 0;
+                var hasExtraMods = result.ExtraMods.Count > 0;
+
+                // Check if we should reject based on extra mods
+                var shouldRejectExtraMods = hasExtraMods && !_allowExtraMods;
+
+                if (!hasMissingMods && !hasVersionMismatches && !shouldRejectExtraMods)
                 {
                     result.IsCompatible = true;
-                    if (result.ExtraMods.Count > 0)
+                    if (hasExtraMods && _allowExtraMods)
                     {
                         result.RejectReason = $"Compatible (client has {result.ExtraMods.Count} extra mod(s))";
                         DebugConsole.Log($"[ModCompatibilityManager] Client {clientPacket.ClientSteamID} APPROVED with extra mods");
@@ -217,11 +264,11 @@ namespace ONI_MP.Networking.Compatibility
                     result.IsCompatible = false;
                     var issues = new List<string>();
 
-                    if (result.MissingMods.Count > 0)
+                    if (hasMissingMods)
                         issues.Add($"{result.MissingMods.Count} missing mods");
-                    if (result.ExtraMods.Count > 0)
-                        issues.Add($"{result.ExtraMods.Count} extra mods");
-                    if (result.VersionMismatches.Count > 0)
+                    if (shouldRejectExtraMods)
+                        issues.Add($"{result.ExtraMods.Count} extra mods not allowed");
+                    if (hasVersionMismatches)
                         issues.Add($"{result.VersionMismatches.Count} version mismatches");
 
                     result.RejectReason = $"Mod incompatibility: {string.Join(", ", issues)}";

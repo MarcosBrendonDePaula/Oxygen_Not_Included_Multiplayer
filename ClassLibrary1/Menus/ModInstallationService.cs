@@ -353,7 +353,7 @@ namespace ONI_MP.Menus
         }
 
         /// <summary>
-        /// Coroutine to subscribe to all missing mods sequentially
+        /// Coroutine to subscribe to all missing mods in parallel with Steam monitoring
         /// </summary>
         private IEnumerator SubscribeAllModsCoroutine(string[] missingMods, System.Action<int, int> onProgress, System.Action<List<string>, List<string>> onComplete)
         {
@@ -374,11 +374,13 @@ namespace ONI_MP.Menus
             }
 
             int totalMods = trulyMissingMods.Count;
-            int completedMods = 0;
             List<string> successfulMods = new List<string>();
             List<string> failedMods = new List<string>();
 
-            DebugConsole.Log($"[ModInstallationService] Starting subscription to {totalMods} mods...");
+            DebugConsole.Log($"[ModInstallationService] Starting parallel subscription to {totalMods} mods...");
+
+            // Step 1: Fire-and-forget all subscriptions quickly
+            var validMods = new List<(string displayName, string modId)>();
 
             foreach (string modDisplayName in trulyMissingMods)
             {
@@ -388,61 +390,185 @@ namespace ONI_MP.Menus
                 {
                     DebugConsole.LogWarning($"[ModInstallationService] Invalid mod ID for: {modDisplayName}");
                     failedMods.Add(modDisplayName);
-                    completedMods++;
-                    onProgress?.Invoke(completedMods, totalMods);
                     continue;
                 }
 
-                DebugConsole.Log($"[ModInstallationService] Subscribing to mod {completedMods + 1}/{totalMods}: {modDisplayName}");
+                validMods.Add((modDisplayName, modId));
 
-                // Set mod to subscribing state
+                // Fire-and-forget subscription - don't wait for response
+                DebugConsole.Log($"[ModInstallationService] Sending subscription request for: {modDisplayName} (ID: {modId})");
                 ModStateManager.SetModSubscribing(modDisplayName);
 
-                bool subscribeComplete = false;
-                bool subscribeSuccess = false;
+                try
+                {
+                    WorkshopInstaller.Instance.SubscribeToWorkshopItem(
+                        modId,
+                        onSuccess: subscribedModId => {
+                            DebugConsole.Log($"[ModInstallationService] Workshop subscription confirmed for: {modDisplayName}");
+                        },
+                        onError: error => {
+                            DebugConsole.Log($"[ModInstallationService] Workshop subscription response error (but Steam may still process): {modDisplayName} - {error}");
+                        }
+                    );
+                }
+                catch (System.Exception ex)
+                {
+                    DebugConsole.LogWarning($"[ModInstallationService] Exception sending subscription for {modDisplayName}: {ex.Message}");
+                }
 
-                // Use the simple subscribe function
-                WorkshopInstaller.Instance.SubscribeToWorkshopItem(
-                    modId,
-                    onSuccess: subscribedModId => {
-                        subscribeComplete = true;
-                        subscribeSuccess = true;
-                        DebugConsole.Log($"[ModInstallationService] Successfully subscribed to {modDisplayName}");
-                        successfulMods.Add(modDisplayName);
+                // Small delay between submissions to avoid overwhelming Steam
+                yield return new WaitForSeconds(0.5f);
+            }
+
+            // Step 2: Start parallel Steam monitoring for all valid mods
+            DebugConsole.Log($"[ModInstallationService] Starting Steam monitoring for {validMods.Count} mods...");
+
+            var monitoringCoroutines = new List<Coroutine>();
+            var completedMods = new Dictionary<string, bool>();
+
+            foreach (var (displayName, modId) in validMods)
+            {
+                completedMods[displayName] = false;
+                var coroutine = StartCoroutine(MonitorSingleModInstallation(modId, displayName,
+                    onSuccess: () => {
+                        if (!completedMods[displayName])
+                        {
+                            completedMods[displayName] = true;
+                            successfulMods.Add(displayName);
+                            onProgress?.Invoke(successfulMods.Count + failedMods.Count, totalMods);
+                        }
                     },
-                    onError: error => {
-                        subscribeComplete = true;
-                        subscribeSuccess = false;
-                        DebugConsole.LogWarning($"[ModInstallationService] Failed to subscribe to {modDisplayName}: {error}");
-                        failedMods.Add(modDisplayName);
+                    onError: (error) => {
+                        if (!completedMods[displayName])
+                        {
+                            completedMods[displayName] = true;
+                            failedMods.Add(displayName);
+                            onProgress?.Invoke(successfulMods.Count + failedMods.Count, totalMods);
+                        }
                     }
-                );
+                ));
+                monitoringCoroutines.Add(coroutine);
+            }
 
-                // Wait for subscription to complete (with timeout)
-                float timeoutTime = Time.time + 30f;
-                while (!subscribeComplete && Time.time < timeoutTime)
+            // Step 3: Wait for all monitoring to complete (max 10 minutes total)
+            float timeoutTime = Time.time + 600f; // 10 minutes for all mods
+
+            while ((successfulMods.Count + failedMods.Count) < validMods.Count && Time.time < timeoutTime)
+            {
+                yield return new WaitForSeconds(2f); // Check every 2 seconds
+            }
+
+            // Stop any remaining monitoring coroutines
+            foreach (var coroutine in monitoringCoroutines)
+            {
+                if (coroutine != null)
                 {
-                    yield return null;
+                    StopCoroutine(coroutine);
                 }
+            }
 
-                if (!subscribeComplete)
+            // Handle any mods that didn't complete
+            foreach (var (displayName, modId) in validMods)
+            {
+                if (!completedMods[displayName])
                 {
-                    DebugConsole.LogWarning($"[ModInstallationService] Timeout subscribing to {modDisplayName}");
-                    failedMods.Add(modDisplayName);
+                    DebugConsole.LogWarning($"[ModInstallationService] Timeout monitoring {displayName} - may still be installing");
+                    failedMods.Add(displayName);
                 }
-
-                // Update mod state
-                ModStateManager.UpdateModStateAfterOperation(modDisplayName);
-                completedMods++;
-                onProgress?.Invoke(completedMods, totalMods);
-
-                // Small pause between subscriptions
-                yield return new WaitForSeconds(1f);
+                ModStateManager.UpdateModStateAfterOperation(displayName);
             }
 
             // Summary
-            DebugConsole.Log($"[ModInstallationService] Subscription complete: {successfulMods.Count} successful, {failedMods.Count} failed");
+            DebugConsole.Log($"[ModInstallationService] Parallel subscription complete: {successfulMods.Count} successful, {failedMods.Count} failed/timeout");
             onComplete?.Invoke(successfulMods, failedMods);
+        }
+
+        /// <summary>
+        /// Monitors a single mod installation without the coroutine from the main monitoring method
+        /// </summary>
+        private IEnumerator MonitorSingleModInstallation(string modId, string modDisplayName, System.Action onSuccess, System.Action<string> onError)
+        {
+            if (!ulong.TryParse(modId, out ulong fileIdULong))
+            {
+                DebugConsole.LogWarning($"[ModInstallationService] Invalid mod ID for monitoring: {modId}");
+                onError?.Invoke("Invalid mod ID");
+                yield break;
+            }
+
+            PublishedFileId_t fileId = new PublishedFileId_t(fileIdULong);
+            DebugConsole.Log($"[ModInstallationService] Starting Steam monitoring for mod {modId} ({modDisplayName})");
+
+            float timeoutTime = Time.time + 300f; // 5 minutes per mod
+            float lastLogTime = Time.time;
+
+            while (Time.time < timeoutTime)
+            {
+                try
+                {
+                    uint currentState = SteamUGC.GetItemState(fileId);
+                    bool subscribed = (currentState & (uint)EItemState.k_EItemStateSubscribed) != 0;
+                    bool installed = (currentState & (uint)EItemState.k_EItemStateInstalled) != 0;
+                    bool downloading = (currentState & (uint)EItemState.k_EItemStateDownloading) != 0;
+                    bool isLegacyItem = (currentState & (uint)EItemState.k_EItemStateLegacyItem) != 0;
+
+                    // Log status every 60 seconds
+                    if (Time.time - lastLogTime > 60f)
+                    {
+                        DebugConsole.Log($"[ModInstallationService] Steam status for {modDisplayName}: Subscribed={subscribed}, Installed={installed}, Downloading={downloading}, Legacy={isLegacyItem}");
+                        lastLogTime = Time.time;
+                    }
+
+                    // Check if installation completed
+                    // For Legacy Items: installed=true is enough (subscribed can be false)
+                    // For Regular Items: need both subscribed=true AND installed=true
+                    bool installCompleted = false;
+
+                    if (isLegacyItem)
+                    {
+                        // Legacy items: just need to be installed
+                        installCompleted = installed && !downloading;
+                        if (installCompleted)
+                        {
+                            DebugConsole.Log($"[ModInstallationService] Legacy mod {modDisplayName} installation completed!");
+                        }
+                    }
+                    else
+                    {
+                        // Regular items: need subscription + installation
+                        installCompleted = subscribed && installed && !downloading;
+                        if (installCompleted)
+                        {
+                            DebugConsole.Log($"[ModInstallationService] Steam completed installation of {modDisplayName}!");
+                        }
+                    }
+
+                    if (installCompleted)
+                    {
+                        DebugConsole.Log($"[ModInstallationService] Mod {modDisplayName} installation completed - ready for user to enable if desired");
+
+                        if (onSuccess != null) onSuccess();
+                        yield break;
+                    }
+
+                    // If subscription was lost, stop monitoring (but not for Legacy Items)
+                    if (!isLegacyItem && !subscribed && Time.time > (Time.time + 30f)) // Give Steam 30 seconds to process subscription
+                    {
+                        DebugConsole.LogWarning($"[ModInstallationService] Lost subscription to mod {modId} - stopping monitoring");
+                        onError?.Invoke("Lost subscription");
+                        yield break;
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    DebugConsole.LogWarning($"[ModInstallationService] Error monitoring mod {modId}: {ex.Message}");
+                }
+
+                yield return new WaitForSeconds(5f); // Check every 5 seconds
+            }
+
+            // Timeout reached
+            DebugConsole.LogWarning($"[ModInstallationService] Steam monitoring timeout for mod {modId} after 5 minutes");
+            onError?.Invoke("Monitoring timeout");
         }
 
         /// <summary>
@@ -484,21 +610,9 @@ namespace ONI_MP.Menus
                     if (subscribed && installed && !downloading && !downloadPending)
                     {
                         DebugConsole.Log($"[ModInstallationService] Steam completed installation of mod {modId}!");
+                        DebugConsole.Log($"[ModInstallationService] Mod {modDisplayName} is ready for user to enable if desired");
 
-                        // Try to activate the mod
-                        string installedPath = GetSteamModPath(fileId);
-                        if (WorkshopInstaller.Instance.ActivateInstalledMod(modId, installedPath))
-                        {
-                            DebugConsole.Log($"[ModInstallationService] Mod {modDisplayName} successfully activated!");
-                            ModRestartManager.MarkModsModified();
-                            if (onSuccess != null) onSuccess();
-                        }
-                        else
-                        {
-                            DebugConsole.Log($"[ModInstallationService] Mod {modDisplayName} installed but activation pending");
-                            if (onSuccess != null) onSuccess(); // Still consider it a success
-                        }
-
+                        if (onSuccess != null) onSuccess();
                         yield break;
                     }
 

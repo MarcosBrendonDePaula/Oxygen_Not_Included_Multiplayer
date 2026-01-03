@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using ONI_MP.DebugTools;
+using ONI_MP.Managers;
 
 namespace ONI_MP.Menus
 {
@@ -110,7 +111,7 @@ namespace ONI_MP.Menus
             titleStyle.fontStyle = FontStyle.Bold;
             titleStyle.normal.textColor = Color.white;
 
-            GUILayout.Label("Modificações Aplicadas", titleStyle);
+            GUILayout.Label(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.CHANGES_APPLIED_TITLE, titleStyle);
 
             GUIStyle summaryStyle = new GUIStyle(GUI.skin.label);
             summaryStyle.fontSize = 14;
@@ -130,14 +131,14 @@ namespace ONI_MP.Menus
             // Activated mods section
             if (activatedMods.Count > 0)
             {
-                DrawModSection("Mods Ativados:", activatedMods, Color.green, "✓");
+                DrawModSection(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.ACTIVATED_MODS_SECTION, activatedMods, Color.green, "✓");
                 GUILayout.Space(10);
             }
 
             // Deactivated mods section
             if (deactivatedMods.Count > 0)
             {
-                DrawModSection("Mods Desativados:", deactivatedMods, new Color(1f, 0.6f, 0f), "✗");
+                DrawModSection(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.DEACTIVATED_MODS_SECTION, deactivatedMods, new Color(1f, 0.6f, 0f), "✗");
                 GUILayout.Space(10);
             }
 
@@ -167,21 +168,21 @@ namespace ONI_MP.Menus
             if (totalChanges == 1)
             {
                 if (activatedMods.Count == 1)
-                    return "1 mod foi ativado";
+                    return MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.ONE_MOD_ACTIVATED;
                 else
-                    return "1 mod foi desativado";
+                    return MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.ONE_MOD_DEACTIVATED;
             }
             else if (activatedMods.Count > 0 && deactivatedMods.Count == 0)
             {
-                return $"{activatedMods.Count} mods foram ativados";
+                return string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.MULTIPLE_MODS_ACTIVATED, activatedMods.Count);
             }
             else if (deactivatedMods.Count > 0 && activatedMods.Count == 0)
             {
-                return $"{deactivatedMods.Count} mods foram desativados";
+                return string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.MULTIPLE_MODS_DEACTIVATED, deactivatedMods.Count);
             }
             else
             {
-                return $"{totalChanges} mods foram modificados";
+                return string.Format(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.MULTIPLE_MODS_MODIFIED, totalChanges);
             }
         }
 
@@ -258,7 +259,7 @@ namespace ONI_MP.Menus
             warningTextStyle.normal.textColor = Color.yellow;
             warningTextStyle.wordWrap = true;
 
-            GUILayout.Label("É necessário reiniciar o jogo para aplicar estas mudanças.", warningTextStyle);
+            GUILayout.Label(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.GAME_RESTART_REQUIRED_MESSAGE, warningTextStyle);
 
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
@@ -278,7 +279,7 @@ namespace ONI_MP.Menus
             restartNowStyle.fontStyle = FontStyle.Bold;
             restartNowStyle.normal.textColor = Color.green;
 
-            if (GUILayout.Button("Reiniciar Agora", restartNowStyle, GUILayout.Height(40), GUILayout.MinWidth(150)))
+            if (GUILayout.Button(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.RESTART_NOW, restartNowStyle, GUILayout.Height(40), GUILayout.MinWidth(150)))
             {
                 DebugConsole.Log("[ModApplyConfirmationDialog] User chose to restart now");
                 CloseDialog();
@@ -292,7 +293,7 @@ namespace ONI_MP.Menus
             restartLaterStyle.fontSize = 14;
             restartLaterStyle.normal.textColor = Color.gray;
 
-            if (GUILayout.Button("Reiniciar Mais Tarde", restartLaterStyle, GUILayout.Height(40), GUILayout.MinWidth(150)))
+            if (GUILayout.Button(MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.RESTART_LATER, restartLaterStyle, GUILayout.Height(40), GUILayout.MinWidth(150)))
             {
                 DebugConsole.Log("[ModApplyConfirmationDialog] User chose to restart later");
                 CloseDialog();

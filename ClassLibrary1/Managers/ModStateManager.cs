@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using ONI_MP.DebugTools;
+using ONI_MP.Utilities;
 
-namespace ONI_MP.Menus
+namespace ONI_MP.Managers
 {
     /// <summary>
     /// Manages mod states, caching, and verification to improve performance

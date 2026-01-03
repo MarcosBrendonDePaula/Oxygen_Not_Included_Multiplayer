@@ -5,7 +5,7 @@ using UnityEngine;
 using Steamworks;
 using ONI_MP.DebugTools;
 
-namespace ONI_MP.Menus
+namespace ONI_MP.Services
 {
     public class WorkshopInstaller : MonoBehaviour
     {
@@ -45,11 +45,10 @@ namespace ONI_MP.Menus
             {
                 m_SubscribeItemCallResult = CallResult<RemoteStorageSubscribePublishedFileResult_t>.Create(OnSubscribeItemResult);
                 m_UnsubscribeItemCallResult = CallResult<RemoteStorageUnsubscribePublishedFileResult_t>.Create(OnUnsubscribeItemResult);
-                DebugConsole.Log("[WorkshopInstaller] 🔧 CallResults initialized successfully");
             }
             else
             {
-                DebugConsole.LogWarning("[WorkshopInstaller] ⚠️ Steam not initialized during Awake - CallResults will be initialized later");
+                DebugConsole.LogWarning("[WorkshopInstaller] Steam not initialized during Awake");
             }
         }
 
@@ -61,7 +60,7 @@ namespace ONI_MP.Menus
                 SteamAPI.RunCallbacks();
             }
 
-            // Verifica pendências de ativação a cada 5 segundos
+            // Check for pending activations every 5 seconds
             if (Time.time - lastActivationCheck > 5f)
             {
                 CheckForPendingActivations();
@@ -94,18 +93,18 @@ namespace ONI_MP.Menus
                 string modId = kvp.Key;
                 float pendingTime = kvp.Value;
 
-                // Remove mods que estão pendentes há mais de 2 minutos
+                // Remove mods pending for more than 2 minutes
                 if (Time.time - pendingTime > 120f)
                 {
-                    DebugConsole.LogWarning($"[WorkshopInstaller] ⏰ Timeout: Mod {modId} removido da fila de ativação pendente");
+                    DebugConsole.LogWarning($"[WorkshopInstaller] Timeout: Mod {modId} removed from pending activation queue");
                     keysToRemove.Add(modId);
                     continue;
                 }
 
-                // Tenta ativar mods pendentes
+                // Try to activate pending mods
                 try
                 {
-                    modManager.Report(null); // Refresh da lista
+                    modManager.Report(null); // Refresh list
 
                     foreach (var mod in modManager.mods)
                     {
@@ -115,11 +114,6 @@ namespace ONI_MP.Menus
                             {
                                 modManager.EnableMod(mod.label, true, null);
                                 modManager.Save();
-                                DebugConsole.Log($"[WorkshopInstaller] ✅ Mod {modId} ativado automaticamente em background!");
-                            }
-                            else
-                            {
-                                DebugConsole.Log($"[WorkshopInstaller] ✅ Mod {modId} já estava ativo!");
                             }
                             keysToRemove.Add(modId);
                             break;
@@ -128,7 +122,7 @@ namespace ONI_MP.Menus
                 }
                 catch (Exception ex)
                 {
-                    DebugConsole.LogWarning($"[WorkshopInstaller] Erro ao ativar mod pendente {modId}: {ex.Message}");
+                    DebugConsole.LogWarning($"[WorkshopInstaller] Error activating pending mod {modId}: {ex.Message}");
                 }
             }
 
@@ -146,27 +140,21 @@ namespace ONI_MP.Menus
         {
             try
             {
-                DebugConsole.Log($"[WorkshopInstaller] 📡 SUBSCRIBE CALLBACK RECEIVED for {result.m_nPublishedFileId}");
-                DebugConsole.Log($"[WorkshopInstaller]   • IO Failure: {bIOFailure}");
-                DebugConsole.Log($"[WorkshopInstaller]   • Result Code: {result.m_eResult}");
-                DebugConsole.Log($"[WorkshopInstaller]   • Published File ID: {result.m_nPublishedFileId}");
-
                 if (bIOFailure)
                 {
-                    DebugConsole.LogWarning($"[WorkshopInstaller] ❌ Subscribe failed due to IO failure for {result.m_nPublishedFileId}");
+                    DebugConsole.LogWarning($"[WorkshopInstaller] Subscribe failed due to IO failure for {result.m_nPublishedFileId}");
                     currentSubscriptionOnError?.Invoke($"IO failure during subscription of {result.m_nPublishedFileId}");
                     return;
                 }
 
                 if (result.m_eResult == EResult.k_EResultOK)
                 {
-                    DebugConsole.Log($"[WorkshopInstaller] ✅ Successfully subscribed to item {result.m_nPublishedFileId}");
-                    // Continue with installation process - this will be handled by the coroutine waiting for the callback
+                    // Continue with installation process - handled by coroutine waiting for callback
                 }
                 else
                 {
                     string errorMsg = $"Subscribe failed with result: {result.m_eResult}";
-                    DebugConsole.LogWarning($"[WorkshopInstaller] ❌ {errorMsg} for {result.m_nPublishedFileId}");
+                    DebugConsole.LogWarning($"[WorkshopInstaller] {errorMsg} for {result.m_nPublishedFileId}");
 
                     // Common error explanations
                     switch (result.m_eResult)
@@ -199,33 +187,24 @@ namespace ONI_MP.Menus
         }
 
         /// <summary>
-        /// Detailed callback for unsubscribe operations (Steamworks.NET best practice)
+        /// Callback for unsubscribe operations
         /// </summary>
         private void OnUnsubscribeItemResult(RemoteStorageUnsubscribePublishedFileResult_t result, bool bIOFailure)
         {
-            DebugConsole.Log($"[WorkshopInstaller] 📡 UNSUBSCRIBE CALLBACK for {result.m_nPublishedFileId}");
-            DebugConsole.Log($"[WorkshopInstaller]   • IO Failure: {bIOFailure}");
-            DebugConsole.Log($"[WorkshopInstaller]   • Result Code: {result.m_eResult}");
-
             if (bIOFailure || result.m_eResult != EResult.k_EResultOK)
             {
-                DebugConsole.LogWarning($"[WorkshopInstaller] ⚠️ Unsubscribe had issues: IO={bIOFailure}, Result={result.m_eResult}");
-            }
-            else
-            {
-                DebugConsole.Log($"[WorkshopInstaller] ✅ Successfully unsubscribed from {result.m_nPublishedFileId}");
+                DebugConsole.LogWarning($"[WorkshopInstaller] Unsubscribe failed: IO={bIOFailure}, Result={result.m_eResult}");
             }
         }
 
         /// <summary>
-        /// Adiciona um mod à fila de ativação pendente
+        /// Adds a mod to the pending activation queue
         /// </summary>
         public void AddToPendingActivation(string modId)
         {
             if (!pendingActivations.ContainsKey(modId))
             {
                 pendingActivations[modId] = Time.time;
-                DebugConsole.Log($"[WorkshopInstaller] 📋 Mod {modId} adicionado à fila de ativação pendente");
             }
         }
 
@@ -236,21 +215,21 @@ namespace ONI_MP.Menus
         {
             if (!SteamManager.Initialized)
             {
-                DebugConsole.LogWarning($"[WorkshopInstaller] ❌ Steam não inicializada para mod {modId}");
-                onError?.Invoke("Steam não inicializada");
+                DebugConsole.LogWarning($"[WorkshopInstaller] Steam not initialized for mod {modId}");
+                onError?.Invoke("Steam not initialized");
                 return;
             }
 
-            // Converte string ID para PublishedFileId_t
+            // Convert string ID to PublishedFileId_t
             if (!ulong.TryParse(modId, out ulong fileIdULong))
             {
-                DebugConsole.LogWarning($"[WorkshopInstaller] ❌ ID de mod inválido: {modId}");
-                onError?.Invoke($"ID de mod inválido: {modId}");
+                DebugConsole.LogWarning($"[WorkshopInstaller] Invalid mod ID: {modId}");
+                onError?.Invoke($"Invalid mod ID: {modId}");
                 return;
             }
 
             PublishedFileId_t fileId = new PublishedFileId_t(fileIdULong);
-            DebugConsole.Log($"[WorkshopInstaller] 📝 Fazendo APENAS subscribe do mod {modId} (Steam fará instalação)");
+            // Steam will handle installation automatically
 
             StartCoroutine(SubscribeOnlyCoroutine(fileId, modId, onSuccess, onError));
         }
@@ -285,7 +264,7 @@ namespace ONI_MP.Menus
 
             if (m_SubscribeItemCallResult == null)
             {
-                onError?.Invoke("Sistema de callback Steam não disponível");
+                onError?.Invoke("Steam callback system not available");
                 yield break;
             }
 

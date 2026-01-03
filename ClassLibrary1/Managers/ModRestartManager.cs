@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using ONI_MP.DebugTools;
 
-namespace ONI_MP.Menus
+namespace ONI_MP.Managers
 {
     /// <summary>
     /// Manages game restart functionality and notifications when mods are modified

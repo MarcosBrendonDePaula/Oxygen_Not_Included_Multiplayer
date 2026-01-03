@@ -5,8 +5,10 @@ using System.Linq;
 using UnityEngine;
 using Steamworks;
 using ONI_MP.DebugTools;
+using ONI_MP.Managers;
+using ONI_MP.Utilities;
 
-namespace ONI_MP.Menus
+namespace ONI_MP.Services
 {
     /// <summary>
     /// Handles mod installation, Steam integration, and activation/deactivation
@@ -67,7 +69,6 @@ namespace ONI_MP.Menus
                             (modId != modDisplayName && (defaultId.StartsWith(modId) || labelId.StartsWith(modId))))
                         {
                             foundMod = true;
-                            DebugConsole.Log($"[ModInstallationService] Found mod to enable: {modDisplayName} -> {defaultId}");
                         }
 
                         if (foundMod)
@@ -75,7 +76,6 @@ namespace ONI_MP.Menus
                             // Check if already enabled using proper ONI method
                             if (mod.IsEnabledForActiveDlc())
                             {
-                                DebugConsole.Log($"[ModInstallationService] Mod {modDisplayName} was already enabled");
                                 return;
                             }
 
@@ -91,7 +91,6 @@ namespace ONI_MP.Menus
                             {
                                 // Enable the mod using proper ONI API
                                 mod.SetEnabledForActiveDlc(true);
-                                DebugConsole.Log($"[ModInstallationService] Mod {modDisplayName} enabled successfully!");
 
                                 // Mark that mods were modified
                                 ModRestartManager.MarkModsModified();
@@ -148,7 +147,6 @@ namespace ONI_MP.Menus
                             (modId != modDisplayName && (defaultId.StartsWith(modId) || labelId.StartsWith(modId))))
                         {
                             foundMod = true;
-                            DebugConsole.Log($"[ModInstallationService] Found mod to disable: {modDisplayName} -> {defaultId}");
                         }
 
                         if (foundMod)
@@ -156,7 +154,6 @@ namespace ONI_MP.Menus
                             // Check if already disabled
                             if (!mod.IsEnabledForActiveDlc())
                             {
-                                DebugConsole.Log($"[ModInstallationService] Mod {modDisplayName} was already disabled");
                                 return;
                             }
 
@@ -164,7 +161,6 @@ namespace ONI_MP.Menus
                             {
                                 // Disable the mod using proper ONI API
                                 mod.SetEnabledForActiveDlc(false);
-                                DebugConsole.Log($"[ModInstallationService] Mod {modDisplayName} disabled successfully!");
 
                                 // Mark that mods were modified
                                 ModRestartManager.MarkModsModified();

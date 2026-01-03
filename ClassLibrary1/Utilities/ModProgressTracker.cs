@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using ONI_MP.DebugTools;
 
-namespace ONI_MP.Menus
+namespace ONI_MP.Utilities
 {
     /// <summary>
     /// Manages installation progress tracking and UI updates
@@ -54,7 +54,6 @@ namespace ONI_MP.Menus
             totalModsToInstall = totalMods;
             completedModInstalls = 0;
 
-            DebugConsole.Log($"[ModProgressTracker] Started installation progress: {totalMods} mods, status: {statusMessage}");
         }
 
         /// <summary>
@@ -72,7 +71,6 @@ namespace ONI_MP.Menus
             installProgress = total > 0 ? (float)completed / total : 1f;
             installStatusMessage = statusMessage;
 
-            DebugConsole.Log($"[ModProgressTracker] Updated progress: {completed}/{total} ({installProgress * 100:F1}%) - {statusMessage}");
         }
 
         /// <summary>
@@ -84,7 +82,6 @@ namespace ONI_MP.Menus
             if (!isInstalling) return;
 
             installStatusMessage = statusMessage;
-            DebugConsole.Log($"[ModProgressTracker] Progress step: {statusMessage}");
         }
 
         /// <summary>
@@ -99,7 +96,6 @@ namespace ONI_MP.Menus
             installProgress = totalModsToInstall > 0 ? (float)completedModInstalls / totalModsToInstall : 1f;
             installStatusMessage = statusMessage;
 
-            DebugConsole.Log($"[ModProgressTracker] Progress incremented: {completedModInstalls}/{totalModsToInstall} ({installProgress * 100:F1}%) - {statusMessage}");
         }
 
         /// <summary>
@@ -113,7 +109,6 @@ namespace ONI_MP.Menus
             installProgress = 1f;
             installStatusMessage = finalMessage;
 
-            DebugConsole.Log($"[ModProgressTracker] Installation progress completed: {finalMessage}");
         }
 
         /// <summary>
@@ -145,7 +140,6 @@ namespace ONI_MP.Menus
             totalModsToInstall = 0;
             completedModInstalls = 0;
 
-            DebugConsole.Log("[ModProgressTracker] Installation progress hidden");
         }
 
         /// <summary>

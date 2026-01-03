@@ -2,6 +2,8 @@ using UnityEngine;
 using System;
 using ONI_MP.DebugTools;
 using ONI_MP.Networking;
+using ONI_MP.Managers;
+using ONI_MP.Utilities;
 
 namespace ONI_MP.Menus
 {
@@ -328,12 +330,12 @@ namespace ONI_MP.Menus
 
             if (ModRestartManager.ModsWereModified)
             {
-                buttonText = "Aplicar"; // Apply changes
+                buttonText = MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.APPLY;
                 buttonColor = Color.green;
             }
             else
             {
-                buttonText = "Cancelar"; // Cancel/Close
+                buttonText = MP_STRINGS.UI.MODCOMPATIBILITY.POPUP.CANCEL;
                 buttonColor = Color.gray;
             }
 

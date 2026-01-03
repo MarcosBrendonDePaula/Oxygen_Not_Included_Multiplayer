@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ONI_MP.DebugTools;
 
-namespace ONI_MP.Menus
+namespace ONI_MP.Utilities
 {
     /// <summary>
     /// Manages log throttling to prevent spam while maintaining useful debugging information
@@ -82,7 +82,6 @@ namespace ONI_MP.Menus
         public static void ClearThrottling()
         {
             lastLogTime.Clear();
-            DebugConsole.Log("[ModLogThrottler] Log throttling cache cleared");
         }
 
         /// <summary>
@@ -90,7 +89,6 @@ namespace ONI_MP.Menus
         /// </summary>
         public static void LogThrottlingStatus()
         {
-            DebugConsole.Log($"[ModLogThrottler] Currently tracking {lastLogTime.Count} throttled message types");
         }
     }
 }

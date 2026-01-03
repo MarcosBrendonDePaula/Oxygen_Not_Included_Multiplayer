@@ -110,6 +110,19 @@ namespace ONI_MP
 					public static LocString CONNECTION_ALLOWED_INFO = "Connection allowed. Your extra mods shouldn't cause issues.";
 					public static LocString FAILED_INSTALL_ERROR = "Failed to install {0}: {1}";
 
+					// Apply confirmation dialog strings
+					public static LocString APPLY = "Apply";
+					public static LocString CANCEL = "Cancel";
+					public static LocString CHANGES_APPLIED_TITLE = "Changes Applied";
+					public static LocString ACTIVATED_MODS_SECTION = "Activated Mods:";
+					public static LocString DEACTIVATED_MODS_SECTION = "Deactivated Mods:";
+					public static LocString ONE_MOD_ACTIVATED = "1 mod was activated";
+					public static LocString ONE_MOD_DEACTIVATED = "1 mod was deactivated";
+					public static LocString MULTIPLE_MODS_ACTIVATED = "{0} mods were activated";
+					public static LocString MULTIPLE_MODS_DEACTIVATED = "{0} mods were deactivated";
+					public static LocString MULTIPLE_MODS_MODIFIED = "{0} mods were modified";
+					public static LocString GAME_RESTART_REQUIRED_MESSAGE = "A game restart is required to apply these changes.";
+
 					// Restart prompt strings (ItsLuke feedback: native restart prompt)
 					public static LocString DISABLE = "Disable";
 					public static LocString RESTART_REQUIRED_TITLE = "Game Restart Required";
